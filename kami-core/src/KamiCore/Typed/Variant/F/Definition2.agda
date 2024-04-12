@@ -4,6 +4,7 @@
 module KamiCore.Typed.Variant.F.Definition2 where
 
 open import Agora.Conventions hiding (m ; n ; k ; _∣_)
+open import Agora.Data.Product.Definition
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
@@ -13,14 +14,7 @@ open import Agora.Category.Std.Natural.Definition
 -- open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition -- hiding (_◆_)
 -- open import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition
 
-open import Data.Vec
-
--- open 2CellDefinition
--- open ModeSystem
-
--- module _ {𝓂 : 𝒰 _} {{𝓂p : 2Category 𝑖 on 𝓂}} where
--- module _ {𝓂 : 𝒰 _} {{𝓂p : 2Category 𝑖 on 𝓂}} where
-
+open import Data.Vec hiding ([_])
 
 
 record MTTꟳ (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
@@ -32,45 +26,6 @@ open MTTꟳ {{...}} public
 
 
 
-module _ where
-  open import Agora.Conventions.Meta.Term
-  open import Agora.Conventions.Meta.Universe
-
-  _/_ : ∀{A : 𝒰 𝑖} -> {F : {a : A} -> 𝒰 𝑘} -> (B : {{a : A}} -> F {a}) -> (a : A) -> F {a}
-  _/_ B a = B {{a}}
-
-  applyInnermost : Term -> TC 𝟙-𝒰
-  applyInnermost (def n args) = return tt
-  applyInnermost t = printErr ("is not application: " <> show t)
-
-  replaceFirstInstanceArg : (termWithLams : Term) -> (replacement : Term) -> TC Term
-  replaceFirstInstanceArg t0@(lam instance′ (abs varname t)) r = do
-    let t' = tesubst (0 , λ args -> r) t
-    return t'
-    -- printErr ("input: " <> show t0 <> "\nreplacement: " <> show r <> "\nresult term: " <> show t')
-
-  --   `T` <- inferType `t`
-  --   ``
-  --   quoteTC (`t` {{r}})
-
-  replaceFirstInstanceArg (lam v (abs varname rest)) r = do
-    res <- replaceFirstInstanceArg rest (liftFrom 0 r)
-    -- return (lam v (Abs.abs varname res))
-
-    let res' = (lowerAt 0 res)
-    return res' -- (lam v (Abs.abs varname res))
-  replaceFirstInstanceArg t r = printErr ("is not application: " <> show t)
-
-  macro
-    _from_ : Term -> Term -> Term -> TC 𝟙-𝒰
-    _from_ app insert hole = do
-      app' <- withReconstructed true (normalise app)
-      res <- replaceFirstInstanceArg app' insert
-      -- res' <- withReconstructed true (normalise res)
-      unify hole res
-
-
--- module _ {𝓂 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝓂}} {{_ : is2Category {𝑘} ′ 𝓂 ′}} where
 module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   private
     𝓂' : Category _
@@ -135,6 +90,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   private variable
     Γ : Ctx m
     Δ : Ctx n
+    Ε : Ctx o
 
   data _⊢Var⟮_∣_⇒_⟯ : (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
@@ -157,7 +113,9 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     id-Ctx : Γ ⟼ Γ
     _∙‼_ : ∀ Γ -> {μ ν : m ⟶ n} -> μ ⟹ ν -> Γ ∙! ν ⟼ Γ ∙! μ
     _∙!_ : Γ ⟼ Δ -> Γ ∙! μ ⟼ Δ ∙! μ
-    _∙⟮_∣_⟯ : Γ ⟼ Δ -> Γ ∙! μ ⊢ A -> Γ ⟼ Δ ∙⟮ A ∣ μ ⟯
+    _∙⟮_⟯ : Γ ⟼ Δ -> Γ ∙! μ ⊢ A -> Γ ⟼ Δ ∙⟮ A ∣ μ ⟯
+    𝑝 : Γ ∙⟮ A ∣ μ ⟯ ⟼ Γ
+    _⨾_ : Γ ⟼ Δ -> Δ ⟼ Ε -> Γ ⟼ Ε
 
   record Factors (Γ : Ctx m) (Γ' : Ctx n) {η : m ⟶ n} (E : CtxExt η) : 𝒰 𝑖 where
     constructor factors
@@ -171,9 +129,10 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
 
   pattern refl-Factors δ = factors _ _ refl-≡ δ
 
-  Skip : ∀ Γ Δ -> Γ ⟼ Δ -> {η : k ⟶ l} -> Δ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> ∑ λ Γ' -> ∑ λ (E : CtxExt η) -> (Γ' ∙! μ ⊢ A) ×-𝒰 Factors Γ Γ' E
+  Skip : ∀ Γ Δ -> Γ ⟼ Δ -> {η : k ⟶ l} -> Δ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> ∑ λ Γ' -> ∑ λ (E : CtxExt η) -> (Γ' ∙! μ ⊢ A) × Factors Γ Γ' E
+
   Skip _ .(_ ∙⟮ _ ∣ _ ⟯) (id-Ctx {Γ = Γ ∙⟮ A ∣ μ ⟯}) zero = Γ ∙⟮ A ∣ μ ⟯ , ε , var (suc! zero) {!!} , {!!}
-  Skip Γ .(_ ∙⟮ _ ∣ _ ⟯) (_∙⟮_∣_⟯ δ x) zero = Γ , ε , x , refl-Factors id-⇛
+  Skip Γ .(_ ∙⟮ _ ∣ _ ⟯) (_∙⟮_⟯ δ x) zero = Γ , ε , x , refl-Factors id-⇛
   Skip (Γ ∙! x) (.Γ ∙! .x) id-Ctx (suc! v) with
     (Γ' , E , t , refl-Factors γ) <- Skip Γ _ id-Ctx v
     = Γ' , (E ∙! x) , t , refl-Factors (γ ∙‼ id {{2HomData}})
@@ -186,7 +145,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   Skip .(_ ∙⟮ _ ∣ _ ⟯) .(_ ∙⟮ _ ∣ _ ⟯) id-Ctx (suc v) with -- = {!!} -- Skip _ _ id-Ctx v
     (Γ' , E , t , refl-Factors γ) <- Skip _ _ id-Ctx v
     = Γ' , _ , t , refl-Factors (γ ∙⟮ _ ∣ _ ⟯) --- (γ ∙‼ id {{2HomData}})
-  Skip Γ .(_ ∙⟮ _ ∣ _ ⟯) (_∙⟮_∣_⟯ δ x) (suc v) = Skip _ _ δ v
+  Skip Γ .(_ ∙⟮ _ ∣ _ ⟯) (_∙⟮_⟯ δ x) (suc v) = Skip _ _ δ v
 
   decide-Var : (μ₁ : l₁ ⟶ k)
              -> {μ₀ : l₁ ⟶ k}
@@ -225,6 +184,9 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   pushDown (lam t) α = lam (pushDown t α)
   pushDown (app t t₁) α = {!!}
 
+  lift-⟼ : Γ ⟼ Δ -> Γ ∙⟮ A ∣ μ ⟯ ⟼ Δ ∙⟮ A ∣ μ ⟯
+  lift-⟼ δ = (𝑝 ⨾ δ) ∙⟮ var (suc! zero) {!!} ⟯ 
+
   _[_] : Δ ⊢ A -> (δ : Γ ⟼ Δ) -> Γ ⊢ A
   var x α [ δ ] =
     let Γ' , E , t , P = Skip _ _ δ x
@@ -233,7 +195,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   tt [ δ ] = tt
   mod t [ δ ] = {!!}
   letmod t t₁ [ δ ] = {!!}
-  lam t [ δ ] = {!!}
+  lam t [ δ ] = lam (t [ lift-⟼ δ ])
   app t t₁ [ δ ] = {!!}
 
   -- _[_]-Var : {μ : _ ⟶ n} {η : _ ⟶ _} {A : ⊢Type m} {Δ : Ctx k} -> Δ ⊢Var⟮ A ∣ μ ⇒ η ⟯ ×-𝒰 (μ ⟹ ω ◆ η) -> (δ : Γ ⟼ Δ) -> Γ ⊢ B
