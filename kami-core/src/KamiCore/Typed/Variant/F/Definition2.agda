@@ -9,6 +9,7 @@ open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
+open import Agora.Category.Std.Morphism.Iso
 
 -- open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 -- open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition -- hiding (_◆_)
@@ -67,7 +68,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   infix 32 _∙⟮_∣_⟯
   infixl 30 _∙!_
 
-  data CtxExt : {m n : 𝓂} -> (m ⟶ n) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+  data CtxExt : (m ⟶ n) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
     ε : CtxExt {m} {m} id
     _∙⟮_∣_⟯ : CtxExt {n} {k} η -> ⊢Type m -> (μ : m ⟶ n) -> CtxExt η
     _∙!_ : CtxExt {n} {k} η -> (ω : m ⟶ n) -> CtxExt (ω ◆ η)
@@ -96,13 +97,14 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
     suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
+    congᵣ : Γ ⊢Var⟮ A ∣ μ ⇒ η₀ ⟯ -> η₀ ∼ η₁ -> Γ ⊢Var⟮ A ∣ μ ⇒ η₁ ⟯
 
 
   data _⊢_ : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
     var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
     tt : Γ ⊢ Unit
-    mod : Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
-    letmod : ∀{μ : m ⟶ n} {ν : n ⟶ o}
+    mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+    letmod : ∀{μ : m ⟶ n} -> (ν : n ⟶ o)
            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
            -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
            -> Γ ⊢ B
@@ -150,13 +152,15 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   decide-Var : (μ₁ : l₁ ⟶ k)
              -> {μ₀ : l₁ ⟶ k}
              -> {η : l₀ ⟶ l₁}
-             -> {ν₀ : ModeHom m₀ n} {ν₁ : ModeHom m₁ n}
+             -> {ν₀ : ModeHom m₀ n} {ν₁ : ModeHom l₀ n}
              -> (E : CtxExt {l₀} {l₁} η)
+             -- -> (rest : n ⟶ )
              -> {Γ : Ctx _}
              -> ((Γ ∙! μ₀) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
              -> (((Γ ∙! μ₁) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯)
-                +-𝒰 (∑ λ (ϕ₀ : m₁ ⟶ l₀) -> ∑ λ (ν₂ : l₁ ⟶ n) -> (Γ ∙! μ₀) ⊢Var⟮ A ∣ ν₀ ⇒ ν₂ ⟯ ×-𝒰 ϕ₀ ◆ η ◆ ν₂ ∼ ν₁)
-  decide-Var ν {ν₁ = ν₁} ε v = right ({!!} , {!!} , {!!} , {!!})
+                +-𝒰 (∑ λ (ϕ : k ⟶ n) -> Γ ⊢Var⟮ A ∣ ν₀ ⇒ ϕ ⟯ ×-𝒰 η ◆ μ₀ ◆ ϕ ∼ ν₁)
+                -- (∑ λ (ϕ₀ : m₁ ⟶ l₀) -> ∑ λ (ν₂ : l₁ ⟶ n) -> (Γ ∙! μ₀) ⊢Var⟮ A ∣ ν₀ ⇒ μ₀ ◆ ϕ ⟯ ×-𝒰 μ₀ ◆ ϕ ∼ ν₁)
+  decide-Var ν  ε (suc! {η = η} v) = right (η , v , {!!})
   -- decide-Var ν {ν₁ = ν₁} ε v = right (_ , id , ν₁ , v , unit-l-◆ )
   decide-Var ν (E ∙⟮ x ∣ μ ⟯) zero = left zero
   decide-Var ν (E ∙⟮ x ∣ μ ⟯) (suc v) with decide-Var ν E v
@@ -166,35 +170,60 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   ... | no v = no (suc! v)
   ... | yes X = {!!} -- (_ , ϕ₀ , ϕ₁ , t , p) = yes ((_ , ω ◆ ϕ₀ , ϕ₁ , t , {!!} )) -- assoc-l-◆ ∙ (refl-∼ ◈ p)))
 
-  transform-Var : {μ : m ⟶ n} {ν₁ : k ⟶ l} -> Γ ∙! μ ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (μ ⟹ ν) -> ∑ λ (ν₂ : k ⟶ l) -> Γ ∙! μ ⊢Var⟮ A ∣ ν₀ ⇒ ν₂ ⟯
+  transform-Var : {μ : m ⟶ n} {ν₁ : k ⟶ l} -> Γ ∙! μ ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (μ ⟹ ν) -> ∑ λ (ν₂ : k ⟶ l) -> Γ ∙! ν ⊢Var⟮ A ∣ ν₀ ⇒ ν₂ ⟯
   transform-Var (suc! t) α = _ , suc! t
 
+  _∙!*-Var_ : {μ : m ⟶ n} -> {η : k ⟶ _} -> Γ ⊢Var⟮ A ∣ μ ⇒ ν ⟯ -> (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ μ ⇒ η ◆ ν ⟯
+  v ∙!*-Var ε = congᵣ v (unit-l-◆ ⁻¹)
+  v ∙!*-Var (E ∙⟮ x ∣ μ ⟯) = suc (v ∙!*-Var E)
+  v ∙!*-Var (E ∙! ω) = congᵣ (suc! (v ∙!*-Var E)) assoc-r-◆
+
   pushDown-Var : {η₀ : _ ⟶ k} {ν : _ ⟶ _} {E : CtxExt η₀} -> {μ : _ ⟶ n} {η : m₀ ⟶ m₁} {ω : m₀ ⟶ m₁} -> ((Γ ∙! μ) ⋆ E) ⊢Var⟮ A ∣ η ⇒ ω ⟯ -> (μ ⟹ ν) -> (η ⟹ ω) -> ((Γ ∙! ν) ⋆ E) ⊢ A
-  pushDown-Var {ν = ν} {E = E} v α β with decide-Var ν E v
+  pushDown-Var {η₀ = η₀} {ν} {E = E} {μ} {η} {ω} v α β with decide-Var ν E v
   ... | no x = var x β
-  ... | yes ( ϕ₀ , ϕ₁ , (suc! t) , p) = let _ , v = transform-Var (suc! t) α in {!!} 
+  ... | yes (ϕ , v' , p) =
+    let α0 : η ⟹ ω
+        α0 = β
 
+        α1 : ω ⟹ (η₀ ◆ μ) ◆ ϕ
+        α1 = ⟨ 2celliso p ⟩⁻¹
 
+        α2 : (η₀ ◆ μ) ◆ ϕ ⟹ η₀ ◆ (μ ◆ ϕ)
+        α2 = α-l-◆
 
-  pushDown : {μ : _ ⟶ n} -> ((Γ ∙! μ) ⋆ E) ⊢ A -> (μ ⟹ ν) -> ((Γ ∙! ν) ⋆ E) ⊢ A
-  pushDown (var x β) α = pushDown-Var x α {!!}
-  pushDown tt α = {!!}
-  pushDown (mod t) α = {!!}
-  pushDown (letmod t t₁) α = {!!}
-  pushDown (lam t) α = lam (pushDown t α)
-  pushDown (app t t₁) α = {!!}
+        α3 : η₀ ◆ (μ ◆ ϕ) ⟹ η₀ ◆ (ν ◆ ϕ)
+        α3 = id {{2HomData}} ⇃◆⇂ (α ⇃◆⇂ id {{2HomData}})
+
+    in var ((suc! v') ∙!*-Var E) (α0 ◆ α1 ◆ α2 ◆ α3)
+
+  pushDown : ∀ Γ (E : CtxExt η) -> {μ : _ ⟶ n} -> ((Γ ∙! μ) ⋆ E) ⊢ A -> (μ ⟹ ν) -> ((Γ ∙! ν) ⋆ E) ⊢ A
+  pushDown Γ E (var x β) α = pushDown-Var x α β
+  pushDown Γ E tt α = tt
+  pushDown Γ E (mod μ t) α = mod μ (pushDown Γ (E ∙! μ) t α)
+  pushDown Γ E (letmod ν t s) α = letmod ν (pushDown Γ (E ∙! ν) t α) (pushDown Γ (E ∙⟮ _ ∣ _ ⟯) s α)
+  pushDown Γ E (lam t) α = lam (pushDown _ _ t α)
+  pushDown Γ E (app t s) α = app (pushDown Γ E t α) (pushDown Γ (E ∙! _) s α)
+
+  wk : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢ A -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢ A
+  wk = {!!}
+
+  wk! : ∀(E : CtxExt η) -> Γ ∙! η ⊢ A -> (Γ ⋆ E) ⊢ A
+  wk! ε t = {!t!}
+  wk! (E ∙⟮ x ∣ μ ⟯) t = wk ε (wk! E t)
+  wk! (E ∙! ω) t = let x = wk! E {!!} in {!!}
 
   lift-⟼ : Γ ⟼ Δ -> Γ ∙⟮ A ∣ μ ⟯ ⟼ Δ ∙⟮ A ∣ μ ⟯
-  lift-⟼ δ = (𝑝 ⨾ δ) ∙⟮ var (suc! zero) {!!} ⟯ 
+  lift-⟼ δ = (𝑝 ⨾ δ) ∙⟮ var (suc! zero) υ⁻¹-r-◆ ⟯
 
   _[_] : Δ ⊢ A -> (δ : Γ ⟼ Δ) -> Γ ⊢ A
-  var x α [ δ ] =
-    let Γ' , E , t , P = Skip _ _ δ x
-        t' = pushDown {E = ε} t α
-    in {!!}
+  var x α [ δ ]
+    with Γ' , E , t , refl-Factors ξ <- Skip _ _ δ x
+    with t' <- pushDown _ ε t α
+    with t'' <- wk! E t'
+    = {!!}
   tt [ δ ] = tt
-  mod t [ δ ] = {!!}
-  letmod t t₁ [ δ ] = {!!}
+  mod μ t [ δ ] = {!!}
+  letmod ν t t₁ [ δ ] = {!!}
   lam t [ δ ] = lam (t [ lift-⟼ δ ])
   app t t₁ [ δ ] = {!!}
 
