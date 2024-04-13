@@ -15,7 +15,7 @@ open import Agora.Category.Std.Morphism.Iso
 -- open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition -- hiding (_◆_)
 -- open import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition
 
-open import Data.Vec hiding ([_])
+open import Data.Vec hiding ([_] ; map)
 
 
 record MTTꟳ (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
@@ -97,7 +97,12 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
     suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
-    congᵣ : Γ ⊢Var⟮ A ∣ μ ⇒ η₀ ⟯ -> η₀ ∼ η₁ -> Γ ⊢Var⟮ A ∣ μ ⇒ η₁ ⟯
+
+  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+    constructor varOver
+    field target : o ⟶ l
+    field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
+    field snd : η ∼ target
 
 
   data _⊢_ : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
@@ -173,10 +178,10 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   transform-Var : {μ : m ⟶ n} {ν₁ : k ⟶ l} -> Γ ∙! μ ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (μ ⟹ ν) -> ∑ λ (ν₂ : k ⟶ l) -> Γ ∙! ν ⊢Var⟮ A ∣ ν₀ ⇒ ν₂ ⟯
   transform-Var (suc! t) α = _ , suc! t
 
-  _∙!*-Var_ : {μ : m ⟶ n} -> {η : k ⟶ _} -> Γ ⊢Var⟮ A ∣ μ ⇒ ν ⟯ -> (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ μ ⇒ η ◆ ν ⟯
-  v ∙!*-Var ε = congᵣ v (unit-l-◆ ⁻¹)
-  v ∙!*-Var (E ∙⟮ x ∣ μ ⟯) = suc (v ∙!*-Var E)
-  v ∙!*-Var (E ∙! ω) = congᵣ (suc! (v ∙!*-Var E)) assoc-r-◆
+  _∙!*-Var_ : {μ : m ⟶ n} -> {η : k ⟶ _} -> Γ ⊢Var⟮ A ∣ μ ⇒ ν ⟯ -> (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ μ ⇒∼ η ◆ ν ⟯
+  v ∙!*-Var ε = {!!} -- congᵣ v (unit-l-◆ ⁻¹)
+  v ∙!*-Var (E ∙⟮ x ∣ μ ⟯) = {!!} -- suc (v ∙!*-Var E)
+  v ∙!*-Var (E ∙! ω) = {!!} -- congᵣ (suc! (v ∙!*-Var E)) assoc-r-◆
 
   pushDown-Var : {η₀ : _ ⟶ k} {ν : _ ⟶ _} {E : CtxExt η₀} -> {μ : _ ⟶ n} {η : m₀ ⟶ m₁} {ω : m₀ ⟶ m₁} -> ((Γ ∙! μ) ⋆ E) ⊢Var⟮ A ∣ η ⇒ ω ⟯ -> (μ ⟹ ν) -> (η ⟹ ω) -> ((Γ ∙! ν) ⋆ E) ⊢ A
   pushDown-Var {η₀ = η₀} {ν} {E = E} {μ} {η} {ω} v α β with decide-Var ν E v
@@ -194,7 +199,13 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
         α3 : η₀ ◆ (μ ◆ ϕ) ⟹ η₀ ◆ (ν ◆ ϕ)
         α3 = id {{2HomData}} ⇃◆⇂ (α ⇃◆⇂ id {{2HomData}})
 
-    in var ((suc! v') ∙!*-Var E) (α0 ◆ α1 ◆ α2 ◆ α3)
+        varOver ρ v q = (suc! v') ∙!*-Var E
+
+        α4 : η₀ ◆ (ν ◆ ϕ) ⟹ ρ
+        α4 = ⟨ 2celliso q ⟩
+
+    in var (v) (α0 ◆ α1 ◆ α2 ◆ α3 ◆ α4)
+    -- in var ((suc! v') ∙!*-Var E) (α0 ◆ α1 ◆ α2 ◆ α3)
 
   pushDown : ∀ Γ (E : CtxExt η) -> {μ : _ ⟶ n} -> ((Γ ∙! μ) ⋆ E) ⊢ A -> (μ ⟹ ν) -> ((Γ ∙! ν) ⋆ E) ⊢ A
   pushDown Γ E (var x β) α = pushDown-Var x α β
@@ -207,10 +218,26 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   wk : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢ A -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢ A
   wk = {!!}
 
-  wk! : ∀(E : CtxExt η) -> Γ ∙! η ⊢ A -> (Γ ⋆ E) ⊢ A
-  wk! ε t = {!t!}
-  wk! (E ∙⟮ x ∣ μ ⟯) t = wk ε (wk! E t)
-  wk! (E ∙! ω) t = let x = wk! E {!!} in {!!}
+  assoc-l-∙!-Var : ∀{μ : l ⟶ m} {η : k ⟶ l} -> ∀ (E : CtxExt ω)
+                    -> (Γ ∙! μ ∙! η ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
+                    -> (Γ ∙! (η ◆ μ) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒∼ ν₁ ⟯
+  assoc-l-∙!-Var ε (suc! (suc! v)) = varOver _ (suc! v) assoc-r-◆
+  assoc-l-∙!-Var (E ∙⟮ x ∣ μ ⟯) zero = varOver _ zero refl-∼
+  assoc-l-∙!-Var (E ∙⟮ x ∣ μ ⟯) (suc v) = let varOver _ v' p = assoc-l-∙!-Var E v in varOver _ (suc v') p
+  assoc-l-∙!-Var (E ∙! ω) (suc! v) = let varOver _ v' p = assoc-l-∙!-Var E v in varOver _ (suc! v') (refl-∼ ◈ p)
+
+  assoc-l-∙! : ∀{μ : l ⟶ m} {η : k ⟶ l} -> ∀(E : CtxExt ω) -> (Γ ∙! μ ∙! η ⋆ E) ⊢ A -> (Γ ∙! (η ◆ μ) ⋆ E) ⊢ A
+  assoc-l-∙! E (var x α) = let varOver _ v p = assoc-l-∙!-Var E x in var v (α ◆ ⟨ 2celliso p ⟩)
+  assoc-l-∙! E tt = tt
+  assoc-l-∙! E (mod μ t) = mod μ (assoc-l-∙! (E ∙! μ) t)
+  assoc-l-∙! E (letmod ν t s) = letmod ν (assoc-l-∙! (E ∙! ν) t) (assoc-l-∙! (E ∙⟮ _ ∣ _ ⟯) s)
+  assoc-l-∙! E (lam t) = lam (assoc-l-∙! _ t)
+  assoc-l-∙! E (app t s) = app (assoc-l-∙! E t) (assoc-l-∙! (E ∙! _) s)
+
+  wk! : ∀(E : CtxExt η) -> ∀ μ -> (Γ ∙! η) ∙! μ ⊢ A -> (Γ ⋆ E) ∙! μ ⊢ A
+  wk! ε μ t = {!assoc-l-∙! ε t !}
+  wk! (E ∙⟮ x ∣ μ ⟯) ν t = {!!} -- wk ε (wk! E t)
+  wk! (E ∙! ω) μ t = let x = wk! E (μ ◆ ω) {!!} in {!!}
 
   lift-⟼ : Γ ⟼ Δ -> Γ ∙⟮ A ∣ μ ⟯ ⟼ Δ ∙⟮ A ∣ μ ⟯
   lift-⟼ δ = (𝑝 ⨾ δ) ∙⟮ var (suc! zero) υ⁻¹-r-◆ ⟯
@@ -219,7 +246,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   var x α [ δ ]
     with Γ' , E , t , refl-Factors ξ <- Skip _ _ δ x
     with t' <- pushDown _ ε t α
-    with t'' <- wk! E t'
+    -- with t'' <- wk! E ? t'
     = {!!}
   tt [ δ ] = tt
   mod μ t [ δ ] = {!!}
