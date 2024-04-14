@@ -400,7 +400,8 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
 
 
   -- Finally we can state substition, we use all our ingredients in the var-case in order to:
-  --  - extract the term for our current variable from δ by using `Skip`
+  --  - extract the term for our current variable from δ by using `Skip`. The term is typed
+  --    not in the full context, but in a smaller context Γ'.
   --  - use `pushDown` to push the variable's transformation down this term
   --  - use `wk!` to weaken the term in order to include the context extension E which was
   --    "skipped" by `Skip`
