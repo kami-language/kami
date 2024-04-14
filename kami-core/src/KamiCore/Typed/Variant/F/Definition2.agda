@@ -11,10 +11,6 @@ open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
 
--- open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
--- open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition -- hiding (_◆_)
--- open import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition
-
 open import Data.Vec hiding ([_] ; map)
 
 
@@ -110,23 +106,29 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
+  -- Currently the above type is in its previous form because otherwise some bit of
+  -- inference fails and i don't want to update stuff :p
   delete-me : ∀ {Γ : Ctx k} {A : ⊢Type m} {μ : m ⟶ l} {η : o ⟶ l} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯  -> k ≡ o
   delete-me zero = refl-≡
   delete-me (suc! v) = refl-≡
   delete-me (suc v) = delete-me v
 
+  -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
+  -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the 
+  -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
   record _⊢Var⟮_∣_⇒∼_⟯ (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
     field snd : η ∼ target
 
+  -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
+  -- between arrows.
   record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
     field snd : η ⟹ target
-
 
   data _⊢_ : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
     var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
@@ -148,6 +150,14 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     -- 𝑝 : Γ ∙⟮ A ∣ μ ⟯ ⟼ Γ
     -- _⨾_ : Γ ⟼ Δ -> Δ ⟼ Ε -> Γ ⟼ Ε
 
+  -- We allow composition only here, not in the above, simple `⟼` datatype.
+  -- The reason is that we cannot prove `Skip` for composition operations,
+  -- as that would involve some ugly recursion with substitution itself.
+  --
+  -- Since we split out the composition of substutions into this extra datatype,
+  -- we have to add the `lift` constructor above. Previously, lift could be constructed
+  -- from 𝑝, composition and ∙⟮_⟯. But now it cannot, because composition lives here
+  -- instead of in `⟼`.
   data _⟼*_ : Ctx m -> Ctx m -> 𝒰 𝑖 where
     [] : Γ ⟼* Γ
     _⨾_ : Γ ⟼* Δ -> Δ ⟼ Ε -> Γ ⟼* Ε
@@ -159,19 +169,36 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     field ext : Γ' ⋆ factor-Ext ≡ Γ
     field sub : factor-Ext ⇛ E
 
-  -- refl-Factors : ∀{Γ' : Ctx n} -> {η : m ⟶ n} {E : CtxExt η} -> Factors (Γ' ⋆ E) Γ' E
-  -- refl-Factors = factors _ _ refl-≡ id-⇛
-
+  -- easily constructing and deconstructing proves of `Factors`
   pattern refl-Factors δ = factors _ _ refl-≡ δ
 
 
 
+  --------------------------------------------------------------------------------
+  -- Pushing transformations down
+  --------------------------------------------------------------------------------
+  --
+  -- When we substitute a term for a variable, we need to take the transformation
+  -- annotated at the variable, and push it down into the replacement term's variables.
+
+  -- Lemma: Assume we have a variable in (Γ ∙！ μ₀ ⋆ E). We want to change the variable
+  --        to be in context (Γ ∙! μ₁ ⋆ E). There are two possible cases, and this lemma
+  --        decides in which we are:
+  --
+  --          - Either the de-brujin index of the variable is low enough that it lives
+  --            in E. Then the variable does not care about whether there is μ₀ or μ₁,
+  --            and we can switch easily (case 1.).
+  --
+  --          - Otherwise, the variable lives in Γ. Let the variable be of type `v : (Γ ∙！ μ₀ ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯`.
+  --            Thus what we have is that this variable is under all restrictions from `E`, and furthermore under `μ₀`,
+  --            and maybe even under some restrictions in Γ. Since ν₁ tracks the total restriction of v, this means
+  --            that ν₁ factors into (η ◆ μ₀ ◆ ϕ) where ϕ is the additional restriction in Γ. (case 2.)
+  --
   decide-Var : (μ₁ : l₁ ⟶ k)
              -> {μ₀ : l₁ ⟶ k}
              -> {η : l₀ ⟶ l₁}
              -> {ν₀ : ModeHom m₀ n} {ν₁ : ModeHom l₀ n}
              -> (E : CtxExt {l₀} {l₁} η)
-             -- -> (rest : n ⟶ )
              -> {Γ : Ctx _}
              -> ((Γ ∙! μ₀) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
              -> (((Γ ∙! μ₁) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯)
@@ -197,14 +224,17 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     in yes (ϕ , t , q)
 
 
-  transform-Var : {μ : m ⟶ n} {ν₁ : m ⟶ l} -> Γ ∙! μ ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (μ ⟹ ν) -> ∑ λ (ν₂ : m ⟶ l) -> Γ ∙! ν ⊢Var⟮ A ∣ ν₀ ⇒ ν₂ ⟯
-  transform-Var (suc! t) α = _ , suc! t
-
+  -- Weaking of a variable under a whole context extension E. Of course the variable target annotation has to
+  -- be extended with η (the restriction belonging to E)
   _∙!*-Var_ : {μ : m ⟶ n} -> {η : k ⟶ _} -> Γ ⊢Var⟮ A ∣ μ ⇒ ν ⟯ -> (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ μ ⇒∼ η ◆ ν ⟯
   v ∙!*-Var ε = varOver _ v (unit-l-◆)
   v ∙!*-Var (E ∙⟮ x ∣ μ ⟯) = let varOver _ v' p = (v ∙!*-Var E) in varOver _ (suc v') p
   v ∙!*-Var (E ∙! ω) = let varOver _ v' p = (v ∙!*-Var E) in varOver _ (suc! v') (assoc-l-◆ ∙ (refl-∼ ◈ p))
 
+
+  -- We have a variable `v : ((Γ ∙! μ) ⋆ E) ⊢Var⟮ A ∣ η ⇒ ω ⟯`, and a transformation `α : μ ⟹ ν`. We want to change the variable
+  -- to live in a context where μ is replaced by ν. We mostly use the `decide-Var` lemma, but in its second case we have to construct
+  -- a slightly elaborate transformation as new annotation at the variable.
   pushDown-Var : {η₀ : _ ⟶ k} {ν : _ ⟶ _} {E : CtxExt η₀} -> {μ : _ ⟶ n} {η : m₀ ⟶ m₁} {ω : m₀ ⟶ m₁} -> ((Γ ∙! μ) ⋆ E) ⊢Var⟮ A ∣ η ⇒ ω ⟯ -> (μ ⟹ ν) -> (η ⟹ ω) -> ((Γ ∙! ν) ⋆ E) ⊢ A
   pushDown-Var {η₀ = η₀} {ν} {E = E} {μ} {η} {ω} v α β with decide-Var ν E v
   ... | no x = var x β
@@ -228,6 +258,9 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
 
     in var (v) (α0 ◆ α1 ◆ α2 ◆ α3 ◆ α4)
 
+  -- Finally, after having shown that we can push an annoation onto a variable, we now
+  -- can push annoations down onto a full term. Inductive, in some cases we have to
+  -- alter the transformation as it is pushed down under mod/letmod/app terms.
   pushDown : ∀ Γ (E : CtxExt η) -> {μ : _ ⟶ n} -> ((Γ ∙! μ) ⋆ E) ⊢ A -> (μ ⟹ ν) -> ((Γ ∙! ν) ⋆ E) ⊢ A
   pushDown Γ E (var x β) α = pushDown-Var x α β
   pushDown Γ E tt α = tt
@@ -236,20 +269,18 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   pushDown Γ E (lam t) α = lam (pushDown _ _ t α)
   pushDown Γ E (app t s) α = app (pushDown Γ E t α) (pushDown Γ (E ∙! _) s α)
 
-  wk-Var : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
-  wk-Var ε v = suc v
-  wk-Var (E ∙⟮ x ∣ μ ⟯) zero = zero
-  wk-Var (E ∙⟮ x ∣ μ ⟯) (suc v) = suc (wk-Var E v)
-  wk-Var (E ∙! ω) (suc! v) = suc! (wk-Var E v)
 
-  wk : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢ A -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢ A
-  wk E (var x α) = var (wk-Var E x) α
-  wk E tt = tt
-  wk E (mod μ t) = mod μ (wk (E ∙! μ) t)
-  wk E (letmod ν t s) = letmod ν (wk (E ∙! ν) t) (wk (E ∙⟮ _ ∣ _ ⟯) s)
-  wk E (lam t) = lam (wk (E ∙⟮ _ ∣ _ ⟯) t)
-  wk E (app t s) = app (wk E t) (wk (E ∙! _) s)
 
+  --------------------------------------------------------------------------------
+  -- Applying ⇛-transformations to terms.
+  --------------------------------------------------------------------------------
+  -- These ⇛ transformations have two purposes:
+  --  - They occur as the result of the `Skip` lemma, and have to be applied to
+  --    a term in the var-case of substition.
+  --  - They also encode the fact that for example Γ.{id}≡Γ or Γ.{μ}.{ν}≡Γ.{ν;μ}.
+  --
+
+  -- The main lemma, applying a ⇛-transformation to a variable.
   map-Var : {E₀ : CtxExt η₀} {E₁ : CtxExt η₁} -> E₁ ⇛ E₀
                     -> (Γ ⋆ E₀) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
                     -> (Γ ⋆ E₁) ⊢Var⟮ A ∣ ν₀ ⇒⇒ ν₁ ⟯
@@ -268,6 +299,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
         varOver _ v'' β' = map-Var ξ v'
     in varOver _ v'' (β ◆ β')
 
+  -- We can apply a ⇛-transformation also under a (_⋆ F) context extension.
   map-Var-cong : {E₀ : CtxExt η₀} {E₁ : CtxExt η₁} -> E₁ ⇛ E₀ -> (F : CtxExt ω)
                     -> (Γ ⋆ E₀ ⋆ F) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
                     -> (Γ ⋆ E₁ ⋆ F) ⊢Var⟮ A ∣ ν₀ ⇒⇒ ν₁ ⟯
@@ -276,6 +308,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   map-Var-cong ξ (F ∙⟮ x ∣ μ ⟯) (suc v) = let varOver _ v' p = map-Var-cong ξ F v in varOver _ (suc v') p
   map-Var-cong ξ (F ∙! ω) (suc! v) = let varOver _ v' p = map-Var-cong ξ F v in varOver _ (suc! v') (id ⇃◆⇂ p)
 
+  -- Applying ⇛-transformations on terms is done inductively of course.
   map-cong : {E₀ : CtxExt η₀} {E₁ : CtxExt η₁} -> E₁ ⇛ E₀ -> (F : CtxExt ω)
                     -> (Γ ⋆ E₀ ⋆ F) ⊢ A
                     -> (Γ ⋆ E₁ ⋆ F) ⊢ A
@@ -286,6 +319,8 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   map-cong ξ F (lam t) = lam (map-cong ξ (F ∙⟮ _ ∣ _ ⟯) t)
   map-cong ξ F (app t s) = app (map-cong ξ F t) (map-cong ξ (F ∙! _) s)
 
+
+  -- Some abbreviations for applying commong ⇛-Transformations
   map-comp-∙! : ∀{μ : n ⟶ o} {ω : m ⟶ n} -> Γ ∙! μ ∙! ω ⊢ A -> Γ ∙! (ω ◆ μ) ⊢ A
   map-comp-∙! {Γ = Γ} = map-cong {Γ = Γ} comp-∙! ε
 
@@ -298,20 +333,48 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   map-unit⁻¹-∙! :  ∀{Γ : Ctx k} -> Γ ⊢ A -> Γ ∙! id ⊢ A
   map-unit⁻¹-∙! {Γ = Γ} = map-cong {Γ = Γ} unit⁻¹-∙! ε
 
+
+  --------------------------------------------------------------------------------
+  -- WEAKENING
+  --------------------------------------------------------------------------------
+  -- The key insight is that we cannot add new restrictions to a term when weakening
+  -- so the statement of weakening is slightly adapted. We say that we can extend a context Γ
+  -- by an extraneous list of variables from `E : CtxExt η` if previously, Γ was restricted by
+  -- η (see wk!).
+
+  -- Single weakening (for variable). We use context extensions to be able to weaken at an arbitrary
+  -- position in the context.
+  wk-Var : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯ -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
+  wk-Var ε v = suc v
+  wk-Var (E ∙⟮ x ∣ μ ⟯) zero = zero
+  wk-Var (E ∙⟮ x ∣ μ ⟯) (suc v) = suc (wk-Var E v)
+  wk-Var (E ∙! ω) (suc! v) = suc! (wk-Var E v)
+
+  -- Single weakening.
+  wk : ∀ (E : CtxExt η) -> (Γ ⋆ E) ⊢ A -> (Γ ∙⟮ B ∣ μ ⟯ ⋆ E) ⊢ A
+  wk E (var x α) = var (wk-Var E x) α
+  wk E tt = tt
+  wk E (mod μ t) = mod μ (wk (E ∙! μ) t)
+  wk E (letmod ν t s) = letmod ν (wk (E ∙! ν) t) (wk (E ∙⟮ _ ∣ _ ⟯) s)
+  wk E (lam t) = lam (wk (E ∙⟮ _ ∣ _ ⟯) t)
+  wk E (app t s) = app (wk E t) (wk (E ∙! _) s)
+
+  -- Weakening of terms, the induction
   wk!-ind : ∀(E : CtxExt η) -> ∀ μ -> (Γ ∙! η) ∙! μ ⊢ A -> (Γ ⋆ E) ∙! μ ⊢ A
-  wk!-ind {Γ = Γ} ε μ t = map-cong {Γ = Γ} ((id-⇛ ∙‼ υ-r-◆) ⨾ comp-∙!) ε t 
+  wk!-ind {Γ = Γ} ε μ t = map-cong {Γ = Γ} ((id-⇛ ∙‼ υ-r-◆) ⨾ comp-∙!) ε t
   wk!-ind (E ∙⟮ x ∣ ν ⟯) μ t = let X = wk!-ind E μ t in wk (ε ∙! μ) X
   wk!-ind {Γ = Γ} (E ∙! ω) μ t =
     let res : Γ ⋆ E ∙! (μ ◆ ω) ⊢ _
         res = (wk!-ind E (μ ◆ ω) (map-cong {Γ = Γ} ((comp⁻¹-∙! ⨾ (id-⇛ ∙‼ α-r-◆)) ⨾ comp-∙!) ε t))
     in map-cong {Γ = Γ ⋆ E} {E₀ = (ε ∙! (μ ◆ ω))} {E₁ = (ε ∙! ω ∙! μ)} comp⁻¹-∙! ε res
 
+  -- simplified.
   wk! : ∀(E : CtxExt η) -> (Γ ∙! η) ⊢ A -> (Γ ⋆ E) ⊢ A
   wk! E t = map-unit-∙! (wk!-ind E id (map-unit⁻¹-∙! t))
 
 
 
-
+  -- Our famous skip lemma.
   Skip : ∀ Γ Δ -> Γ ⟼ Δ -> {η : k ⟶ l} -> Δ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> ∑ λ Γ' -> ∑ λ (E : CtxExt η) -> (Γ' ∙! μ ⊢ A) × Factors Γ Γ' E
   Skip (Γ ∙⟮ A ∣ μ ⟯) .(_ ∙⟮ _ ∣ _ ⟯) id-Ctx zero = Γ ∙⟮ A ∣ μ ⟯ , ε , var (suc! zero) υ⁻¹-r-◆ , refl-Factors id-⇛
   Skip (Γ ∙! μ) .(_ ∙! _) id-Ctx (suc! v) with
@@ -336,6 +399,13 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     = Γ' , E ∙⟮ A ∣ μ ⟯ , t , refl-Factors (ξ ∙⟮ A ∣ μ ⟯)
 
 
+  -- Finally we can state substition, we use all our ingredients in the var-case in order to:
+  --  - extract the term for our current variable from δ by using `Skip`
+  --  - use `pushDown` to push the variable's transformation down this term
+  --  - use `wk!` to weaken the term in order to include the context extension E which was
+  --    "skipped" by `Skip`
+  --  - use map-cong to apply the ⇛-transformation which fell out from `Skip`.
+  -- Done!
   _[_] : Δ ⊢ A -> (δ : Γ ⟼ Δ) -> Γ ⊢ A
   var x α [ δ ]
     with Γ' , E , t , refl-Factors ξ <- Skip _ _ δ x
@@ -350,8 +420,6 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   app t s [ δ ] = app (t [ δ  ]) (s [ δ ∙! _ ])
 
 
-{-
--}
 
 
 
