@@ -407,7 +407,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   --    "skipped" by `Skip`
   --  - use map-cong to apply the ⇛-transformation which fell out from `Skip`.
   -- Done!
-  _[_] : Δ ⊢ A -> (δ : Γ ⟼ Δ) -> Γ ⊢ A
+  _[_] : Δ ⊢ A -> (δ : Γ ⟼* Δ) -> Γ ⊢ A
   var x α [ δ ]
     with Γ' , E , t , refl-Factors ξ <- Skip _ _ δ x
     with t' <- pushDown _ ε t α
