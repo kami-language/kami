@@ -19,6 +19,7 @@ open import Agora.Category.Std.Natural.Definition
 
 open import Data.Vec hiding ([_] ; map)
 open import Data.Fin using (Fin ; suc ; zero)
+open import Data.Nat using (_+_ ; _*_)
 
 
 
@@ -31,6 +32,9 @@ open MTTꟳ {{...}} public
 
 record Model-MTTꟳ 𝑗 {{A : MTTꟳ 𝑖}} : 𝒰 (𝑖 ､ 𝑗 ⁺) where
   field 𝒞 : 𝓂 -> Category 𝑗
+  𝒞Obj : 𝓂 -> 𝒰 _
+  𝒞Obj m = ⟨ 𝒞 m ⟩
+
   field 𝒟 : CartesianClosedCategory 𝑗
   -- field {{isCartesianClosedCategory:𝒟}} : isCartesianClosedCategory 𝒟
   field {{hasFiniteProducts:𝒞}} : ∀ {m} -> hasFiniteProducts (𝒞 m)
@@ -49,7 +53,7 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   ModeHom a b = a ⟶ b
 
   private variable
-    k l m n o p m₀ n₀ m₁ n₁ l₀ l₁ : 𝓂 {{A}}
+    k l m n o p m₀ n₀ m₁ n₁ n₂ l₀ l₁ : 𝓂 {{A}}
     μ : Hom {{of 𝓂'}} m n
     μ₀ : Hom {{of 𝓂'}} m n
     μ₁ : Hom {{of 𝓂'}} m n
@@ -81,10 +85,10 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   ⟦ Γ ∙⟮ x ∣ μ ⟯ ⟧-Ctx = ⟦ Γ ⟧-Ctx ⊓ ⟨ embed _ ⟩ (⟨ Modal μ ⟩ x)
   ⟦ Γ ∙! x ⟧-Ctx = ⟦ Γ ⟧-Ctx
 
-  -- target : Ctx k -> 𝓂
-  -- target {k} ε = k
-  -- target {k} (Γ ∙⟮ x ∣ x₁ ⟯) = target Γ
-  -- target {k} (Γ ∙! x) = target Γ
+  -- source : Ctx k -> 𝓂
+  -- source {k} ε = k
+  -- source {k} (Γ ∙⟮ x ∣ x₁ ⟯) = source Γ
+  -- source {k} (Γ ∙! x) = source Γ
 
   restr : (Γ : Ctx m n) -> n ⟶ m
   restr ε = id
@@ -97,16 +101,25 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   size (Γ ∙⟮ x ∣ x₁ ⟯) = suc (size Γ)
   size (Γ ∙! x) = size Γ
 
-  target : (Γ : Ctx m n) -> (i : Fin (size Γ)) -> ⟨ 𝒞 m ⟩
-  target (Γ ∙⟮ A ∣ α ⟯) zero = ⟨ Modal (α ◆ restr Γ) ⟩ A
-  target (Γ ∙⟮ A ∣ α ⟯) (suc i) = target Γ i
-  target (Γ ∙! α) i = target Γ i
-
+  modal∂ : (Γ : Ctx m n) -> (i : Fin (size Γ)) -> 𝓂 × 𝓂
+  modal∂ {n = n} (_∙⟮_∣_⟯ {m = m} Γ x α) zero = m , n
+  modal∂ (Γ ∙⟮ x ∣ x₁ ⟯) (suc i) = modal∂ Γ i
+  modal∂ (Γ ∙! x) i = modal∂ Γ i
 
   source : (Γ : Ctx m n) -> (i : Fin (size Γ)) -> ⟨ 𝒞 m ⟩
-  source (Γ ∙⟮ x ∣ x₁ ⟯) zero = {!!}
-  source (Γ ∙⟮ x ∣ x₁ ⟯) (suc i) = {!!}
-  source (Γ ∙! x) i = source Γ i
+  source (Γ ∙⟮ A ∣ α ⟯) zero = ⟨ Modal (α ◆ restr Γ) ⟩ A
+  source (Γ ∙⟮ A ∣ α ⟯) (suc i) = source Γ i
+  source (Γ ∙! α) i = source Γ i
+
+  -- target : (β : l ⟶ n) -> (Γ : Ctx m n) -> (i : Fin (size Γ)) -> fst (modal∂ Γ i) ⟶ n -> ⟨ 𝒞 m ⟩
+  -- target β (Γ ∙⟮ A ∣ x₁ ⟯) zero refl-≡ = ⟨ Modal (β ◆ restr Γ) ⟩ A
+  -- target β (Γ ∙⟮ A ∣ x₁ ⟯) (suc i) p = target β Γ i p
+  -- target β (Γ ∙! α) i p = target (β ◆ α) Γ i p
+
+  target : (Γ : Ctx m n) -> (i : Fin (size Γ)) -> fst (modal∂ Γ i) ⟶ n -> ⟨ 𝒞 m ⟩
+  target (Γ ∙⟮ A ∣ x₁ ⟯) zero β = ⟨ Modal (β ◆ restr Γ) ⟩ A
+  target (Γ ∙⟮ A ∣ x₁ ⟯) (suc i) p = target Γ i p
+  target (Γ ∙! α) i β = target Γ i (β ◆ α)
 
   Fibers : ∀ n -> 𝒰 _
   Fibers n = ∀{a b : 𝓂} -> (α β : a ⟶ b) -> Fin n -> 𝒰 𝑖
@@ -116,13 +129,34 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   fibers β (Γ ∙⟮ x ∣ α ⟯) = {!!}
   fibers β (Γ ∙! α) = fibers (β ◆ α) Γ
 
-  record SemanticHom (Γ : Ctx m n) (A : ⟨ 𝒞 n ⟩) : 𝒰 (𝑖 ､ 𝑗) where
+  record SemanticHom (Γ : Ctx m n) (A : 𝒞Obj n) : 𝒰 (𝑖 ､ 𝑗) where
+    constructor semanticHom
     field vars : Fin (size Γ) -> ℕ
-    -- field tran : 
-    field term : HomOf (𝒞 m) (⨅ᶠⁱⁿ (λ (i : Fin (size Γ)) -> ⨅ᶠⁱⁿ λ (j : Fin (vars i)) -> target Γ i))
+    field goodVars : ∀ i -> ∀ (j : Fin (vars i)) -> fst (modal∂ Γ i) ⟶ n
+    field tran : ∀ i -> ∀(j : Fin (vars i)) -> HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars i j))
+    field term : HomOf (𝒞 m) (⨅ᶠⁱⁿ i ∈ size Γ , ⨅ᶠⁱⁿ j ∈ vars i , target Γ i (goodVars i j))
                              (⟨ Modal (restr Γ) ⟩ A)
 
-  -- _⇉_ : ∀{m n} -> (μ ν : m ⟶ n) -> 
+  open SemanticHom public
+
+  rule-mod : ∀{Γ : Ctx m n₁} {A : 𝒞Obj {{_}} {{Param}} n₀} -> (μ : n₀ ⟶ n₁)
+             -> SemanticHom (Γ ∙! μ) A
+             -> SemanticHom Γ (⟨ Modal {{_}} {{Param}} μ ⟩ A)
+  rule-mod μ (semanticHom vars goodVars tran term) =
+    let xx = true
+    in semanticHom vars (λ i j -> goodVars i j ◆ μ) (λ i j -> let ϕ = tran i j in ϕ) {!!}
+
+  rule-letmod : ∀{Γ : Ctx m n₂} {A : 𝒞Obj {{_}} {{Param}} n₀}
+                -> {B : 𝒞Obj {{_}} {{Param}} n₂}
+                -> (μ : n₀ ⟶ n₁) -> (ν : n₁ ⟶ n₂)
+                -> SemanticHom (Γ ∙! ν) (⟨ Modal {{_}} {{Param}} μ ⟩ A)
+                -> SemanticHom (Γ ∙⟮ A ∣ μ ◆ ν ⟯) B
+                -> SemanticHom Γ B
+  rule-letmod {Γ = Γ} {A} {B} μ ν t s = semanticHom vars' {!!} {!!} {!!}
+    where
+      vars' : Fin (size Γ) -> ℕ
+      vars' i = vars s (suc i) + vars s zero * vars t i
+
 
 
 
