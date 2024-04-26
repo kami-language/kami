@@ -86,11 +86,20 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
     suc : ∀{B} -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ ∙⟮ B ∣ ω ⟯
 
   record Varᵘ (Γ : Ctx o k) : 𝒰 (𝑖 ､ 𝑗) where
-    field origin : 𝓂
+    -- field origin : 𝓂
     field current : 𝓂
-    field source : origin ⟶ current
-    field target : origin ⟶ current
-    field type : ⟨ 𝒞 origin ⟩
+    field source : k ⟶ current
+    field target : k ⟶ current
+    field type : ⟨ 𝒞 k ⟩
+    field ix : ⟮ type ∣ source ⇒ target ⟯∈ Γ
+
+  -- record Varᵘ (Γ : Ctx o k) : 𝒰 (𝑖 ､ 𝑗) where
+  --   field origin : 𝓂
+  --   field current : 𝓂
+  --   field source : origin ⟶ current
+  --   field target : origin ⟶ current
+  --   field type : ⟨ 𝒞 origin ⟩
+  --   field ix : ⟮ type ∣ source ⇒ target ⟯∈ Γ
 
   open Varᵘ public
 
@@ -117,6 +126,11 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   restr (Γ ∙⟮ A ∣ α ⟯) = restr Γ
   restr (Γ ∙! α) = α ◆ restr Γ
 
+  partrestr : (Γ : Ctx m o) -> {μ : l ⟶ k} {η : o ⟶ k} -> ∀{A : ⟨ 𝒞 l ⟩} ->  (v : ⟮ A ∣ μ ⇒ η ⟯∈ Γ) -> o ⟶ k
+  partrestr (Γ ∙⟮ x ∣ x₁ ⟯) zero = id
+  partrestr (Γ ∙⟮ x ∣ x₁ ⟯) (suc v) = partrestr Γ v
+  partrestr (Γ ∙! x) (suc! v) = let X = partrestr Γ v in x ◆ X
+
 
   length : Ctx m n -> ℕ
   length ε = 0
@@ -128,7 +142,38 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   modal∂ (Γ ∙⟮ x ∣ x₁ ⟯) (suc i) = modal∂ Γ i
   modal∂ (Γ ∙! x) i = modal∂ Γ i
 
-  
+  thm01 : ∀ (Γ : Ctx m n) i -> snd (modal∂ Γ i) ≡ n
+  thm01 (Γ ∙⟮ x ∣ x₁ ⟯) zero = {!!}
+  thm01 (Γ ∙⟮ x ∣ x₁ ⟯) (suc i) = {!!}
+  thm01 (Γ ∙! x) i = {!!}
+
+
+
+  cut-Ind : (Γ : Ctx m o) -> {μ : l ⟶ k} {η : o ⟶ k} -> ∀{A : ⟨ 𝒞 l ⟩} ->  (v : ⟮ A ∣ μ ⇒ η ⟯∈ Γ) -> Ctx m k
+  cut-Ind (Γ ∙⟮ _ ∣ _ ⟯) zero = Γ
+  cut-Ind (Γ ∙! _) (suc! v) = cut-Ind Γ v
+  cut-Ind (Γ ∙⟮ _ ∣ _ ⟯) (suc v) = cut-Ind Γ v
+
+  cut : (Γ : Ctx m n) -> (v : Var Γ) -> Ctx m (current v)
+  cut Γ v = {!!}
+
+
+  -- lo : (Γ : Ctx m n) -> Var Γ -> ⟨ 𝒞 m ⟩
+  -- lo Γ v = {!!}
+
+  source' : (Γ : Ctx m n) -> (v : Var Γ) -> ⟨ 𝒞 m ⟩
+  source' Γ v = ⟨ Modal (source v ◆ restr (cut Γ v)) ⟩ (type v)
+
+  -- target' : (Γ : Ctx m n) -> (v : Var Γ) -> fst (modal∂ Γ i) ⟶ n -> ⟨ 𝒞 m ⟩
+  -- target' : (Γ : Ctx m n) -> (v : Var Γ) -> current v ⟶ n -> ⟨ 𝒞 m ⟩
+  -- target' Γ v α = let β = partrestr Γ (ix v) in let A = type v in let γ = restr (cut Γ v) in ⟨ Modal (β ◆ γ) ⟩ A
+
+  target' : (Γ : Ctx m n) -> (v : Var Γ) -> ⟨ 𝒞 m ⟩
+  target' Γ v =
+    let β = partrestr Γ (ix v)
+        γ = restr (cut Γ v)
+    in ⟨ Modal (β ◆ γ) ⟩ (type v)
+
 {-
   source : (Γ : Ctx m n) -> (i : Fin (length Γ)) -> ⟨ 𝒞 m ⟩
   source (Γ ∙⟮ A ∣ α ⟯) zero = ⟨ Modal (α ◆ restr Γ) ⟩ A
@@ -142,14 +187,6 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   -}
 
 
-  -- cut-Ind : (Γ : Ctx m n) -> (v : Γ ) -> Ctx m (current v)
-
-  cut : (Γ : Ctx m n) -> (v : Var Γ) -> Ctx m (current v)
-  cut Γ = {!!}
-
-
-  lo : (Γ : Ctx m n) -> Var Γ -> ⟨ 𝒞 m ⟩
-  lo Γ v = {!!}
 
   Fibers : ∀ n -> 𝒰 _
   Fibers n = ∀{a b : 𝓂} -> (α β : a ⟶ b) -> Fin n -> 𝒰 𝑖
@@ -162,15 +199,24 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   record SemanticHom (Γ : Ctx m n) (A : 𝒞Obj n) : 𝒰 (𝑖 ､ 𝑗 ､ ℓ₀ ⁺) where
     constructor semanticHom
     field vars : Var Γ -> 𝐅𝐢𝐧𝐒𝐞𝐭 ℓ₀
-    field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> origin x ⟶ n
+    -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> current x ⟶ n
+
+    -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> origin x ⟶ n
     -- field tran : ∀ x -> ∀(i : ⟨ vars i ⟩) -> HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars i j))
-    field term : HomOf (𝒞 m) (⨅[ x ∶ Var Γ ] ⨅[ i ∶ vars x ] {!!}) {!!}
+    field tran : ∀ x -> ∀(i : ⟨ vars x ⟩) -> HomOf (𝒞 _) (source' Γ x) (target' Γ x)
+
+    field term : HomOf (𝒞 m) (⨅[ x ∶ Var Γ ] ⨅[ i ∶ vars x ] target' Γ x) (⟨ Modal (restr Γ) ⟩ A)
     -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> fst (modal∂ Γ i) ⟶ n
     -- field tran : ∀ i -> ∀(j : Fin (vars i)) -> HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars i j))
     -- field term : HomOf (𝒞 m) (⨅ᶠⁱⁿ i ∈ length Γ , ⨅ᶠⁱⁿ j ∈ vars i , target Γ i (goodVars i j))
     --                          (⟨ Modal (restr Γ) ⟩ A)
 
   open SemanticHom public
+
+  rule-mod : ∀{Γ : Ctx m n₁} {A : 𝒞Obj {{_}} {{Param}} n₀} -> (μ : n₀ ⟶ n₁)
+             -> SemanticHom (Γ ∙! μ) A
+             -> SemanticHom Γ (⟨ Modal {{_}} {{Param}} μ ⟩ A)
+  rule-mod μ (semanticHom vars₁ tran₁ term₁) = semanticHom (λ v -> {!vars₁ v!}) {!!} {!!}
 
 {-
 
