@@ -3,7 +3,7 @@
 
 module KamiCore.Typed.Variant.F.Model2 where
 
-open import Agora.Conventions hiding (m ; n ; k ; _∣_)
+open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_)
 open import Agora.Data.Product.Definition
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
@@ -15,10 +15,15 @@ open import Agora.Category.Std.Limit.Specific.Product.Definition
 open import Agora.Category.Std.Limit.Specific.Product.Instance.Functor
 open import Agora.Category.Std.Category.Structured.FiniteProduct.Definition
 open import Agora.Category.Std.Limit.Specific.Product.Variant.Indexed
+open import Agora.Category.Std.Limit.Specific.Coproduct.Variant.Binary
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Data.Fin.Definition
+
 open import Agora.Data.FinSet.Definition
+open import Agora.Data.FinSet.Instance.Category
+open import Agora.Data.FinSet.Instance.FiniteCoproductCategory
+open import Agora.Data.FinSet.Instance.FiniteProductCategory
 
 open import Data.Vec hiding ([_] ; map ; length)
 open import Data.Fin using (Fin ; suc ; zero)
@@ -82,15 +87,15 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
 
   data ⟮_∣_⇒_⟯∈_ {m l} (A : ⟨ 𝒞 m ⟩) (μ : m ⟶ l) : (η : k ⟶ l) (Γ : Ctx o k) → 𝒰 (𝑖 ､ 𝑗) where
     zero : ∀{Γ : Ctx o l} -> ⟮ A ∣ μ ⇒ idOn l ⟯∈ (Γ ∙⟮ A ∣ μ ⟯)
-    suc! : ∀{Γ : Ctx o k} {η : k ⟶ l} {ω : o ⟶ k} -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ -> ⟮ A ∣ μ ⇒ ω ◆ η ⟯∈ Γ ∙! ω
+    suc! : ∀{Γ : Ctx o k} {η : k ⟶ l} {ω : p ⟶ k} -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ -> ⟮ A ∣ μ ⇒ ω ◆ η ⟯∈ Γ ∙! ω
     suc : ∀{B} -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ -> ⟮ A ∣ μ ⇒ η ⟯∈ Γ ∙⟮ B ∣ ω ⟯
 
   record Varᵘ (Γ : Ctx o k) : 𝒰 (𝑖 ､ 𝑗) where
-    -- field origin : 𝓂
+    field origin : 𝓂
     field current : 𝓂
-    field source : k ⟶ current
+    field source : origin ⟶ current
     field target : k ⟶ current
-    field type : ⟨ 𝒞 k ⟩
+    field type : ⟨ 𝒞 origin ⟩
     field ix : ⟮ type ∣ source ⇒ target ⟯∈ Γ
 
   -- record Varᵘ (Γ : Ctx o k) : 𝒰 (𝑖 ､ 𝑗) where
@@ -109,6 +114,16 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
 
   module _ (Γ : Ctx o k) where
     macro Var = #structureOn (Varᵘ Γ)
+
+  suc!-Var : Var Γ -> Var (Γ ∙! μ)
+  suc!-Var v = record { ix = suc! (ix v)}
+
+  suc-Var : Var Γ -> ∀{A} -> Var (Γ ∙⟮ A ∣ μ ⟯)
+  suc-Var v = record { ix = suc (ix v)}
+
+  zero-Var : ∀{A} -> Var (Γ ∙⟮ A ∣ μ ⟯)
+  zero-Var = record {ix = zero}
+
 
 
   ⟦_⟧-Ctx : Ctx m n -> ⟨ 𝒟 ⟩
@@ -168,11 +183,11 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   -- target' : (Γ : Ctx m n) -> (v : Var Γ) -> current v ⟶ n -> ⟨ 𝒞 m ⟩
   -- target' Γ v α = let β = partrestr Γ (ix v) in let A = type v in let γ = restr (cut Γ v) in ⟨ Modal (β ◆ γ) ⟩ A
 
-  target' : (Γ : Ctx m n) -> (v : Var Γ) -> ⟨ 𝒞 m ⟩
-  target' Γ v =
+  target' : (Γ : Ctx m n) -> (v : Var Γ) -> origin v ⟶ n -> ⟨ 𝒞 m ⟩
+  target' Γ v α =
     let β = partrestr Γ (ix v)
         γ = restr (cut Γ v)
-    in ⟨ Modal (β ◆ γ) ⟩ (type v)
+    in ⟨ Modal (α ◆ β ◆ γ) ⟩ (type v)
 
 {-
   source : (Γ : Ctx m n) -> (i : Fin (length Γ)) -> ⟨ 𝒞 m ⟩
@@ -201,11 +216,11 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
     field vars : Var Γ -> 𝐅𝐢𝐧𝐒𝐞𝐭 ℓ₀
     -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> current x ⟶ n
 
-    -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> origin x ⟶ n
+    field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> origin x ⟶ n
     -- field tran : ∀ x -> ∀(i : ⟨ vars i ⟩) -> HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars i j))
-    field tran : ∀ x -> ∀(i : ⟨ vars x ⟩) -> HomOf (𝒞 _) (source' Γ x) (target' Γ x)
+    field tran : ∀ x -> ∀(i : ⟨ vars x ⟩) -> HomOf (𝒞 _) (source' Γ x) (target' Γ x (γ x i))
 
-    field term : HomOf (𝒞 m) (⨅[ x ∶ Var Γ ] ⨅[ i ∶ vars x ] target' Γ x) (⟨ Modal (restr Γ) ⟩ A)
+    field term : HomOf (𝒞 m) (⨅[ x ∶ Var Γ ] ⨅[ i ∶ vars x ] (target' Γ x (γ x i))) (⟨ Modal (restr Γ) ⟩ A)
     -- field γ : ∀ x -> ∀ (i : ⟨ vars x ⟩) -> fst (modal∂ Γ i) ⟶ n
     -- field tran : ∀ i -> ∀(j : Fin (vars i)) -> HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars i j))
     -- field term : HomOf (𝒞 m) (⨅ᶠⁱⁿ i ∈ length Γ , ⨅ᶠⁱⁿ j ∈ vars i , target Γ i (goodVars i j))
@@ -216,7 +231,59 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
   rule-mod : ∀{Γ : Ctx m n₁} {A : 𝒞Obj {{_}} {{Param}} n₀} -> (μ : n₀ ⟶ n₁)
              -> SemanticHom (Γ ∙! μ) A
              -> SemanticHom Γ (⟨ Modal {{_}} {{Param}} μ ⟩ A)
-  rule-mod μ (semanticHom vars₁ tran₁ term₁) = semanticHom (λ v -> {!vars₁ v!}) {!!} {!!}
+  rule-mod {Γ = Γ} μ (semanticHom vars₁ γ₁ tran₁ term₁) = semanticHom vars' (λ v i -> γ₁ (suc!-Var v) i ◆ μ ) (λ i j -> let ϕ = tran₁ (suc!-Var i) j in {!!}) {!!}
+    where
+      vars' : Var Γ -> 𝐅𝐢𝐧𝐒𝐞𝐭 ℓ₀
+      vars' i = vars₁ (record {ix = suc! (ix i)})
+
+  rule-letmod : ∀{Γ : Ctx m n₂} {A : 𝒞Obj {{_}} {{Param}} n₀}
+                -> {B : 𝒞Obj {{_}} {{Param}} n₂}
+                -> (μ : n₀ ⟶ n₁) -> (ν : n₁ ⟶ n₂)
+                -> SemanticHom (Γ ∙! ν) (⟨ Modal {{_}} {{Param}} μ ⟩ A)
+                -> SemanticHom (Γ ∙⟮ A ∣ μ ◆ ν ⟯) B
+                -> SemanticHom Γ B
+  rule-letmod {n₂ = n₂} {Γ = Γ} {A} {B} μ ν t s = semanticHom vars' goodVars' tran' {!!}
+    where
+      vars' : Var Γ -> 𝐅𝐢𝐧𝐒𝐞𝐭 ℓ₀
+      vars' i = vars s (suc-Var i) ⊔ (vars s zero-Var ⊓ vars t (suc!-Var i))
+      -- vars' i = vars s (suc i) + vars s zero * vars t i
+
+      goodVars' : (i : Var Γ) →
+                  ⟨ (vars' i) ⟩ →
+                  (origin i) ⟶ n₂
+      goodVars' i (no j) = γ s (suc-Var i) j
+      goodVars' i (yes (j₀ , j₁)) =
+        let β = γ s zero-Var j₀
+        in γ t (suc!-Var i) j₁ ◆ ν
+
+      tran' : (i : Var Γ) (j : ⟨ vars' i ⟩) → HomOf (𝒞 _) (source' Γ i) (target' Γ i (goodVars' i j))
+      tran' i (no x) = tran s ((suc-Var i)) x
+      tran' i (yes (j₀ , j₁)) =
+        let xx = tran s zero-Var j₀
+            yy = tran t (suc!-Var i) j₁
+        in {!!}
+
+  {-
+      goodVars' : (i : Fin (length Γ)) →
+                  Fin (vars' i) →
+                  (fst (modal∂ Γ i)) ⟶ n₂
+      goodVars' i v = caseᶠⁱⁿ v of
+                      (λ (j : Fin (vars s (suc i))) -> goodVars s (suc i) j)
+                      (λ j -> tupleᶠⁱⁿ j of
+                              λ (j₀ : Fin (vars s zero)) (j₁ : Fin (vars t i)) ->
+                                    let a0 = goodVars s zero j₀
+                                        a1 = goodVars t i j₁
+                                    in a1 ◆ ν
+                                    )
+
+      tran' : (i : Fin (length Γ)) (j : Fin (vars' i)) → HomOf (𝒞 _) (source Γ i) (target Γ i (goodVars' i j))
+      tran' i v = caseᶠⁱⁿ v of
+                  ((λ (j : Fin (vars s (suc i))) -> {!!}))
+                  {!!}
+                  -}
+
+
+
 
 {-
 
