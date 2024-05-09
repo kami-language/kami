@@ -3,7 +3,7 @@
 
 module KamiCore.Typed.Variant.F.Model4 where
 
-open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_)
+open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 
@@ -12,6 +12,7 @@ module _ {Loc : Preorder 𝑖} where
 
   private variable
     k l : ⟨ Loc ⟩
+    ks ls : List ⟨ Loc ⟩
 
   data LocalType : 𝒰 𝑖
   data Type : ⟨ Loc ⟩ -> 𝒰 𝑖
@@ -23,9 +24,14 @@ module _ {Loc : Preorder 𝑖} where
     𝟘 : Comm l
 
   data LocalType where
-    box : Type l -> LocalType
+    -- the boxing operator:
+    -- actually the list of locations should be the
+    -- partition of `l`.
+    ◻_∣_ : Type l -> List ⟨ Loc ⟩ -> LocalType
     NN : LocalType
     Either : LocalType -> LocalType -> LocalType
+
+  infix 40 ◻_∣_
 
   data Type where
     _at_ : LocalType -> (l : ⟨ Loc ⟩) -> Type l
@@ -40,8 +46,8 @@ module _ {Loc : Preorder 𝑖} where
 
   private variable
     Γ Δ : Ctx
-    A B C : Type l
-    K L M N : LocalType
+    X Y Z : Type l
+    A B C D : LocalType
     c d : Comm l
     -- r s :  Loc
 
@@ -54,20 +60,33 @@ module _ {Loc : Preorder 𝑖} where
   _⊢_ Γ A = Γ ⊢[ 𝟘 ] A
 
   data _⊢[_]_ where
-    broadcast : Γ ⊢ box A at l -> Γ ⊢[ comm A l ] A
-    lam : Γ , A ⊢[ c ] B -> Γ ⊢ A [ c ]⇒ B
-    app : Γ ⊢ A [ c ]⇒ B -> Γ ⊢ A -> Γ ⊢[ c ] B
-    seq : Γ ⊢[ c ] A -> Γ , A ⊢[ d ] B -> Γ ⊢[ c ≫ d ] B
+    broadcast : Γ ⊢ ◻ X ∣ ks at l -> Γ ⊢[ comm X l ] X
+    lam : Γ , X ⊢[ c ] Y -> Γ ⊢ X [ c ]⇒ Y
+    app : Γ ⊢ X [ c ]⇒ Y -> Γ ⊢ X -> Γ ⊢[ c ] Y
+    seq : Γ ⊢[ c ] X -> Γ , X ⊢[ d ] Y -> Γ ⊢[ c ≫ d ] Y
+
+  data _＠_↦_ : Type l -> ⟨ Loc ⟩ -> LocalType -> 𝒰 𝑖 where
+
+  data _⊢◻_∣_//_ : Ctx -> Type l -> List ⟨ Loc ⟩ -> ⟨ Loc ⟩ -> 𝒰 𝑖 where
+    [] : Γ ⊢◻ X ∣ [] // l
+    _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ＠ k ↦ A -> Γ ⊢ A // l -> Γ ⊢◻ X ∣ (k ∷ ks) // l
 
   data _⊢_//_ where
-    rec-Either : Γ ⊢ Either K L // l
-               -> Γ , K at l ⊢ M // l
-               -> Γ , L at l ⊢ M // l
-               -> Γ ⊢ M // l
+    rec-Either : Γ ⊢ Either A B // l
+               -> Γ , A at l ⊢ C // l
+               -> Γ , B at l ⊢ C // l
+               -> Γ ⊢ C // l
+
+    box : Γ ⊢◻ X ∣ ks // l -> Γ ⊢ ◻ X ∣ ks // l
+
+
+
+
+
 
   data _⇛[_]_ where
     ε : Γ ⇛[ 𝟘 {l = l} ] ε
-    _,_ : Γ ⇛[ c ] Δ -> Γ ⊢[ d ] A -> Γ ⇛[ c ∥ d ] Δ , A
+    _,_ : Γ ⇛[ c ] Δ -> Γ ⊢[ d ] X -> Γ ⇛[ c ∥ d ] Δ , X
 
 
 
