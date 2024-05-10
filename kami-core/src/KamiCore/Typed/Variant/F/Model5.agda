@@ -8,7 +8,7 @@ open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 
-module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -> List ⟨ Loc ⟩) where
+module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -> List ⟨ Loc ⟩) where
 
 
   private variable
@@ -30,6 +30,8 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     -- partition of `l`.
     ◻_∣_ : ◯Type l -> List ⟨ Loc ⟩ -> ▲Type
     NN : ▲Type
+    BB : ▲Type
+    Unit : ▲Type
     Either : ▲Type -> ▲Type -> ▲Type
     -- _[_]⇒_ : ▲Type -> 
 
@@ -95,15 +97,17 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     app : Γ ⊢◯ X ⇒ Y -> Γ ⊢◯ X -> Γ ⊢◯ Y
     -- seq : Γ ⊢ X -> Γ , X ⊢ Y -> Γ ⊢ Y
 
-  data _＠_↦_ : ◯Type l -> ⟨ Loc ⟩ -> ▲Type -> 𝒰 𝑖 where
+  data _∣_↦_ : ◯Type l -> ⟨ Loc ⟩ -> ▲Type -> 𝒰 𝑖 where
+    proj-＠ : A ＠ l ∣ l ↦ A
+    proj-＠-≠ : (¬ k ∼ l) -> A ＠ k ∣ l ↦ Unit
 
   data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Loc ⟩ -> 𝓁 Γ ⊢◯-Com -> 𝒰 𝑖 where
 
-    var : Γ ⊢◯-Var X -> X ＠ k ↦ A -> Γ ⊢◯ A // k © []
+    var : (i : Γ ⊢◯-Var X) -> X ∣ k ↦ A -> Γ ⊢◯ A // k © var i
 
-    recv : X ＠ l ↦ A -> Γ ⊢◯ A // l © com X k
+    recv : X ∣ l ↦ A -> Γ ⊢◯ A // l © com X k
 
-    send : X ＠ k ↦ A -> Γ ⊢◯ ◻ X ∣ ks // k © []  -> Γ ⊢◯ A // k © com X k
+    send : X ∣ k ↦ A -> Γ ⊢◯ ◻ X ∣ ks // k © []  -> Γ ⊢◯ A // k © com X k
 
     seq : Γ ⊢◯ A // k © δ₀
         -> Γ , A ＠ k ⊢◯ B // k © δ₁
@@ -112,12 +116,16 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
 
+  data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> List ⟨ Loc ⟩ -> 𝓁 Γ ⊢◯-Com -> 𝒰 𝑖 where
+    [] : Γ ⊢◯ X / ks © δ
+    _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
 
+  infixl 23 _,_by_
 
 
   data _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> List ⟨ Loc ⟩ -> ⟨ Loc ⟩ -> 𝒰 𝑖 where
     [] : Γ ⊢◻ X ∣ [] // l
-    _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ＠ k ↦ A -> Γ ⊢ A // l -> Γ ⊢◻ X ∣ (k ∷ ks) // l
+    _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ∣ k ↦ A -> Γ ⊢ A // l -> Γ ⊢◻ X ∣ (k ∷ ks) // l
 
   data _⊢_//_ where
     rec-Either : Γ ⊢ Either A B // l
@@ -186,4 +194,66 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
   F◻ l (k , X) = ◻ X ∣ split k
 
 -}
+
+
+
+module _ where
+
+  open import Data.Fin using (#_ ; zero ; suc ; Fin)
+  open import Data.List using (_∷_ ; [])
+  open import Data.Vec using ([] ; _∷_ ; _++_) renaming (Vec to StdVec)
+
+  open import KamiTheory.Basics hiding (typed)
+  open import KamiTheory.Order.Preorder.Instances
+
+  -------------------
+  -- The preorder of 3 processes with common knowledge is
+  -- the standard preorder on `Fin 3 → Bool`, which inherits
+  -- the structure from `Bool` itself. We encode such functions
+  -- as bool-vectors of length 3. Note that while we actually
+  -- have to take the opposite preorder of that, we do so implicitly
+  -- by defining our singleton lists to be inverted, i.e., everywhere
+  -- true except at the required position.
+  PP : Preorder _
+  PP = ′ StdVec 𝟚 3 ′
+
+  -- Singletons are vectors with `true` everywhere except the required
+  -- position
+  singleton : Fin 3 -> ⟨ PP ⟩
+  singleton i = singletonVec true false i
+
+  -- We postulate that the relation is merely a proposition.
+  postulate instance
+    _ : ∀{a b : ⟨ PP ⟩} -> isProp (a ≤ b)
+
+  -------------------
+  -- Various shorter notations
+  P : 𝒰 _
+  P = ⟨ PP ⟩
+
+  -- We call the three processes `uu`, `vv` and `ww`
+  uu vv ww : P
+  uu = singleton (# 0)
+  vv = singleton (# 1)
+  ww = singleton (# 2)
+
+  -- this is the common knowledge of both `uu` and `vv`
+  uuvv : P
+  uuvv = false ∷ (false ∷ (true ∷ []))
+
+  pattern UVP = false ∷ false ∷ true ∷ []
+  pattern UP = false ∷ true ∷ true ∷ []
+  pattern VP = true ∷ false ∷ true ∷ []
+
+
+
+  open IR {Loc = PP} {{{!it!}}} {!!}
+  ----------------------------------------------------------
+  -- Examples
+  --
+  -- 1) sending and receiving a value
+  ex1 : ε , BB ＠ uu ⊢◯ BB ＠ vv / (uu ∷ vv ∷ []) © {!!} -- com (BB ＠ vv) uu
+  ex1 = []
+      , proj-＠ by {!!} -- recv proj-＠
+      , proj-＠-≠ {!!} by seq (var zero proj-＠) (send {!!} {!var ? ?!})
 
