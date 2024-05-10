@@ -3,7 +3,7 @@
 
 module KamiCore.Typed.Variant.F.Model5 where
 
-open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_ ; ls)
+open import Agora.Conventions hiding (k ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
@@ -18,11 +18,11 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
   data ▲Type : 𝒰 𝑖
   data ◯Type : ⟨ Loc ⟩ -> 𝒰 𝑖
 
-  data Comm (l : ⟨ Loc ⟩) : 𝒰 𝑖 where
-    comm : ◯Type l -> ⟨ Loc ⟩ -> Comm l
-    _∥_ : Comm l -> Comm l -> Comm l
-    _≫_ : Comm l -> Comm l -> Comm l
-    𝟘 : Comm l
+  -- data Comm (l : ⟨ Loc ⟩) : 𝒰 𝑖 where
+  --   comm : ◯Type l -> ⟨ Loc ⟩ -> Comm l
+  --   _∥_ : Comm l -> Comm l -> Comm l
+  --   _≫_ : Comm l -> Comm l -> Comm l
+  --   𝟘 : Comm l
 
   data ▲Type where
     -- the boxing operator:
@@ -31,6 +31,7 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     ◻_∣_ : ◯Type l -> List ⟨ Loc ⟩ -> ▲Type
     NN : ▲Type
     Either : ▲Type -> ▲Type -> ▲Type
+    -- _[_]⇒_ : ▲Type -> 
 
   infix 40 ◻_∣_
 
@@ -45,6 +46,10 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     ε : ◯Ctx
     _,_ : ◯Ctx -> ◯Type l -> ◯Ctx
 
+  𝓁 : ◯Ctx -> ℕ
+  𝓁 ε = 0
+  𝓁 (Γ , x) = suc (𝓁 Γ)
+
   data ▲Ctx : 𝒰 𝑖 where
     ε : ▲Ctx
     _,_ : ▲Ctx -> ▲Type -> ▲Ctx
@@ -54,7 +59,7 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     X Y Z : ◯Type l
     Ξ : ▲Ctx
     A B C D : ▲Type
-    c d : Comm l
+    -- c d : Comm l
     -- r s :  Loc
 
   data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
@@ -62,19 +67,20 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
   data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
   data _⇛_ : ◯Ctx -> ◯Ctx -> 𝒰 𝑖
 
-  data _⊢◯-Com : ◯Ctx -> 𝒰 𝑖 where
-    var : Γ ⊢◯-Var X -> Γ ⊢◯-Com
-    com : ◯Type l -> ⟨ Loc ⟩ -> Γ ⊢◯-Com
-    _∥_ : (δ₀ δ₁ : Γ ⊢◯-Com) -> Γ ⊢◯-Com
-    _≫_ : (δ₀ δ₁ : Γ ⊢◯-Com) -> Γ ⊢◯-Com
-    [] : Γ ⊢◯-Com
+  data _⊢◯-Com : ℕ -> 𝒰 𝑖
+  data _⊢◯-Com where
+    var : Γ ⊢◯-Var X -> n ⊢◯-Com
+    com : ◯Type l -> ⟨ Loc ⟩ -> n ⊢◯-Com
+    _∥_ : (δ₀ δ₁ : n ⊢◯-Com) -> n ⊢◯-Com
+    _≫_ : (δ₀ δ₁ : n ⊢◯-Com) -> n ⊢◯-Com
+    [] : n ⊢◯-Com
     -- app : Γ , X ⊢◯-Com -> 
 
-  _[_]-Com : Γ , X ⊢◯-Com -> Γ ⊢◯-Com -> Γ ⊢◯-Com
+  _[_]-Com : suc n ⊢◯-Com -> n ⊢◯-Com -> n ⊢◯-Com
   _[_]-Com = {!!}
 
   private variable
-    δ δ₀ δ₁ : Γ ⊢◯-Com
+    δ δ₀ δ₁ : n ⊢◯-Com
 
   -- _⊢_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
   -- _⊢_ Γ A = Γ ⊢[ 𝟘 ] A
@@ -91,7 +97,9 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
 
   data _＠_↦_ : ◯Type l -> ⟨ Loc ⟩ -> ▲Type -> 𝒰 𝑖 where
 
-  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Loc ⟩ -> Γ ⊢◯-Com -> 𝒰 𝑖 where
+  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Loc ⟩ -> 𝓁 Γ ⊢◯-Com -> 𝒰 𝑖 where
+
+    var : Γ ⊢◯-Var X -> X ＠ k ↦ A -> Γ ⊢◯ A // k © []
 
     recv : X ＠ l ↦ A -> Γ ⊢◯ A // l © com X k
 
@@ -100,6 +108,8 @@ module _ {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -
     seq : Γ ⊢◯ A // k © δ₀
         -> Γ , A ＠ k ⊢◯ B // k © δ₁
         -> Γ ⊢◯ B // k © (δ₀ ≫ (δ₁ [ [] ]-Com))
+
+    -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
 
 
