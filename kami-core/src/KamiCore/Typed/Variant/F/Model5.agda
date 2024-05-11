@@ -7,23 +7,38 @@ open import Agora.Conventions hiding (k ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
+open import KamiTheory.Order.StrictOrder.Base
+open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.List.Definition
 
-module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -> List ⟨ Loc ⟩) where
+
+
+record isProcessSet 𝑗 (L : Preorder 𝑖) : 𝒰 (𝑖 ､ 𝑗 ⁺) where
+  field Proc : StrictOrder 𝑗
+  field split : ⟨ L ⟩ -> 𝒫ᶠⁱⁿ Proc
+  field re : ⟨ Proc ⟩ -> ⟨ L ⟩
+
+open isProcessSet public using (Proc)
+open isProcessSet {{...}} public using (split ; re)
+
+
+
+
+
+-- module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ -> 𝒫ᶠⁱⁿ (Proc L)) where
+module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   private variable
     k l : ⟨ Loc ⟩
-    ks ls : List ⟨ Loc ⟩
+    ks ls : 𝒫ᶠⁱⁿ (Proc L)
+    p q : ⟨ Proc L ⟩
+
 
   data ▲Type : 𝒰 𝑖
   data ◯Type : ⟨ Loc ⟩ -> 𝒰 𝑖
   data Com : 𝒰 𝑖
 
-  -- data Comm (l : ⟨ Loc ⟩) : 𝒰 𝑖 where
-  --   comm : ◯Type l -> ⟨ Loc ⟩ -> Comm l
-  --   _∥_ : Comm l -> Comm l -> Comm l
-  --   _≫_ : Comm l -> Comm l -> Comm l
-  --   𝟘 : Comm l
 
   data ▲Type where
     -- the boxing operator:
@@ -52,9 +67,6 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
 
   infixl 30 _,_©_
 
-  -- 𝓁 : ◯Ctx -> ℕ
-  -- 𝓁 ε = 0
-  -- 𝓁 (Γ , x) = suc (𝓁 Γ)
 
   data ▲Ctx : 𝒰 𝑖 where
     ε : ▲Ctx
@@ -71,7 +83,7 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
   data _⊢◯-Var_©_ : ◯Ctx -> ◯Type l -> Com -> 𝒰 𝑖
   -- data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
-  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> List ⟨ Loc ⟩ -> 𝒰 𝑖
+  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
@@ -108,36 +120,48 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
 
 -}
 
-  data _∣_↦_ : ◯Type l -> ⟨ Loc ⟩ -> ▲Type -> 𝒰 𝑖 where
-    proj-＠ : l ≤ k -> A ＠ l ∣ k ↦ A
-    proj-＠-≠ : (¬ k ∼ l) -> A ＠ k ∣ l ↦ Unit
+  data _∣_↦_ : ◯Type l -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
+    proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
+    proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
+
+
+  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
 
 
 
-  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Loc ⟩ -> Com -> 𝒰 𝑖
+  _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Loc ⟩ -> 𝒰 _
+  _⊢◻_∣_//_ Γ X ks l = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © []
 
-  data _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> List ⟨ Loc ⟩ -> ⟨ Loc ⟩ -> 𝒰 𝑖 where
+
+{-
+  data _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Loc ⟩ -> 𝒰 𝑖 where
     [] : Γ ⊢◻ X ∣ [] // l
-    _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ∣ k ↦ A -> Γ ⊢◯ A // l © [] -> Γ ⊢◻ X ∣ (k ∷ ks) // l
+    _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ∣ p ↦ A -> Γ ⊢◯ A // l © [] -> Γ ⊢◻ X ∣ (k ∷ ks) // l
+    -}
 
-  data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> List ⟨ Loc ⟩ -> Com -> 𝒰 𝑖 where
+
+
+{-
+  data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
     [] : Γ ⊢◯ X ∣ [] © δ
-    _,_by_ : Γ ⊢◯ X ∣ ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X ∣ (k ∷ ks) © δ
+    _,_by_ : Γ ⊢◯ X ∣ ks © δ -> X ∣ p ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X ∣ (k ∷ ks) © δ
+    -}
 
   data _⊢◯_//_©_ where
 
-    var : (i : Γ ⊢◯-Var X © δ) -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ
+    var : (i : Γ ⊢◯-Var X © δ) -> X ∣ p ↦ A -> Γ ⊢◯ A // p © δ
 
-    tt : Γ ⊢◯ Unit // k © []
+    tt : Γ ⊢◯ Unit // p © []
 
     -- recv : X ∣ l ↦ A -> Γ ⊢◯ A // l © com X k
-    recv : Γ , X © [] ⊢◯ A // l © δ
-         -> Γ ⊢◯ A // l © (com X k ≫ δ)
+    recv : Γ , X © [] ⊢◯ A // p © δ
+         -> Γ ⊢◯ A // p © (com X k ≫ δ)
 
-    send : Γ ⊢◯ ◻ X // k © []
-         -> Γ , X © [] ⊢◯ A // k © δ
-         -> Γ ⊢◯ A // k © (com X k ≫ δ)
+    send : Γ ⊢◯ ◻ X // p © []
+         -> Γ , X © [] ⊢◯ A // p © δ
+         -> Γ ⊢◯ A // p © (com X (re p) ≫ δ)
 
+{-
     seq : Γ ⊢◯ A // k © δ₀
         -> Γ , A ＠ k © [] ⊢◯ B // k © δ₁
         -> Γ ⊢◯ B // k © (δ₀ ≫ δ₁)
@@ -158,9 +182,9 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
     -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
 
-  -- data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> List ⟨ Loc ⟩ -> Com -> 𝒰 𝑖 where
+  -- data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
   --   [] : Γ ⊢◯ X / ks © δ
-  --   _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
+  --   _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ p ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
 
   infixl 23 _,_by_
 
@@ -316,8 +340,8 @@ module _ where
 
 
 
-  split : ⟨ PP ⟩ → List ⟨ PP ⟩
-  split (x ∷ y ∷ z ∷ []) =
+  split-PP : ⟨ PP ⟩ → List ⟨ PP ⟩
+  split-PP (x ∷ y ∷ z ∷ []) =
         pure x uu <> pure y vv <> pure z ww
     where
       pure : Bool -> ⟨ PP ⟩ -> List ⟨ PP ⟩
@@ -357,6 +381,6 @@ module _ where
 
 
 
-
+-}
 
 
