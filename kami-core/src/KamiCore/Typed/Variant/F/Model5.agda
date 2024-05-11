@@ -15,11 +15,16 @@ open import KamiTheory.Data.List.Definition
 
 record isProcessSet 𝑗 (L : Preorder 𝑖) : 𝒰 (𝑖 ､ 𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
+  field all : ⟨ L ⟩
   field split : ⟨ L ⟩ -> 𝒫ᶠⁱⁿ Proc
   field re : ⟨ Proc ⟩ -> ⟨ L ⟩
 
+  instance
+    hasDecidableEquality:Proc : hasDecidableEquality ⟨ Proc ⟩
+    hasDecidableEquality:Proc = hasDecidableEquality:byStrictOrder
+
 open isProcessSet public using (Proc)
-open isProcessSet {{...}} public using (split ; re)
+open isProcessSet {{...}} public using (split ; re ; all ; hasDecidableEquality:Proc)
 
 
 
@@ -83,7 +88,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
   data _⊢◯-Var_©_ : ◯Ctx -> ◯Type l -> Com -> 𝒰 𝑖
   -- data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
-  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
+  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
@@ -129,8 +134,8 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
 
-  _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Loc ⟩ -> 𝒰 _
-  _⊢◻_∣_//_ Γ X ks l = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © []
+  _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
+  _⊢◻_∣_//_ Γ X ks q = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // q © []
 
 
 {-
@@ -140,6 +145,9 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     -}
 
 
+
+  _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
+  _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © []
 
 {-
   data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
@@ -161,23 +169,22 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
          -> Γ , X © [] ⊢◯ A // p © δ
          -> Γ ⊢◯ A // p © (com X (re p) ≫ δ)
 
-{-
-    seq : Γ ⊢◯ A // k © δ₀
-        -> Γ , A ＠ k © [] ⊢◯ B // k © δ₁
-        -> Γ ⊢◯ B // k © (δ₀ ≫ δ₁)
+    -- seq : Γ ⊢◯ A // k © δ₀
+    --     -> Γ , A ＠ k © [] ⊢◯ B // k © δ₁
+    --     -> Γ ⊢◯ B // k © (δ₀ ≫ δ₁)
 
-    box : ∀{X : ◯Type k} -> Γ ⊢◻ X ∣ split k // l -> Γ ⊢◯ ◻ X // l © []
+    box : ∀{X : ◯Type k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
 
-    rec-Either : Γ ⊢◯ Either A B // l © []
-               -> Γ , A ＠ l © [] ⊢◯ C // l © δ₀
-               -> Γ , B ＠ l © [] ⊢◯ C // l © δ₁
-               -> Γ ⊢◯ C // l © (δ₀ ⊹ δ₁)
+    rec-Either : Γ ⊢◯ Either A B // p © []
+               -> Γ , A ＠ re p © [] ⊢◯ C // p © δ₀
+               -> Γ , B ＠ re p © [] ⊢◯ C // p © δ₁
+               -> Γ ⊢◯ C // p © (δ₀ ⊹ δ₁)
 
-    left : Γ ⊢◯ A // k © δ
-         -> Γ ⊢◯ Either A B // k © δ
+    left : Γ ⊢◯ A // p © δ
+         -> Γ ⊢◯ Either A B // p © δ
 
-    right : Γ ⊢◯ B // k © δ
-         -> Γ ⊢◯ Either A B // k © δ
+    right : Γ ⊢◯ B // p © δ
+         -> Γ ⊢◯ Either A B // p © δ
 
     -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
@@ -206,14 +213,16 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data _⇛_∣_ where
     ε : Γ ⇛ ε ∣ ks
-    _,_ : Γ ⇛ Δ ∣ ks -> Γ ⊢◯ X ∣ ks © δ  -> Γ ⇛ Δ , X © δ ∣ ks
+    _,_ : Γ ⇛ Δ ∣ ks -> Γ ⊢◯ X ∣ ks © δ -> Γ ⇛ Δ , X © δ ∣ ks
 
+{-
   embed-Term : Γ ⊢◯ X ∣ (l ∷ []) © δ -> Γ ⊢◯ X ∣ split ⊤ © δ
   embed-Term = {!!}
 
   embed-⇛ : Γ ⇛ Δ ∣ (l ∷ []) -> Γ ⇛ Δ ∣ split ⊤
   embed-⇛ = {!!}
 
+-}
 
   ----------------------------------------------------------
   -- Constructing the categories
@@ -222,11 +231,11 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- Note that the Loc here is the location where the local
   -- type should be located (ergo we don't have ∨, but have
   -- an ∧ operation)
-  ▲Obj : ⟨ Loc ⟩ -> 𝒰 𝑖
-  ▲Obj l = ∑ isLocal l
+  ▲Obj : ⟨ Proc L ⟩ -> 𝒰 𝑖
+  ▲Obj l = ∑ isLocal (re l)
 
   ▲Hom : ∀ l -> ▲Obj l -> ▲Obj l -> 𝒰 _
-  ▲Hom l (Γ , ΓP) (Δ , ΔP) = Γ ⇛ Δ ∣ (l ∷ [])
+  ▲Hom l (Γ , ΓP) (Δ , ΔP) = Γ ⇛ Δ ∣ ⦗ l ⦘
 
 
   -- The global category.
@@ -237,7 +246,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ◯Obj = ◯Ctx
 
   ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
-  ◯Hom Γ Δ = Γ ⇛ Δ ∣ split ⊤
+  ◯Hom Γ Δ = Γ ⇛ Δ ∣ split all
 
   ----------------------------------------------------------
   -- Constructing the functors
@@ -246,16 +255,17 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   --
   ---------------------
   -- The object map
-  F＠ : ▲Obj l -> ◯Obj
+  F＠ : ▲Obj p -> ◯Obj
   F＠ (Γ , P) = Γ
   -- F＠ l ε = ε
   -- F＠ l (Γ , A © δ) = F＠ l Γ , A ＠ l © δ
+
 
   --
   ---------------------
   -- The arrow map
   --
-  map-F＠ : ∀{A B : ▲Obj l} -> ▲Hom l A B -> ◯Hom (F＠ A) (F＠ B)
+  map-F＠ : ∀{A B : ▲Obj p} -> ▲Hom p A B -> ◯Hom (F＠ A) (F＠ B)
   map-F＠ f = {!f!}
   -- We have to...
   --
@@ -270,21 +280,26 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   --
   ---------------------
   -- The object map
-  F◻ : ∀ l -> ◯Obj -> ▲Obj l
-  F◻ l ε = ε , ε
-  F◻ l (Γ , X © δ) =
-    let Γ' , Γ'P = F◻ l Γ
-    in (Γ' , ◻ X ＠ l © δ) , step Γ'P
+  F◻ : ∀ p -> ◯Obj -> ▲Obj p
+  F◻ p ε = ε , ε
+  F◻ p (Γ , X © δ) =
+    let Γ' , Γ'P = F◻ p Γ
+    in (Γ' , ◻ X ＠ re p © δ) , step Γ'P
+
 
   ---------------------------------------------
   -- The natural transformations
-  ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ l Γ)) Γ
+  ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ p Γ)) Γ
   ε-Comp ε = ε
-  ε-Comp {l = l} (Γ , X © δ) = {!!} , e
+  ε-Comp {p = p} (Γ , X © δ) = {!!} , e
     where
-      e : ∀ {Γ} -> Γ , ◻ X ＠ l © δ ⊢◯ X ∣ split ⊤ © δ
-      e = {!!}
+      e : ∀ {Γ} -> Γ , ◻ X ＠ re p © δ ⊢◯ X ∣ split {{L}} all © δ
+      e q q∈all A Ap with q ≟ p
+      ... | no x = {!recv ?!}
+      ... | yes x = {!!}
 
+
+{-
 
 
 
