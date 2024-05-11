@@ -66,6 +66,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   infix 30 _＠_
   infix 45 _⇒_
 
+
   data ◯Ctx : 𝒰 𝑖 where
     ε : ◯Ctx
     _,_©_ : ◯Ctx -> ◯Type l -> Com -> ◯Ctx
@@ -78,11 +79,22 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     _,_©_ : ▲Ctx -> ▲Type -> Com -> ▲Ctx
 
   private variable
+    Ξ : ▲Ctx
     Γ Δ : ◯Ctx
     X Y Z : ◯Type l
-    Ξ : ▲Ctx
     A B C D : ▲Type
 
+  data Ctx : 𝒰 𝑖 where
+    ε : Ctx
+    _,_ : Ctx -> ◯Type l -> Ctx
+
+  data _⊢Com : Ctx -> 𝒰 𝑖 where
+    ε : ε ⊢Com
+    _,_ : ∀{Γ} -> Γ ⊢Com -> Com -> Γ , X ⊢Com
+
+  mer : (Γ : Ctx) -> Γ ⊢Com -> ◯Ctx
+  mer ε D = ε
+  mer (Γ , X) (Γδ , Xδ) = mer Γ Γδ , X © Xδ
 
 
   -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
@@ -105,12 +117,14 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   private variable
     δ δ₀ δ₁ : Com
 
-  data isLocal (l : ⟨ Loc ⟩) : ◯Ctx -> 𝒰 𝑖 where
-    ε : isLocal l ε
-    step : isLocal l Γ -> isLocal l (Γ , A ＠ l © δ)
+  -- data isLocal (l : ⟨ Loc ⟩) : ◯Ctx -> 𝒰 𝑖 where
+  --   ε : isLocal l ε
+  --   step : isLocal l Γ -> isLocal l (Γ , A ＠ l © δ)
 
-  -- _⊢_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
-  -- _⊢_ Γ A = Γ ⊢[ 𝟘 ] A
+  data isLocal (l : ⟨ Loc ⟩) : Ctx -> 𝒰 𝑖 where
+    ε : isLocal l ε
+    step : ∀{Γ} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
+
 
   data _⊢◯-Var_©_ where
     zero : Γ , X © δ ⊢◯-Var X © δ
@@ -147,7 +161,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
-  _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © []
+  _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © δ
 
 {-
   data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
@@ -169,9 +183,9 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
          -> Γ , X © [] ⊢◯ A // p © δ
          -> Γ ⊢◯ A // p © (com X (re p) ≫ δ)
 
-    -- seq : Γ ⊢◯ A // k © δ₀
-    --     -> Γ , A ＠ k © [] ⊢◯ B // k © δ₁
-    --     -> Γ ⊢◯ B // k © (δ₀ ≫ δ₁)
+    seq : Γ ⊢◯ A // p © δ₀
+        -> Γ , A ＠ re p © [] ⊢◯ B // p © δ₁
+        -> Γ ⊢◯ B // p © (δ₀ ≫ δ₁)
 
     box : ∀{X : ◯Type k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
 
@@ -215,6 +229,9 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     ε : Γ ⇛ ε ∣ ks
     _,_ : Γ ⇛ Δ ∣ ks -> Γ ⊢◯ X ∣ ks © δ -> Γ ⇛ Δ , X © δ ∣ ks
 
+  wk-⇛ : Γ ⇛ Δ ∣ ks -> Γ , X © δ ⇛ Δ ∣ ks
+  wk-⇛ = {!!}
+
 {-
   embed-Term : Γ ⊢◯ X ∣ (l ∷ []) © δ -> Γ ⊢◯ X ∣ split ⊤ © δ
   embed-Term = {!!}
@@ -235,7 +252,10 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ▲Obj l = ∑ isLocal (re l)
 
   ▲Hom : ∀ l -> ▲Obj l -> ▲Obj l -> 𝒰 _
-  ▲Hom l (Γ , ΓP) (Δ , ΔP) = Γ ⇛ Δ ∣ ⦗ l ⦘
+  ▲Hom l (Γ , ΓP) (Δ , ΔP) =
+    ∀ (Γδ : Γ ⊢Com) ->
+    ∑ λ (ΔD : Δ ⊢Com) ->
+    mer Γ Γδ ⇛ mer Δ ΔD ∣ ⦗ l ⦘
 
 
   -- The global category.
@@ -243,10 +263,13 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- participate in the choreography, thus only should contain
   -- ∨ operations).
   ◯Obj : 𝒰 𝑖
-  ◯Obj = ◯Ctx
+  ◯Obj = Ctx
 
   ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
-  ◯Hom Γ Δ = Γ ⇛ Δ ∣ split all
+  ◯Hom Γ Δ = ∀ (Γδ : Γ ⊢Com) ->
+             ∑ λ (ΔD : Δ ⊢Com) ->
+             mer Γ Γδ ⇛ mer Δ ΔD ∣ split all
+
 
   ----------------------------------------------------------
   -- Constructing the functors
@@ -282,21 +305,31 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- The object map
   F◻ : ∀ p -> ◯Obj -> ▲Obj p
   F◻ p ε = ε , ε
-  F◻ p (Γ , X © δ) =
+  F◻ p (Γ , X) =
     let Γ' , Γ'P = F◻ p Γ
-    in (Γ' , ◻ X ＠ re p © δ) , step Γ'P
+    in (Γ' , ◻ X ＠ re p) , step Γ'P
+
 
 
   ---------------------------------------------
   -- The natural transformations
   ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ p Γ)) Γ
-  ε-Comp ε = ε
-  ε-Comp {p = p} (Γ , X © δ) = {!!} , e
+  ε-Comp ε = λ Γδ → ε , ε
+  ε-Comp {p = p} (Γ , X) (Γδ , Xδ)
+    with (Δδ , t) <- ε-Comp Γ Γδ
+    = (Δδ , (Xδ ≫ (com X (re p) ≫ []))) , wk-⇛ t , e
     where
-      e : ∀ {Γ} -> Γ , ◻ X ＠ re p © δ ⊢◯ X ∣ split {{L}} all © δ
+      e : mer (F＠ (F◻ p Γ)) Γδ , ◻ X ＠ re p © Xδ ⊢◯ X ∣ split {{L}} all © (Xδ ≫ (com X (re p) ≫ []))
       e q q∈all A Ap with q ≟ p
-      ... | no x = {!recv ?!}
-      ... | yes x = {!!}
+      ... | no x = seq (var zero (proj-＠-≠ {!!})) (recv (var zero Ap))
+      ... | yes refl-≡ = seq (var zero (proj-＠ {!!})) (send (var zero (proj-＠ {!!})) (var zero Ap))
+
+  η-Comp : ∀(Γ : ▲Obj p) -> ▲Hom p Γ (F◻ p (F＠ Γ))
+  η-Comp (ε , ε) = {!!}
+  η-Comp {p = p} ((G , X) , step {A = A} P) = {!!}
+
+
+
 
 
 {-
