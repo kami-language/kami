@@ -58,20 +58,20 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
 
   data ▲Ctx : 𝒰 𝑖 where
     ε : ▲Ctx
-    _,_ : ▲Ctx -> ▲Type -> ▲Ctx
+    _,_©_ : ▲Ctx -> ▲Type -> Com -> ▲Ctx
 
   private variable
     Γ Δ : ◯Ctx
     X Y Z : ◯Type l
     Ξ : ▲Ctx
     A B C D : ▲Type
-    -- c d : Comm l
-    -- r s :  Loc
+
+
 
   -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
   data _⊢◯-Var_©_ : ◯Ctx -> ◯Type l -> Com -> 𝒰 𝑖
-  data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
-  -- data _⇛_ : ◯Ctx -> ◯Ctx -> 𝒰 𝑖
+  -- data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
+  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> List ⟨ Loc ⟩ -> 𝒰 𝑖
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
@@ -87,6 +87,10 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
 
   private variable
     δ δ₀ δ₁ : Com
+
+  data isLocal (l : ⟨ Loc ⟩) : ◯Ctx -> 𝒰 𝑖 where
+    ε : isLocal l ε
+    step : isLocal l Γ -> isLocal l (Γ , A ＠ l © δ)
 
   -- _⊢_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
   -- _⊢_ Γ A = Γ ⊢[ 𝟘 ] A
@@ -115,6 +119,10 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   data _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> List ⟨ Loc ⟩ -> ⟨ Loc ⟩ -> 𝒰 𝑖 where
     [] : Γ ⊢◻ X ∣ [] // l
     _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ∣ k ↦ A -> Γ ⊢◯ A // l © [] -> Γ ⊢◻ X ∣ (k ∷ ks) // l
+
+  data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> List ⟨ Loc ⟩ -> Com -> 𝒰 𝑖 where
+    [] : Γ ⊢◯ X ∣ [] © δ
+    _,_by_ : Γ ⊢◯ X ∣ ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X ∣ (k ∷ ks) © δ
 
   data _⊢◯_//_©_ where
 
@@ -150,15 +158,15 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
     -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
 
-  data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> List ⟨ Loc ⟩ -> Com -> 𝒰 𝑖 where
-    [] : Γ ⊢◯ X / ks © δ
-    _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
+  -- data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> List ⟨ Loc ⟩ -> Com -> 𝒰 𝑖 where
+  --   [] : Γ ⊢◯ X / ks © δ
+  --   _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ k ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
 
   infixl 23 _,_by_
 
 
 
-  data _⊢_//_ where
+  -- data _⊢_//_ where
     -- rec-Either : Γ ⊢ Either A B // l
     --            -> Γ , A ＠ l ⊢ C // l
     --            -> Γ , B ＠ l ⊢ C // l
@@ -168,13 +176,19 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
 
   -- data _⊢▲_©_ : (Γ : ▲Ctx) -> ▲Type -> Γ ⊢◯-> 𝒰 𝑖 where
 
-  data _⊢▲-Var_ : ▲Ctx -> ▲Type -> 𝒰 𝑖 where
-    zero : Ξ , A ⊢▲-Var A
-    suc : Ξ ⊢▲-Var A -> Ξ , B ⊢▲-Var A
+  data _⊢▲-Var_©_ : ▲Ctx -> ▲Type -> Com -> 𝒰 𝑖 where
+    zero : Ξ , A © δ ⊢▲-Var A © δ
+    suc : Ξ ⊢▲-Var A © δ -> Ξ , B © δ₁ ⊢▲-Var A © δ
 
-  -- data _⇛_ where
-  --   ε : Γ ⇛ ε
-  --   _,_ : Γ ⇛ Δ -> Γ ⊢◯ X -> Γ ⇛ Δ , X
+  data _⇛_∣_ where
+    ε : Γ ⇛ ε ∣ ks
+    _,_ : Γ ⇛ Δ ∣ ks -> Γ ⊢◯ X ∣ ks © δ  -> Γ ⇛ Δ , X © δ ∣ ks
+
+  embed-Term : Γ ⊢◯ X ∣ (l ∷ []) © δ -> Γ ⊢◯ X ∣ split ⊤ © δ
+  embed-Term = {!!}
+
+  embed-⇛ : Γ ⇛ Δ ∣ (l ∷ []) -> Γ ⇛ Δ ∣ split ⊤
+  embed-⇛ = {!!}
 
 
   ----------------------------------------------------------
@@ -185,7 +199,10 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   -- type should be located (ergo we don't have ∨, but have
   -- an ∧ operation)
   ▲Obj : ⟨ Loc ⟩ -> 𝒰 𝑖
-  ▲Obj _ = ▲Ctx
+  ▲Obj l = ∑ isLocal l
+
+  ▲Hom : ∀ l -> ▲Obj l -> ▲Obj l -> 𝒰 _
+  ▲Hom l (Γ , ΓP) (Δ , ΔP) = Γ ⇛ Δ ∣ (l ∷ [])
 
 
   -- The global category.
@@ -195,6 +212,8 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   ◯Obj : 𝒰 𝑖
   ◯Obj = ◯Ctx
 
+  ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
+  ◯Hom Γ Δ = Γ ⇛ Δ ∣ split ⊤
 
   ----------------------------------------------------------
   -- Constructing the functors
@@ -203,13 +222,17 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   --
   ---------------------
   -- The object map
-  -- F＠ : ∀ l -> ▲Obj l -> ◯Obj
+  F＠ : ▲Obj l -> ◯Obj
+  F＠ (Γ , P) = Γ
   -- F＠ l ε = ε
-  -- F＠ l (Γ , A) = F＠ l Γ , A ＠ l
+  -- F＠ l (Γ , A © δ) = F＠ l Γ , A ＠ l © δ
+
   --
   ---------------------
   -- The arrow map
   --
+  map-F＠ : ∀{A B : ▲Obj l} -> ▲Hom l A B -> ◯Hom (F＠ A) (F＠ B)
+  map-F＠ f = {!f!}
   -- We have to...
   --
   -- F＠-Var : Ξ ⊢▲-Var A -> F＠ l Ξ ⊢◯-Var A ＠ l
@@ -219,12 +242,27 @@ module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : ⟨ Loc ⟩ 
   -- F＠-Term : Ξ ⊢▲ A  -> F＠ l Ξ ⊢◯ A ＠ l
   -- F＠-Term = {!!}
 
-{-
   -- 2) from global to local by using ◻
+  --
+  ---------------------
+  -- The object map
   F◻ : ∀ l -> ◯Obj -> ▲Obj l
-  F◻ l (k , X) = ◻ X ∣ split k
+  F◻ l ε = ε , ε
+  F◻ l (Γ , X © δ) =
+    let Γ' , Γ'P = F◻ l Γ
+    in (Γ' , ◻ X ＠ l © δ) , step Γ'P
 
--}
+  ---------------------------------------------
+  -- The natural transformations
+  ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ l Γ)) Γ
+  ε-Comp ε = ε
+  ε-Comp {l = l} (Γ , X © δ) = {!!} , e
+    where
+      e : ∀ {Γ} -> Γ , ◻ X ＠ l © δ ⊢◯ X ∣ split ⊤ © δ
+      e = {!!}
+
+
+
 
 
 
@@ -294,7 +332,7 @@ module _ where
   -- Examples
   --
   -- 1) sending and receiving a value
-  ex1 : ε , BB ＠ uu © [] ⊢◯ BB ＠ vv / (uu ∷ vv ∷ []) © (com (BB ＠ vv) uu ≫ [])
+  ex1 : ε , BB ＠ uu © [] ⊢◯ BB ＠ vv ∣ (uu ∷ vv ∷ []) © (com (BB ＠ vv) uu ≫ [])
   ex1 = []
       , proj-＠ refl-≤ by recv (var zero {!!})
       , proj-＠-≠ {!!} by send ((box ([] , proj-＠ refl-≤ by var zero (proj-＠ refl-≤)))) tt
@@ -303,7 +341,7 @@ module _ where
   -- 2) sending and receiving a value, continuing differently depending on it
   ex2 : ε , BB ＠ uu © [] , BB ＠ vv © []
         ⊢◯
-        BB ＠ uu / (uu ∷ vv ∷ []) © (com (BB ＠ uuvv) uu ≫ ((com (BB ＠ uu) vv ≫ []) ⊹ {!!}))
+        BB ＠ uu ∣ (uu ∷ vv ∷ []) © (com (BB ＠ uuvv) uu ≫ ((com (BB ＠ uu) vv ≫ []) ⊹ []))
   ex2 = []
       , proj-＠-≠ {!!} by
         recv
