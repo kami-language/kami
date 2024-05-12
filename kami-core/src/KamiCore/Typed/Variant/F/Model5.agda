@@ -41,27 +41,40 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   data ▲Type : 𝒰 𝑖
+  data ▲Type₊ : 𝒰 𝑖
   data ◯Type : ⟨ Loc ⟩ -> 𝒰 𝑖
+  data ◯Type₊ : ⟨ Loc ⟩ -> 𝒰 𝑖
   data Com : 𝒰 𝑖
+
+  data ▲Ann : ▲Type -> 𝒰 𝑖
+  data ◯Ann : ◯Type l -> 𝒰 𝑖
+
 
 
   data ▲Type where
-    -- the boxing operator:
-    -- actually the list of locations should be the
-    -- partition of `l`.
     ◻ : ◯Type l -> ▲Type
     NN : ▲Type
     Unit : ▲Type
     Either : ▲Type -> ▲Type -> ▲Type
-    -- _[_]⇒_ : ▲Type -> 
+    _⇒_ : ▲Type -> ▲Type -> ▲Type
+
+  data ▲Type₊ where
+    ◻ : ◯Type₊ l -> ▲Type₊
+    NN : ▲Type₊
+    Unit : ▲Type₊
+    Either : ▲Type₊ -> ▲Type₊ -> ▲Type₊
+    _⇒_ : ▲Type₊ -> ▲Type₊ -> ▲Type₊
 
   pattern BB = Either Unit Unit
 
-  -- infix 40 ◻_∣_
 
   data ◯Type where
     _＠_ : ▲Type -> (l : ⟨ Loc ⟩) -> ◯Type l
     _⇒_ : ◯Type l -> ◯Type l -> ◯Type l
+
+  data ◯Type₊ where
+    _＠_ : ▲Type₊ -> (l : ⟨ Loc ⟩) -> ◯Type₊ l
+    _⇒_ : ◯Type₊ l -> ◯Type₊ l -> ◯Type₊ l
 
   infix 30 _＠_
   infix 45 _⇒_
@@ -69,7 +82,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data ◯Ctx : 𝒰 𝑖 where
     ε : ◯Ctx
-    _,_©_ : ◯Ctx -> ◯Type l -> Com -> ◯Ctx
+    _,_©_ : ◯Ctx -> ◯Type₊ l -> Com -> ◯Ctx
 
   infixl 30 _,_©_
 
@@ -81,8 +94,25 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   private variable
     Ξ : ▲Ctx
     Γ Δ : ◯Ctx
-    X Y Z : ◯Type l
-    A B C D : ▲Type
+    X Y Z : ◯Type₊ l
+    -- X₊ Y₊ Z₊ : ◯Type₊ l
+    A B C D : ▲Type₊
+    -- A₊ B₊ C₊ D₊ : ▲Type₊
+
+  data ▲Ann where
+    ◻ : ∀{X : ◯Type l} -> ◯Ann X -> ▲Ann (◻ X)
+    NN : ▲Ann NN
+    Unit : ▲Ann Unit
+    Either : ∀{A B} -> ▲Ann A -> ▲Ann B -> ▲Ann (Either A B)
+    _[_]⇒_ : ∀{A B} -> ▲Ann A -> Com -> ▲Ann B -> ▲Ann (A ⇒ B)
+
+  data ◯Ann where
+    _＠_ : ∀{A} -> ▲Ann A -> (l : ⟨ Loc ⟩) -> ◯Ann (A ＠ l)
+    _[_]⇒_ : ∀{X Y : ◯Type l} -> ◯Ann (X) -> Com -> ◯Ann (Y) -> ◯Ann (X ⇒ Y)
+
+  ◯mer : (X : ◯Type l) -> ◯Ann X -> ◯Type₊ l
+  ◯mer = {!!}
+
 
   data Ctx : 𝒰 𝑖 where
     ε : Ctx
@@ -90,29 +120,26 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data _⊢Com : Ctx -> 𝒰 𝑖 where
     ε : ε ⊢Com
-    _,_ : ∀{Γ} -> Γ ⊢Com -> Com -> Γ , X ⊢Com
+    _,_&_ : ∀{Γ} -> {X : ◯Type l} -> Γ ⊢Com -> Com -> ◯Ann X -> Γ , X ⊢Com
 
   mer : (Γ : Ctx) -> Γ ⊢Com -> ◯Ctx
   mer ε D = ε
-  mer (Γ , X) (Γδ , Xδ) = mer Γ Γδ , X © Xδ
+  mer (Γ , X) (Γδ , Xδ & Xα) = mer Γ Γδ , ◯mer X Xα © Xδ
 
 
   -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
-  data _⊢◯-Var_©_ : ◯Ctx -> ◯Type l -> Com -> 𝒰 𝑖
+  data _⊢◯-Var_©_ : ◯Ctx -> ◯Type₊ l -> Com -> 𝒰 𝑖
   -- data _⊢_//_ : ◯Ctx -> ▲Type -> ⟨ Loc ⟩ -> 𝒰 𝑖
   data _⇛_∣_ : ◯Ctx -> ◯Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
-    com : ◯Type l -> ⟨ Loc ⟩ -> Com
+    com : ◯Type₊ l -> ⟨ Loc ⟩ -> Com
     _∥_ : (δ₀ δ₁ : Com) -> Com
     _≫_ : (δ₀ δ₁ : Com) -> Com
     _⊹_ : (δ₀ δ₁ : Com) -> Com
     [] : Com
-    -- app : Γ , X ⊢◯-Com -> 
 
-  -- _[_]-Com : suc Com -> Com -> Com
-  -- _[_]-Com = {!!}
 
   private variable
     δ δ₀ δ₁ : Com
@@ -123,32 +150,24 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data isLocal (l : ⟨ Loc ⟩) : Ctx -> 𝒰 𝑖 where
     ε : isLocal l ε
-    step : ∀{Γ} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
+    step : ∀{Γ A} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
 
 
   data _⊢◯-Var_©_ where
     zero : Γ , X © δ ⊢◯-Var X © δ
     suc : Γ ⊢◯-Var X © δ₀ -> Γ , Y © δ₁  ⊢◯-Var X © δ₀
 
-{-
-  data _⊢◯_ where
-    broadcast : Γ ⊢◯ ◻ X ∣ ks ＠ l -> Γ ⊢◯ X
-    lam : Γ , X ⊢◯ Y -> Γ ⊢◯ X ⇒ Y
-    app : Γ ⊢◯ X ⇒ Y -> Γ ⊢◯ X -> Γ ⊢◯ Y
-    -- seq : Γ ⊢ X -> Γ , X ⊢ Y -> Γ ⊢ Y
 
--}
-
-  data _∣_↦_ : ◯Type l -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_ : ◯Type₊ l -> ⟨ Proc L ⟩ -> ▲Type₊ -> 𝒰 (𝑖 ､ 𝑗) where
     proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
 
 
-  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
+  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
 
 
 
-  _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
+  _⊢◻_∣_//_ : ◯Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
   _⊢◻_∣_//_ Γ X ks q = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // q © []
 
 
@@ -160,7 +179,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
 
-  _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
+  _⊢◯_∣_©_ : ◯Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
   _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © δ
 
 {-
@@ -187,7 +206,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
         -> Γ , A ＠ re p © [] ⊢◯ B // p © δ₁
         -> Γ ⊢◯ B // p © (δ₀ ≫ δ₁)
 
-    box : ∀{X : ◯Type k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
+    box : ∀{X : ◯Type₊ k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
 
     rec-Either : Γ ⊢◯ Either A B // p © []
                -> Γ , A ＠ re p © [] ⊢◯ C // p © δ₀
@@ -221,9 +240,9 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   -- data _⊢▲_©_ : (Γ : ▲Ctx) -> ▲Type -> Γ ⊢◯-> 𝒰 𝑖 where
 
-  data _⊢▲-Var_©_ : ▲Ctx -> ▲Type -> Com -> 𝒰 𝑖 where
-    zero : Ξ , A © δ ⊢▲-Var A © δ
-    suc : Ξ ⊢▲-Var A © δ -> Ξ , B © δ₁ ⊢▲-Var A © δ
+  -- data _⊢▲-Var_©_ : ▲Ctx -> ▲Type -> Com -> 𝒰 𝑖 where
+  --   zero : Ξ , A © δ ⊢▲-Var A © δ
+  --   suc : Ξ ⊢▲-Var A © δ -> Ξ , B © δ₁ ⊢▲-Var A © δ
 
   data _⇛_∣_ where
     ε : Γ ⇛ ε ∣ ks
@@ -315,18 +334,32 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- The natural transformations
   ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ p Γ)) Γ
   ε-Comp ε = λ Γδ → ε , ε
-  ε-Comp {p = p} (Γ , X) (Γδ , Xδ)
+  ε-Comp {p = p} (Γ , X) (Γδ , Xδ & ((◻ Xα) ＠ l))
     with (Δδ , t) <- ε-Comp Γ Γδ
-    = (Δδ , (Xδ ≫ (com X (re p) ≫ []))) , wk-⇛ t , e
-    where
-      e : mer (F＠ (F◻ p Γ)) Γδ , ◻ X ＠ re p © Xδ ⊢◯ X ∣ split {{L}} all © (Xδ ≫ (com X (re p) ≫ []))
-      e q q∈all A Ap with q ≟ p
-      ... | no x = seq (var zero (proj-＠-≠ {!!})) (recv (var zero Ap))
-      ... | yes refl-≡ = seq (var zero (proj-＠ {!!})) (send (var zero (proj-＠ {!!})) (var zero Ap))
+    = (Δδ , (Xδ ≫ com (◯mer X Xα) (re p)) & Xα) , wk-⇛ t , {!!}
+    -- = (Δδ , (Xδ ≫ (com X (re p) ≫ []))) , wk-⇛ t , e
+    -- where
+    --   e : mer (F＠ (F◻ p Γ)) Γδ , ◻ X ＠ re p © Xδ ⊢◯ X ∣ split {{L}} all © (Xδ ≫ (com X (re p) ≫ []))
+    --   e q q∈all A Ap with q ≟ p
+    --   ... | no x = seq (var zero (proj-＠-≠ {!!})) (recv (var zero Ap))
+    --   ... | yes refl-≡ = seq (var zero (proj-＠ {!!})) (send (var zero (proj-＠ {!!})) (var zero Ap))
 
   η-Comp : ∀(Γ : ▲Obj p) -> ▲Hom p Γ (F◻ p (F＠ Γ))
   η-Comp (ε , ε) = {!!}
   η-Comp {p = p} ((G , X) , step {A = A} P) = {!!}
+
+
+  ---------------------------------------------
+  -- The products
+  _×-◯_ : ◯Obj -> ◯Obj -> ◯Obj
+  Γ ×-◯ ε = Γ
+  Γ ×-◯ (Δ , x) = (Γ ×-◯ Δ) , x
+
+  ---------------------------------------------
+  -- The exponentials
+  _⇒-◯_ : ◯Obj -> ◯Obj -> ◯Obj
+  ε ⇒-◯ Δ = Δ
+  (Γ , X) ⇒-◯ Δ = {!!}
 
 
 
