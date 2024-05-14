@@ -75,17 +75,17 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data ▲Type : 𝒰 (𝑖 ､ 𝑗)
   data ▲Type₊ : 𝒰 (𝑖 ､ 𝑗)
-  data ◯Type : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  data ◯Type : 𝒰 (𝑖 ､ 𝑗)
   data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
-  data Com : 𝒰 𝑖
+  -- data Com : 𝒰 𝑖
 
-  data ▲Ann : ▲Type -> 𝒰 𝑖
-  data ◯Ann : ◯Type l -> 𝒰 𝑖
+  -- data ▲Ann : ▲Type -> 𝒰 𝑖
+  -- data ◯Ann : ◯Type -> 𝒰 𝑖
 
 
 
   data ▲Type where
-    ◻ : ◯Type l -> ▲Type
+    ◻ : ◯Type -> ▲Type
     NN : ▲Type
     Unit : ▲Type
     Either : ▲Type -> ▲Type -> ▲Type
@@ -103,10 +103,10 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   data ◯Type where
-    _＠_ : ▲Type -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Type l
-    _⇒_ : ◯Type l -> ◯Type l -> ◯Type l
-    Either : ◯Type l -> ◯Type l -> ◯Type l
-    Wrap : ◯Type l -> ◯Type l
+    _＠_ : ▲Type -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Type
+    _⇒_ : ◯Type -> ◯Type -> ◯Type
+    Either : ◯Type -> ◯Type -> ◯Type
+    Wrap : ◯Type -> ◯Type
 
   data ◯Type₊ where
     _＠_ : ▲Type₊ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Type₊ l
@@ -116,9 +116,9 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- infix 45 _⇒_
 
 
-  -- data ◯Ctx : 𝒰 𝑖 where
-  --   ε : ◯Ctx
-  --   _,_©_ : ◯Ctx -> ◯Type₊ l -> Com -> ◯Ctx
+  -- data Ctx : 𝒰 𝑖 where
+  --   ε : Ctx
+  --   _,_©_ : Ctx -> ◯Type₊ l -> Com -> Ctx
 
   -- infixl 30 _,_©_
 
@@ -129,40 +129,46 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data Ctx : 𝒰 (𝑖 ､ 𝑗) where
     ε : Ctx
-    _,_ : Ctx -> ◯Type l -> Ctx
+    _,_ : Ctx -> ◯Type -> Ctx
 
-  ⟦_⟧-◯Type : ◯Type l -> ComType
+
+  data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : Ctx -> 𝒰 (𝑖 ､ 𝑗) where
+    ε : isLocal l ε
+    step : ∀{Γ A} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
+
+
+  ⟦_⟧-◯Type : ◯Type -> ComType
 
   private variable
     -- Ξ : ▲Ctx
     Γ Δ : Ctx
-    X Y Z : ◯Type l
+    X Y Z : ◯Type
     -- X₊ Y₊ Z₊ : ◯Type₊ l
     A B C D : ▲Type
     x y z : ComType
     -- A₊ B₊ C₊ D₊ : ▲Type₊
-    δ δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type {l = l} ]
-    ζ ζ₀ ζ₁ : x ⊢ y Com[ ⟦_⟧-◯Type {l = l} ]
-    c d : x ⊢ ℂ Com[ ⟦_⟧-◯Type {l = l} ]
+    δ δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]
+    ζ ζ₀ ζ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]
+    c d : x ⊢ ℂ Com[ ⟦_⟧-◯Type ]
 
 
   ---------------------------------------------
 
-  data _∣_↦_ : ◯Type l -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_ : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
     -- proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     -- proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
 
 
   ---------------------------------------------
 
-  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type {l = l} ]) -> x ⊢ y Com[ ⟦_⟧-◯Type {l = l} ]
+  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]) -> x ⊢ y Com[ ⟦_⟧-◯Type ]
   _⊹-Com_ {y = ℂ} d e = d ⊹ e
   _⊹-Com_ {y = Unit} d e = tt
   _⊹-Com_ {y = y₀ ×× y₁} d e = {!!}
   _⊹-Com_ {y = y ⇒ y₁} d e = {!!}
 
 
-  ⟦_⟧₊-◯Type : ◯Type l -> ComType
+  ⟦_⟧₊-◯Type : ◯Type -> ComType
   ⟦_⟧-▲Type : ▲Type -> ComType
   ⟦ ◻ x ⟧-▲Type = ⟦ x ⟧-◯Type
   ⟦ NN ⟧-▲Type = {!!}
@@ -182,7 +188,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ⟦ Γ , x ⟧-Ctx = ⟦ Γ ⟧-Ctx ×× ⟦ x ⟧-◯Type
 
 
-  data _⊢_/_Global {l} : (Γ : Ctx) -> (X : ◯Type l) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type {l = l} ] -> 𝒰 (𝑖 ､ 𝑗) where
+  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒰 (𝑖 ､ 𝑗) where
     lam : Γ , X ⊢ Y / δ Global -> Γ ⊢ X ⇒ Y / (lam δ) Global
 
     app : Γ ⊢ X ⇒ Y / (δ₀) Global
@@ -203,15 +209,138 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
              -> Γ ⊢ Z / (app (lam ζ₀) δ₀ ⊹-Com app (lam ζ₁) δ₁) Global
 
 
-  data _⊢_/_GlobalFiber[_] {l} : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type {l = l} ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑖 ､ 𝑗) where
+  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑖 ､ 𝑗) where
     recv : X ∣ p ↦ A -> Γ ⊢ Wrap A / com X δ , {!δ!} GlobalFiber[ p ]
     send : X ∣ p ↦ A
            -> Γ ⊢ ◻ X / δ GlobalFiber[ p ]
            -> Γ ⊢ Wrap A / com X δ , {!!} GlobalFiber[ p ]
 
 
-  _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type l) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type {l = l} ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
   _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢ A / {!!} GlobalFiber[ p ]
+
+
+
+  data _⇛_/_GlobalFibered[_] : (Γ Δ : Ctx) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ Δ ⟧-Ctx Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  data _⇛_/_GlobalFibered[_] where
+    ε : Γ ⇛ ε / tt GlobalFibered[ ks ]
+    _,_ : Γ ⇛ Δ / δ₀ GlobalFibered[ ks ] -> Γ ⊢ X / δ₁ GlobalFibered[ ks ] -> Γ ⇛ Δ , X / δ₀ , δ₁ GlobalFibered[ ks ]
+
+  ----------------------------------------------------------
+  -- Constructing the categories
+  --
+  -- The local categories.
+  -- Note that the Loc here is the location where the local
+  -- type should be located (ergo we don't have ∨, but have
+  -- an ∧ operation)
+  ▲Obj : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 _
+  ▲Obj l = ∑ isLocal l
+
+
+
+  ▲Hom : ∀ l -> ▲Obj l -> ▲Obj l -> 𝒰 _
+  ▲Hom l (Γ , ΓP) (Δ , ΔP) = ∑ λ δ -> Γ ⇛ Δ / δ GlobalFibered[ l ]
+    -- ∀ (Γδ : Γ ⊢Com) ->
+    -- ∑ λ (ΔD : Δ ⊢Com) ->
+    -- mer Γ Γδ ⇛ mer Δ ΔD ∣ ⦗ l ⦘
+
+
+
+  -- The global category.
+  -- Note that the loc here is the range of processes that
+  -- participate in the choreography, thus only should contain
+  -- ∨ operations).
+  ◯Obj : 𝒰 _
+  ◯Obj = Ctx
+
+  ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
+  ◯Hom Γ Δ = ∑ λ δ -> Γ ⇛ Δ / δ GlobalFibered[ split all ]
+  -- ∀ (Γδ : Γ ⊢Com) ->
+  --            ∑ λ (ΔD : Δ ⊢Com) ->
+  --            mer Γ Γδ ⇛ mer Δ ΔD ∣ split all
+
+
+  ----------------------------------------------------------
+  -- Constructing the functors
+  --
+  -- 1) from local to global by using "＠"
+  --
+  ---------------------
+  -- The object map
+  F＠ : ▲Obj ls -> ◯Obj
+  F＠ (Γ , P) = Γ
+  -- F＠ l ε = ε
+  -- F＠ l (Γ , A © δ) = F＠ l Γ , A ＠ l © δ
+
+
+  --
+  ---------------------
+  -- The arrow map
+  --
+  map-F＠ : ∀{A B : ▲Obj ls} -> ▲Hom ls A B -> ◯Hom (F＠ A) (F＠ B)
+  map-F＠ f = {!f!}
+  -- We have to...
+  --
+  -- F＠-Var : Ξ ⊢▲-Var A -> F＠ l Ξ ⊢◯-Var A ＠ l
+  -- F＠-Var zero = zero
+  -- F＠-Var (suc v) = suc (F＠-Var v)
+
+  -- F＠-Term : Ξ ⊢▲ A  -> F＠ l Ξ ⊢◯ A ＠ l
+  -- F＠-Term = {!!}
+
+  -- 2) from global to local by using ◻
+  --
+  ---------------------
+  -- The object map
+  F◻ : ∀ p -> ◯Obj -> ▲Obj p
+  F◻ p ε = ε , ε
+  F◻ p (Γ , X) =
+    let Γ' , Γ'P = F◻ p Γ
+    in (Γ' , ◻ X ＠ p) , step Γ'P
+
+{-
+
+
+  ---------------------------------------------
+  -- The natural transformations
+  ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ p Γ)) Γ
+  ε-Comp ε = λ Γδ → ε , ε
+  ε-Comp {p = p} (Γ , X) (Γδ , Xδ & ((◻ Xα) ＠ l))
+    with (Δδ , t) <- ε-Comp Γ Γδ
+    = (Δδ , (Xδ ≫ com (◯mer X Xα) (re p)) & Xα) , wk-⇛ t , {!!}
+    -- = (Δδ , (Xδ ≫ (com X (re p) ≫ []))) , wk-⇛ t , e
+    -- where
+    --   e : mer (F＠ (F◻ p Γ)) Γδ , ◻ X ＠ re p © Xδ ⊢◯ X ∣ split {{L}} all © (Xδ ≫ (com X (re p) ≫ []))
+    --   e q q∈all A Ap with q ≟ p
+    --   ... | no x = seq (var zero (proj-＠-≠ {!!})) (recv (var zero Ap))
+    --   ... | yes refl-≡ = seq (var zero (proj-＠ {!!})) (send (var zero (proj-＠ {!!})) (var zero Ap))
+
+  η-Comp : ∀(Γ : ▲Obj p) -> ▲Hom p Γ (F◻ p (F＠ Γ))
+  η-Comp (ε , ε) = {!!}
+  η-Comp {p = p} ((G , X) , step {A = A} P) = {!!}
+
+-}
+
+
+  ---------------------------------------------
+  -- The products
+  _×-◯_ : ◯Obj -> ◯Obj -> ◯Obj
+  Γ ×-◯ ε = Γ
+  Γ ×-◯ (Δ , x) = (Γ ×-◯ Δ) , x
+
+  ---------------------------------------------
+  -- The exponentials
+
+  _⇒'-◯_ : ◯Type -> ◯Obj -> ◯Obj
+  X ⇒'-◯ ε = ε
+  X ⇒'-◯ (Δ , Y) = (X ⇒'-◯ Δ) , (X ⇒ Y)
+
+
+  _⇒-◯_ : ◯Obj -> ◯Obj -> ◯Obj
+  ε ⇒-◯ Δ = Δ
+  (Γ , X) ⇒-◯ Δ = Γ ⇒-◯ Δ , {!X ⇒'-◯ Δ!}
+
+
 
 
 
@@ -223,7 +352,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   data ▲Ann where
-    ◻ : ∀{X : ◯Type l} -> ◯Ann X -> ▲Ann (◻ X)
+    ◻ : ∀{X : ◯Type} -> ◯Ann X -> ▲Ann (◻ X)
     NN : ▲Ann NN
     Unit : ▲Ann Unit
     Either : ∀{A B} -> ▲Ann A -> ▲Ann B -> ▲Ann (Either A B)
@@ -231,25 +360,25 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   data ◯Ann where
     _＠_ : ∀{A} -> ▲Ann A -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Ann (A ＠ l)
-    _[_]⇒_ : ∀{X Y : ◯Type l} -> ◯Ann (X) -> Com -> ◯Ann (Y) -> ◯Ann (X ⇒ Y)
+    _[_]⇒_ : ∀{X Y : ◯Type} -> ◯Ann (X) -> Com -> ◯Ann (Y) -> ◯Ann (X ⇒ Y)
 
-  ◯mer : (X : ◯Type l) -> ◯Ann X -> ◯Type₊ l
+  ◯mer : (X : ◯Type) -> ◯Ann X -> ◯Type₊ l
   ◯mer = {!!}
 
 
   data _⊢Com : Ctx -> 𝒰 𝑖 where
     ε : ε ⊢Com
-    _,_&_ : ∀{Γ} -> {X : ◯Type l} -> Γ ⊢Com -> Com -> ◯Ann X -> Γ , X ⊢Com
+    _,_&_ : ∀{Γ} -> {X : ◯Type} -> Γ ⊢Com -> Com -> ◯Ann X -> Γ , X ⊢Com
 
-  mer : (Γ : Ctx) -> Γ ⊢Com -> ◯Ctx
+  mer : (Γ : Ctx) -> Γ ⊢Com -> Ctx
   mer ε D = ε
   mer (Γ , X) (Γδ , Xδ & Xα) = mer Γ Γδ , ◯mer X Xα © Xδ
 
 
-  -- data _⊢◯_ : ◯Ctx -> ◯Type l -> 𝒰 𝑖
-  data _⊢◯-Var_©_ : ◯Ctx -> ◯Type₊ l -> Com -> 𝒰 𝑖
-  -- data _⊢_//_ : ◯Ctx -> ▲Type -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
-  data _⇛_∣_ : ◯Ctx -> ◯Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  -- data _⊢◯_ : Ctx -> ◯Type -> 𝒰 𝑖
+  data _⊢◯-Var_©_ : Ctx -> ◯Type₊ l -> Com -> 𝒰 𝑖
+  -- data _⊢_//_ : Ctx -> ▲Type -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
+  data _⇛_∣_ : Ctx -> Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
@@ -263,7 +392,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   private variable
     δ δ₀ δ₁ : Com
 
-  -- data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : ◯Ctx -> 𝒰 𝑖 where
+  -- data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : Ctx -> 𝒰 𝑖 where
   --   ε : isLocal l ε
   --   step : isLocal l Γ -> isLocal l (Γ , A ＠ l © δ)
 
@@ -282,27 +411,27 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
 
 
-  data _⊢◯_//_©_ : (Γ : ◯Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
+  data _⊢◯_//_©_ : (Γ : Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
 
 
 
-  _⊢◻_∣_//_ : ◯Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
+  _⊢◻_∣_//_ : Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
   _⊢◻_∣_//_ Γ X ks q = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // q © []
 
 
 {-
-  data _⊢◻_∣_//_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖 where
+  data _⊢◻_∣_//_ : Ctx -> ◯Type -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖 where
     [] : Γ ⊢◻ X ∣ [] // l
     _,_by_ : Γ ⊢◻ X ∣ ks // l -> X ∣ p ↦ A -> Γ ⊢◯ A // l © [] -> Γ ⊢◻ X ∣ (k ∷ ks) // l
     -}
 
 
 
-  _⊢◯_∣_©_ : ◯Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
+  _⊢◯_∣_©_ : Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
   _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢◯ A // p © δ
 
 {-
-  data _⊢◯_∣_©_ : ◯Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
+  data _⊢◯_∣_©_ : Ctx -> ◯Type -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
     [] : Γ ⊢◯ X ∣ [] © δ
     _,_by_ : Γ ⊢◯ X ∣ ks © δ -> X ∣ p ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X ∣ (k ∷ ks) © δ
     -}
@@ -341,7 +470,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     -- lam : Γ , A ⊢◯ B // k © δ -> Γ ⊢◯ A [ ]⇒
 
 
-  -- data _⊢◯_/_©_ : (Γ : ◯Ctx) -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
+  -- data _⊢◯_/_©_ : (Γ : Ctx) -> ◯Type -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 𝑖 where
   --   [] : Γ ⊢◯ X / ks © δ
   --   _,_by_ : Γ ⊢◯ X / ks © δ -> X ∣ p ↦ A -> Γ ⊢◯ A // k © δ -> Γ ⊢◯ X / (k ∷ ks) © δ
 
@@ -379,112 +508,6 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 -}
 
-  ----------------------------------------------------------
-  -- Constructing the categories
-  --
-  -- The local categories.
-  -- Note that the Loc here is the location where the local
-  -- type should be located (ergo we don't have ∨, but have
-  -- an ∧ operation)
-  ▲Obj : ⟨ Proc L ⟩ -> 𝒰 𝑖
-  ▲Obj l = ∑ isLocal (re l)
-
-  ▲Hom : ∀ l -> ▲Obj l -> ▲Obj l -> 𝒰 _
-  ▲Hom l (Γ , ΓP) (Δ , ΔP) =
-    ∀ (Γδ : Γ ⊢Com) ->
-    ∑ λ (ΔD : Δ ⊢Com) ->
-    mer Γ Γδ ⇛ mer Δ ΔD ∣ ⦗ l ⦘
-
-
-  -- The global category.
-  -- Note that the loc here is the range of processes that
-  -- participate in the choreography, thus only should contain
-  -- ∨ operations).
-  ◯Obj : 𝒰 𝑖
-  ◯Obj = Ctx
-
-  ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
-  ◯Hom Γ Δ = ∀ (Γδ : Γ ⊢Com) ->
-             ∑ λ (ΔD : Δ ⊢Com) ->
-             mer Γ Γδ ⇛ mer Δ ΔD ∣ split all
-
-
-  ----------------------------------------------------------
-  -- Constructing the functors
-  --
-  -- 1) from local to global by using "＠"
-  --
-  ---------------------
-  -- The object map
-  F＠ : ▲Obj p -> ◯Obj
-  F＠ (Γ , P) = Γ
-  -- F＠ l ε = ε
-  -- F＠ l (Γ , A © δ) = F＠ l Γ , A ＠ l © δ
-
-
-  --
-  ---------------------
-  -- The arrow map
-  --
-  map-F＠ : ∀{A B : ▲Obj p} -> ▲Hom p A B -> ◯Hom (F＠ A) (F＠ B)
-  map-F＠ f = {!f!}
-  -- We have to...
-  --
-  -- F＠-Var : Ξ ⊢▲-Var A -> F＠ l Ξ ⊢◯-Var A ＠ l
-  -- F＠-Var zero = zero
-  -- F＠-Var (suc v) = suc (F＠-Var v)
-
-  -- F＠-Term : Ξ ⊢▲ A  -> F＠ l Ξ ⊢◯ A ＠ l
-  -- F＠-Term = {!!}
-
-  -- 2) from global to local by using ◻
-  --
-  ---------------------
-  -- The object map
-  F◻ : ∀ p -> ◯Obj -> ▲Obj p
-  F◻ p ε = ε , ε
-  F◻ p (Γ , X) =
-    let Γ' , Γ'P = F◻ p Γ
-    in (Γ' , ◻ X ＠ re p) , step Γ'P
-
-
-
-  ---------------------------------------------
-  -- The natural transformations
-  ε-Comp : ∀(Γ : ◯Obj) -> ◯Hom (F＠ (F◻ p Γ)) Γ
-  ε-Comp ε = λ Γδ → ε , ε
-  ε-Comp {p = p} (Γ , X) (Γδ , Xδ & ((◻ Xα) ＠ l))
-    with (Δδ , t) <- ε-Comp Γ Γδ
-    = (Δδ , (Xδ ≫ com (◯mer X Xα) (re p)) & Xα) , wk-⇛ t , {!!}
-    -- = (Δδ , (Xδ ≫ (com X (re p) ≫ []))) , wk-⇛ t , e
-    -- where
-    --   e : mer (F＠ (F◻ p Γ)) Γδ , ◻ X ＠ re p © Xδ ⊢◯ X ∣ split {{L}} all © (Xδ ≫ (com X (re p) ≫ []))
-    --   e q q∈all A Ap with q ≟ p
-    --   ... | no x = seq (var zero (proj-＠-≠ {!!})) (recv (var zero Ap))
-    --   ... | yes refl-≡ = seq (var zero (proj-＠ {!!})) (send (var zero (proj-＠ {!!})) (var zero Ap))
-
-  η-Comp : ∀(Γ : ▲Obj p) -> ▲Hom p Γ (F◻ p (F＠ Γ))
-  η-Comp (ε , ε) = {!!}
-  η-Comp {p = p} ((G , X) , step {A = A} P) = {!!}
-
-
-  ---------------------------------------------
-  -- The products
-  _×-◯_ : ◯Obj -> ◯Obj -> ◯Obj
-  Γ ×-◯ ε = Γ
-  Γ ×-◯ (Δ , x) = (Γ ×-◯ Δ) , x
-
-  ---------------------------------------------
-  -- The exponentials
-
-  _⇒'-◯_ : ◯Type l -> ◯Obj -> ◯Obj
-  X ⇒'-◯ ε = ε
-  X ⇒'-◯ (Δ , Y) = {!!} , {!X ⇒ Y!}
-
-
-  _⇒-◯_ : ◯Obj -> ◯Obj -> ◯Obj
-  ε ⇒-◯ Δ = Δ
-  (Γ , X) ⇒-◯ Δ = {!!}
 
 -}
 
