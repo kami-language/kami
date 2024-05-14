@@ -54,7 +54,7 @@ module _ {I : 𝒰 𝑖} {f : I -> ComType} where
     com : ∀{Γ} -> (i : I) -> Γ ⊢ f i Com -> Γ ⊢ ℂ Com
     _≫_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
-    _≫-↷_ : ∀{Γ A} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ ×× A Com -> Γ ⊢ ℂ ×× A Com
+    -- _≫-↷_ : ∀{Γ A} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ ×× A Com -> Γ ⊢ ℂ ×× A Com
 
     _⊹_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
@@ -154,9 +154,15 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   ---------------------------------------------
 
-  data _∣_↦_ : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_Type : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
     -- proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     -- proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
+    _⇒_ : X ∣ p ↦ A Type -> Y ∣ p ↦ B Type -> (X ⇒ Y) ∣ p ↦ (A ⇒ B) Type
+
+
+  data _∣_↦_Ctx : Ctx -> (l : ⟨ Proc L ⟩) -> ∑ isLocal ⦗ l ⦘ -> 𝒰 (𝑖 ､ 𝑗) where
+    ε : ε ∣ p ↦ (ε , ε) Ctx
+    _,_ : ∀{Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> X ∣ p ↦ A Type -> Γ , X ∣ p ↦ (Δ , A ＠ ⦗ p ⦘) , step Δp Ctx
 
 
   ---------------------------------------------
@@ -174,11 +180,11 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ⟦ NN ⟧-▲Type = {!!}
   ⟦ Unit ⟧-▲Type = {!!}
   ⟦ Either A A₁ ⟧-▲Type = {!!}
-  ⟦ A ⇒ A₁ ⟧-▲Type = {!!}
+  ⟦ A ⇒ B ⟧-▲Type = ⟦ A ⟧-▲Type ⇒ ⟦ B ⟧-▲Type
   ⟦ Wrap A ⟧-▲Type = ℂ ×× ⟦ A ⟧-▲Type
 
   ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-◯Type
-  ⟦ x ＠ _ ⟧-◯Type = {!!}
+  ⟦ x ＠ _ ⟧-◯Type = ⟦ x ⟧-▲Type
   ⟦ X ⇒ Y ⟧-◯Type = ⟦ X ⟧-◯Type ⇒ ⟦ Y ⟧-◯Type
   ⟦ Either X Y ⟧-◯Type = ⟦ X ⟧-◯Type ×× ⟦ Y ⟧-◯Type
   ⟦ Wrap X ⟧-◯Type = ℂ ×× ⟦ X ⟧-◯Type
@@ -210,14 +216,25 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
   data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑖 ､ 𝑗) where
-    recv : X ∣ p ↦ A -> Γ ⊢ Wrap A / com X δ , {!δ!} GlobalFiber[ p ]
-    send : X ∣ p ↦ A
+    recv : X ∣ p ↦ A Type -> Γ ⊢ Wrap A / com X δ , {!δ!} GlobalFiber[ p ]
+    send : X ∣ p ↦ A Type
            -> Γ ⊢ ◻ X / δ GlobalFiber[ p ]
            -> Γ ⊢ Wrap A / com X δ , {!!} GlobalFiber[ p ]
 
+    lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam δ GlobalFiber[ p ]
+
+  -- reduce : ∀{Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> Γ ⊢ A / δ GlobalFiber[ p ] -> Δ ⊢ A / {!!} GlobalFiber[ p ]
+  -- reduce = {!!}
+
+
 
   _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
-  _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ p ↦ A -> Γ ⊢ A / {!!} GlobalFiber[ p ]
+  _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> X ∣ p ↦ A Type -> ∀ {Δ Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> Δ ⊢ A / {!!} GlobalFiber[ p ]
+
+  lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ls ] -> Γ ⊢ X ⇒ Y / lam δ GlobalFibered[ ls ]
+  lam-GlobalFibered t l l∈ls {A = A ⇒ B} (X↦A ⇒ Y↦B) Γ↦Δ = lam (t l l∈ls {A = {!!}} Y↦B (Γ↦Δ , X↦A))
+
+  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
 
 
 
@@ -335,10 +352,19 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   X ⇒'-◯ ε = ε
   X ⇒'-◯ (Δ , Y) = (X ⇒'-◯ Δ) , (X ⇒ Y)
 
-
   _⇒-◯_ : ◯Obj -> ◯Obj -> ◯Obj
   ε ⇒-◯ Δ = Δ
-  (Γ , X) ⇒-◯ Δ = Γ ⇒-◯ Δ , {!X ⇒'-◯ Δ!}
+  (Γ , X) ⇒-◯ Δ = Γ ⇒-◯ (X ⇒'-◯ Δ)
+
+  curry' : ∀{Γ x Ε} -> ◯Hom (Γ , x) Ε -> ◯Hom Γ (x ⇒'-◯ Ε)
+  curry' {Ε = ε} f = tt , ε
+  curry' {Ε = Ε , x} ((δ₀ , δ₁) , (f₀ , f₁)) =
+    let δ₀' , f₀' = curry' (δ₀ , f₀)
+    in (δ₀' , lam δ₁) , f₀' , lam-GlobalFibered f₁
+
+  curry : ∀{Γ Δ Ε} -> ◯Hom (Γ ×-◯ Δ) Ε -> ◯Hom Γ (Δ ⇒-◯ Ε)
+  curry {Δ = ε} f = f
+  curry {Δ = Δ , x} f = curry (curry' f)
 
 
 
