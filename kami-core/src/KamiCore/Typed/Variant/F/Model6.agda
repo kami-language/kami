@@ -50,10 +50,13 @@ module _ {I : 𝒰 𝑖} where
     lam : ∀{Γ A B} -> (Γ ×× A) ⊢ B Com -> Γ ⊢ A ⇒ B Com
     app : ∀{Γ A B} -> Γ ⊢ A ⇒ B Com -> Γ ⊢ A Com -> Γ ⊢ B Com
     𝟘 : ∀{Γ} -> Γ ⊢ ℂ Com
+    tt : ∀{Γ} -> Γ ⊢ Unit Com
     com : ∀{Γ} -> I -> Γ ⊢ ℂ Com
     _≫_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
     _≫-↷_ : ∀{Γ A} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ ×× A Com -> Γ ⊢ ℂ ×× A Com
+
+    _⊹_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
 
 _⊢_Com[_] : ComType -> ComType -> 𝒰 𝑖 -> 𝒰 𝑖
@@ -101,6 +104,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   data ◯Type where
     _＠_ : ▲Type -> (l : ⟨ Loc ⟩) -> ◯Type l
     _⇒_ : ◯Type l -> ◯Type l -> ◯Type l
+    Either : ◯Type l -> ◯Type l -> ◯Type l
 
   data ◯Type₊ where
     _＠_ : ▲Type₊ -> (l : ⟨ Loc ⟩) -> ◯Type₊ l
@@ -135,10 +139,18 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     x y z : ComType
     -- A₊ B₊ C₊ D₊ : ▲Type₊
     δ δ₀ δ₁ : x ⊢ y Com[ ◯Type l ]
+    ζ ζ₀ ζ₁ : x ⊢ y Com[ ◯Type l ]
     c d : x ⊢ ℂ Com[ ◯Type l ]
 
 
   ---------------------------------------------
+
+  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ ◯Type l ]) -> x ⊢ y Com[ ◯Type l ]
+  _⊹-Com_ {y = ℂ} d e = d ⊹ e
+  _⊹-Com_ {y = Unit} d e = tt
+  _⊹-Com_ {y = y₀ ×× y₁} d e = {!!}
+  _⊹-Com_ {y = y ⇒ y₁} d e = {!!}
+
 
   ⟦_⟧₊-◯Type : ◯Type l -> ComType
   ⟦_⟧-◯Type : ◯Type l -> ComType
@@ -146,6 +158,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-◯Type
   ⟦ x ＠ _ ⟧-◯Type = {!!}
   ⟦ X ⇒ Y ⟧-◯Type = ⟦ X ⟧₊-◯Type ⇒ ⟦ Y ⟧₊-◯Type
+  ⟦ Either X Y ⟧-◯Type = ⟦ X ⟧₊-◯Type ×× ⟦ Y ⟧₊-◯Type
 
   ⟦_⟧-Ctx : Ctx -> ComType
   ⟦ ε ⟧-Ctx = Unit
@@ -162,6 +175,15 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     seq : Γ ⊢ X / (c , δ₀) Global
         -> Γ , X ⊢ Y / δ₁ Global
         -> Γ ⊢ Y / c ≫-↷ (app (lam δ₁) (𝟘 , δ₀)) Global
+
+    left : Γ ⊢ X / δ₀ Global
+         -> Γ ⊢ Either X Y / (𝟘 , δ₀ , δ₁) Global
+
+
+    either : Γ ⊢ Either X Y / (𝟘 , δ₀ , δ₁) Global
+             -> Γ , X ⊢ Z / ζ₀ Global
+             -> Γ , Y ⊢ Z / ζ₁ Global
+             -> Γ ⊢ Z / (app (lam ζ₀) δ₀ ⊹-Com app (lam ζ₁) δ₁) Global
 
 
 
