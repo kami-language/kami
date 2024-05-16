@@ -47,10 +47,10 @@ record Model-MTTꟳ 𝑗 {{A : MTTꟳ 𝑖}} : 𝒰 (𝑖 ､ 𝑗 ⁺) where
   𝕄Obj : 𝓂 -> 𝒰 _
   𝕄Obj m = ⟨ 𝕄 m ⟩
 
-  field 𝒟 : CartesianClosedCategory 𝑗
+  -- field 𝒟 : CartesianClosedCategory 𝑗
   -- field {{isCartesianClosedCategory:𝒟}} : isCartesianClosedCategory 𝒟
   field {{hasFiniteProducts:𝕄}} : ∀ {m} -> hasFiniteProducts (𝕄 m)
-  field embed : ∀ m -> Functor (𝕄 m) (↳ (↳ 𝒟))
+  -- field embed : ∀ m -> Functor (𝕄 m) (↳ (↳ 𝒟))
   field Modal : ∀{a b : 𝓂} -> a ⟶ b -> Functor (𝕄 a) (𝕄 b)
   field functoriality-◆-Modal : ∀{m n o : 𝓂} -> ∀{α : m ⟶ n} {β : n ⟶ o} -> Modal (α ◆ β) ∼ Modal α ◆-𝐂𝐚𝐭 Modal β
   field isSetoidHom:map-Modal : ∀{m n : 𝓂} -> ∀{α β : m ⟶ n} -> α ∼ β -> Modal α ∼ Modal β
@@ -295,7 +295,6 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
     in ⧼ id , s ◆ functoriality-◆-𝕄 ⧽ ◆ t'
 
 
-{-
   rule-mod : ∀{Γ : Ctx m n₁} {A : 𝕄Obj {{_}} {{Param}} n₀} -> (μ : n₀ ⟶ n₁)
              -> SemanticHom (Γ ∙! μ) A
              -> SemanticHom Γ (⟨ Modal {{_}} {{Param}} μ ⟩ A)
@@ -309,6 +308,8 @@ module Definition-MTTꟳ-Model {{A : MTTꟳ 𝑖}} {{Param : Model-MTTꟳ 𝑗 {
                 -> SemanticHom (Γ ∙⟮ A ∣ μ ◆ ν ⟯) B
                 -> SemanticHom Γ B
   rule-letmod μ ν t s = ⧼ id , t ◆ (functoriality⁻¹-◆-𝕄 ◆ cong-𝕄 assoc-r-◆) ⧽ ◆ s
+
+{-
 -}
 
 

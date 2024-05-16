@@ -13,18 +13,21 @@ open import KamiTheory.Data.List.Definition
 
 
 
-record isProcessSet 𝑗 (L : Preorder 𝑖) : 𝒰 (𝑖 ､ 𝑗 ⁺) where
+record isProcessSet 𝑗 : 𝒰 (𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
-  field all : ⟨ L ⟩
-  field split : ⟨ L ⟩ -> 𝒫ᶠⁱⁿ Proc
-  field re : ⟨ Proc ⟩ -> ⟨ L ⟩
+  -- field all : ⟨ L ⟩
+  -- field split : ⟨ L ⟩ -> 𝒫ᶠⁱⁿ Proc
+  -- field re : ⟨ Proc ⟩ -> ⟨ L ⟩
 
   instance
     hasDecidableEquality:Proc : hasDecidableEquality ⟨ Proc ⟩
     hasDecidableEquality:Proc = hasDecidableEquality:byStrictOrder
 
 open isProcessSet public using (Proc)
-open isProcessSet {{...}} public using (split ; re ; all ; hasDecidableEquality:Proc)
+-- open isProcessSet {{...}} public using (split ; re ; all ; hasDecidableEquality:Proc)
+
+
+
 
 
 
@@ -65,7 +68,8 @@ _⊢_Com[_] A B f = _⊢_Com {f = f} A B
 
 
 -- module IR {Loc : Preorder 𝑖} {{_ : hasFiniteMeets Loc}} (split : 𝒫ᶠⁱⁿ (Proc L) -> 𝒫ᶠⁱⁿ (Proc L)) where
-module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
+-- module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗}} where
+module IR {{L : isProcessSet 𝑗}} where
 
   private variable
     -- k l : 𝒫ᶠⁱⁿ (Proc L)
@@ -73,10 +77,10 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     p q : ⟨ Proc L ⟩
 
 
-  data ▲Type : 𝒰 (𝑖 ､ 𝑗)
-  data ▲Type₊ : 𝒰 (𝑖 ､ 𝑗)
-  data ◯Type : 𝒰 (𝑖 ､ 𝑗)
-  data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  data ▲Type : 𝒰 (𝑗)
+  data ▲Type₊ : 𝒰 (𝑗)
+  data ◯Type : 𝒰 (𝑗)
+  data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   -- data Com : 𝒰 𝑖
 
   -- data ▲Ann : ▲Type -> 𝒰 𝑖
@@ -127,12 +131,12 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   --   ε : ▲Ctx
   --   _,_©_ : ▲Ctx -> ▲Type -> Com -> ▲Ctx
 
-  data Ctx : 𝒰 (𝑖 ､ 𝑗) where
+  data Ctx : 𝒰 (𝑗) where
     ε : Ctx
     _,_ : Ctx -> ◯Type -> Ctx
 
 
-  data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : Ctx -> 𝒰 (𝑖 ､ 𝑗) where
+  data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : Ctx -> 𝒰 (𝑗) where
     ε : isLocal l ε
     step : ∀{Γ A} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
 
@@ -154,13 +158,13 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
   ---------------------------------------------
 
-  data _∣_↦_Type : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_Type : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑗) where
     -- proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     -- proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
     _⇒_ : X ∣ p ↦ A Type -> Y ∣ p ↦ B Type -> (X ⇒ Y) ∣ p ↦ (A ⇒ B) Type
 
 
-  data _∣_↦_Ctx : Ctx -> (l : ⟨ Proc L ⟩) -> ∑ isLocal ⦗ l ⦘ -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_Ctx : Ctx -> (l : ⟨ Proc L ⟩) -> ∑ isLocal ⦗ l ⦘ -> 𝒰 (𝑗) where
     ε : ε ∣ p ↦ (ε , ε) Ctx
     _,_ : ∀{Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> X ∣ p ↦ A Type -> Γ , X ∣ p ↦ (Δ , A ＠ ⦗ p ⦘) , step Δp Ctx
 
@@ -194,7 +198,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ⟦ Γ , x ⟧-Ctx = ⟦ Γ ⟧-Ctx ×× ⟦ x ⟧-◯Type
 
 
-  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒰 (𝑖 ､ 𝑗) where
+  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒰 (𝑗) where
     lam : Γ , X ⊢ Y / δ Global -> Γ ⊢ X ⇒ Y / (lam δ) Global
 
     app : Γ ⊢ X ⇒ Y / (δ₀) Global
@@ -215,7 +219,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
              -> Γ ⊢ Z / (app (lam ζ₀) δ₀ ⊹-Com app (lam ζ₁) δ₁) Global
 
 
-  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑖 ､ 𝑗) where
+  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
     recv : X ∣ p ↦ A Type -> Γ ⊢ Wrap A / com X δ , {!δ!} GlobalFiber[ p ]
     send : X ∣ p ↦ A Type
            -> Γ ⊢ ◻ X / δ GlobalFiber[ p ]
@@ -228,17 +232,17 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 
 
-  _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> X ∣ p ↦ A Type -> ∀ {Δ Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> Δ ⊢ A / {!!} GlobalFiber[ p ]
 
   lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ls ] -> Γ ⊢ X ⇒ Y / lam δ GlobalFibered[ ls ]
   lam-GlobalFibered t l l∈ls {A = A ⇒ B} (X↦A ⇒ Y↦B) Γ↦Δ = lam (t l l∈ls {A = {!!}} Y↦B (Γ↦Δ , X↦A))
 
-  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
 
 
 
-  data _⇛_/_GlobalFibered[_] : (Γ Δ : Ctx) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ Δ ⟧-Ctx Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  data _⇛_/_GlobalFibered[_] : (Γ Δ : Ctx) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ Δ ⟧-Ctx Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   data _⇛_/_GlobalFibered[_] where
     ε : Γ ⇛ ε / tt GlobalFibered[ ks ]
     _,_ : Γ ⇛ Δ / δ₀ GlobalFibered[ ks ] -> Γ ⊢ X / δ₁ GlobalFibered[ ks ] -> Γ ⇛ Δ , X / δ₀ , δ₁ GlobalFibered[ ks ]
@@ -271,7 +275,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   ◯Obj = Ctx
 
   ◯Hom : ◯Obj -> ◯Obj -> 𝒰 _
-  ◯Hom Γ Δ = ∑ λ δ -> Γ ⇛ Δ / δ GlobalFibered[ split all ]
+  ◯Hom Γ Δ = ∑ λ δ -> Γ ⇛ Δ / δ GlobalFibered[ {!!} ]
   -- ∀ (Γδ : Γ ⊢Com) ->
   --            ∑ λ (ΔD : Δ ⊢Com) ->
   --            mer Γ Γδ ⇛ mer Δ ΔD ∣ split all
@@ -338,7 +342,6 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
 
 -}
 
-
   ---------------------------------------------
   -- The products
   _×-◯_ : ◯Obj -> ◯Obj -> ◯Obj
@@ -404,7 +407,7 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
   -- data _⊢◯_ : Ctx -> ◯Type -> 𝒰 𝑖
   data _⊢◯-Var_©_ : Ctx -> ◯Type₊ l -> Com -> 𝒰 𝑖
   -- data _⊢_//_ : Ctx -> ▲Type -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
-  data _⇛_∣_ : Ctx -> Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑖 ､ 𝑗)
+  data _⇛_∣_ : Ctx -> Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
@@ -432,12 +435,12 @@ module IR {Loc : Preorder 𝑖} {{L : isProcessSet 𝑗 Loc}} where
     suc : Γ ⊢◯-Var X © δ₀ -> Γ , Y © δ₁  ⊢◯-Var X © δ₀
 
 
-  data _∣_↦_ : ◯Type₊ l -> ⟨ Proc L ⟩ -> ▲Type₊ -> 𝒰 (𝑖 ､ 𝑗) where
+  data _∣_↦_ : ◯Type₊ l -> ⟨ Proc L ⟩ -> ▲Type₊ -> 𝒰 (𝑗) where
     proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
 
 
-  data _⊢◯_//_©_ : (Γ : Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑖 ､ 𝑗)
+  data _⊢◯_//_©_ : (Γ : Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑗)
 
 
 
