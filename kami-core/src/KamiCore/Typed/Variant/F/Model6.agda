@@ -76,47 +76,44 @@ module IR {{L : isProcessSet 𝑗}} where
     k l ks ls : 𝒫ᶠⁱⁿ (Proc L)
     p q : ⟨ Proc L ⟩
 
+  data Mode : 𝒰₀ where
+    ◯ ▲ : Mode
 
-  data ▲Type : 𝒰 (𝑗)
-  data ▲Type₊ : 𝒰 (𝑗)
-  data ◯Type : 𝒰 (𝑗)
-  data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
+  data Type : Mode -> 𝒰 𝑗
+
+  -- data ▲Type : 𝒰 (𝑗)
+  -- data ▲Type₊ : 𝒰 (𝑗)
+  -- data ◯Type : 𝒰 (𝑗)
+  -- data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   -- data Com : 𝒰 𝑖
 
   -- data ▲Ann : ▲Type -> 𝒰 𝑖
   -- data ◯Ann : ◯Type -> 𝒰 𝑖
 
 
+  ▲Type : 𝒰 _
+  ▲Type = Type ▲
 
-  data ▲Type where
-    ◻ : ◯Type -> ▲Type
-    NN : ▲Type
-    Unit : ▲Type
-    Either : ▲Type -> ▲Type -> ▲Type
-    _⇒_ : ▲Type -> ▲Type -> ▲Type
-    Wrap : ▲Type -> ▲Type
+  ◯Type : 𝒰 _
+  ◯Type = Type ◯
 
-  data ▲Type₊ where
-    ◻ : ◯Type₊ l -> ▲Type₊
-    NN : ▲Type₊
-    Unit : ▲Type₊
-    Either : ▲Type₊ -> ▲Type₊ -> ▲Type₊
-    _⇒_ : ▲Type₊ -> ▲Type₊ -> ▲Type₊
+
+  data Type where
+    ◻ : Type ◯ -> Type ▲
+    NN : Type ▲
+    Unit : ∀{m} -> Type m
+    Either : ∀{m} -> Type m -> Type m -> Type m
+    _⇒_ : ∀{m} -> Type m -> Type m -> Type m
+    Wrap : ∀{m} -> Type m -> Type m
+
+    _＠_ : Type ▲ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Type ◯
 
   pattern BB = Either Unit Unit
 
 
-  data ◯Type where
-    _＠_ : ▲Type -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Type
-    _⇒_ : ◯Type -> ◯Type -> ◯Type
-    Either : ◯Type -> ◯Type -> ◯Type
-    Wrap : ◯Type -> ◯Type
-
-  data ◯Type₊ where
-    _＠_ : ▲Type₊ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Type₊ l
-    _⇒_ : ◯Type₊ l -> ◯Type₊ l -> ◯Type₊ l
-
   infix 30 _＠_
+
+
   -- infix 45 _⇒_
 
 
@@ -192,6 +189,7 @@ module IR {{L : isProcessSet 𝑗}} where
   ⟦ X ⇒ Y ⟧-◯Type = ⟦ X ⟧-◯Type ⇒ ⟦ Y ⟧-◯Type
   ⟦ Either X Y ⟧-◯Type = ⟦ X ⟧-◯Type ×× ⟦ Y ⟧-◯Type
   ⟦ Wrap X ⟧-◯Type = ℂ ×× ⟦ X ⟧-◯Type
+  ⟦ Unit ⟧-◯Type = {!!}
 
   ⟦_⟧-Ctx : Ctx -> ComType
   ⟦ ε ⟧-Ctx = Unit
