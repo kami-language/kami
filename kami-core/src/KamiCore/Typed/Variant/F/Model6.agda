@@ -77,7 +77,7 @@ module IR {{L : isProcessSet 𝑗}} where
     p q : ⟨ Proc L ⟩
 
   data Mode : 𝒰₀ where
-    ◯ ▲ : Mode
+    ◯ ▲ plain : Mode
 
   data Type : Mode -> 𝒰 𝑗
 
@@ -110,9 +110,10 @@ module IR {{L : isProcessSet 𝑗}} where
 
   pattern BB = Either Unit Unit
 
-
   infix 30 _＠_
 
+  pl : ∀{m} -> Type m -> Type plain
+  pl = {!!}
 
   -- infix 45 _⇒_
 
@@ -138,7 +139,10 @@ module IR {{L : isProcessSet 𝑗}} where
     step : ∀{Γ A} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
 
 
-  ⟦_⟧-◯Type : ◯Type -> ComType
+  -- ⟦_⟧-Type : ◯Type -> ComType
+  ⟦_⟧-Type : ∀{m} -> Type m -> ComType
+  PlType : Type plain -> ComType
+  PlType = ⟦_⟧-Type
 
   private variable
     -- Ξ : ▲Ctx
@@ -148,9 +152,9 @@ module IR {{L : isProcessSet 𝑗}} where
     A B C D : ▲Type
     x y z : ComType
     -- A₊ B₊ C₊ D₊ : ▲Type₊
-    δ δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]
-    ζ ζ₀ ζ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]
-    c d : x ⊢ ℂ Com[ ⟦_⟧-◯Type ]
+    δ δ₀ δ₁ : x ⊢ y Com[ PlType ]
+    ζ ζ₀ ζ₁ : x ⊢ y Com[ PlType ]
+    c d : x ⊢ ℂ Com[ PlType ]
 
 
   ---------------------------------------------
@@ -168,35 +172,41 @@ module IR {{L : isProcessSet 𝑗}} where
 
   ---------------------------------------------
 
-  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ ⟦_⟧-◯Type ]) -> x ⊢ y Com[ ⟦_⟧-◯Type ]
+  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ PlType ]) -> x ⊢ y Com[ PlType ]
   _⊹-Com_ {y = ℂ} d e = d ⊹ e
   _⊹-Com_ {y = Unit} d e = tt
   _⊹-Com_ {y = y₀ ×× y₁} d e = {!!}
   _⊹-Com_ {y = y ⇒ y₁} d e = {!!}
 
 
-  ⟦_⟧₊-◯Type : ◯Type -> ComType
-  ⟦_⟧-▲Type : ▲Type -> ComType
-  ⟦ ◻ x ⟧-▲Type = ⟦ x ⟧-◯Type
-  ⟦ NN ⟧-▲Type = {!!}
-  ⟦ Unit ⟧-▲Type = {!!}
-  ⟦ Either A A₁ ⟧-▲Type = {!!}
-  ⟦ A ⇒ B ⟧-▲Type = ⟦ A ⟧-▲Type ⇒ ⟦ B ⟧-▲Type
-  ⟦ Wrap A ⟧-▲Type = ℂ ×× ⟦ A ⟧-▲Type
+  -- ⟦_⟧₊-◯Type : ◯Type -> ComType
+  -- ⟦_⟧-Type : ∀{m} -> Type m -> ComType
+  ⟦ ◻ x ⟧-Type = ⟦ x ⟧-Type
+  ⟦ x ＠ _ ⟧-Type = ⟦ x ⟧-Type
+  ⟦ NN ⟧-Type = {!!}
+  ⟦ Unit ⟧-Type = {!!}
+  ⟦ Either A A₁ ⟧-Type = {!!}
+  ⟦ A ⇒ B ⟧-Type = ⟦ A ⟧-Type ⇒ ⟦ B ⟧-Type
+  ⟦ Wrap A ⟧-Type = ℂ ×× ⟦ A ⟧-Type
 
-  ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-◯Type
-  ⟦ x ＠ _ ⟧-◯Type = ⟦ x ⟧-▲Type
-  ⟦ X ⇒ Y ⟧-◯Type = ⟦ X ⟧-◯Type ⇒ ⟦ Y ⟧-◯Type
-  ⟦ Either X Y ⟧-◯Type = ⟦ X ⟧-◯Type ×× ⟦ Y ⟧-◯Type
-  ⟦ Wrap X ⟧-◯Type = ℂ ×× ⟦ X ⟧-◯Type
-  ⟦ Unit ⟧-◯Type = {!!}
+  -- ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-Type
+  -- ⟦ x ＠ _ ⟧-Type = ⟦ x ⟧-Type
+  -- ⟦ X ⇒ Y ⟧-Type = ⟦ X ⟧-Type ⇒ ⟦ Y ⟧-Type
+  -- ⟦ Either X Y ⟧-Type = ⟦ X ⟧-Type ×× ⟦ Y ⟧-Type
+  -- ⟦ Wrap X ⟧-Type = ℂ ×× ⟦ X ⟧-Type
+  -- ⟦ Unit ⟧-Type = {!!}
 
   ⟦_⟧-Ctx : Ctx -> ComType
   ⟦ ε ⟧-Ctx = Unit
-  ⟦ Γ , x ⟧-Ctx = ⟦ Γ ⟧-Ctx ×× ⟦ x ⟧-◯Type
+  ⟦ Γ , x ⟧-Ctx = ⟦ Γ ⟧-Ctx ×× ⟦ x ⟧-Type
+
+  asLocal : ∀{Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> X ∣ p ↦ A Type -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> ⟦ Δ ⟧-Ctx ⊢ ⟦ A ⟧-Type Com[ PlType ]
+  asLocal p (q ⇒ q₁) (var x) = {!!}
+  asLocal p (q ⇒ q₁) (lam δ) = lam (asLocal (p , q) q₁ δ)
+  asLocal p (q ⇒ q₁) (app δ δ₁) = {!!}
 
 
-  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒰 (𝑗) where
+  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> 𝒰 (𝑗) where
     lam : Γ , X ⊢ Y / δ Global -> Γ ⊢ X ⇒ Y / (lam δ) Global
 
     app : Γ ⊢ X ⇒ Y / (δ₀) Global
@@ -207,21 +217,21 @@ module IR {{L : isProcessSet 𝑗}} where
     --     -> Γ , X ⊢ Y / δ₁ Global
     --     -> Γ ⊢ Y / c ≫-↷ (app (lam δ₁) (𝟘 , δ₀)) Global
 
-    left : Γ ⊢ X / δ₀ Global
-         -> Γ ⊢ Either X Y / (δ₀ , δ₁) Global
+    -- left : Γ ⊢ X / δ₀ Global
+    --      -> Γ ⊢ Either X Y / (δ₀ , δ₁) Global
 
 
-    either : Γ ⊢ Either X Y / (δ₀ , δ₁) Global
-             -> Γ , X ⊢ Z / ζ₀ Global
-             -> Γ , Y ⊢ Z / ζ₁ Global
-             -> Γ ⊢ Z / (app (lam ζ₀) δ₀ ⊹-Com app (lam ζ₁) δ₁) Global
+    -- either : Γ ⊢ Either X Y / (δ₀ , δ₁) Global
+    --          -> Γ , X ⊢ Z / ζ₀ Global
+    --          -> Γ , Y ⊢ Z / ζ₁ Global
+    --          -> Γ ⊢ Z / (app (lam ζ₀) δ₀ ⊹-Com app (lam ζ₁) δ₁) Global
 
 
-  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-▲Type Com[ ⟦_⟧-◯Type ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
-    recv : X ∣ p ↦ A Type -> Γ ⊢ Wrap A / com X δ , {!δ!} GlobalFiber[ p ]
+  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ A ⟧-Type Com[ PlType ] -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
+    recv : X ∣ p ↦ A Type -> Γ ⊢ Wrap A / com (pl X) δ , {!δ!} GlobalFiber[ p ]
     send : X ∣ p ↦ A Type
            -> Γ ⊢ ◻ X / δ GlobalFiber[ p ]
-           -> Γ ⊢ Wrap A / com X δ , {!!} GlobalFiber[ p ]
+           -> Γ ⊢ Wrap A / com (pl X) δ , {!!} GlobalFiber[ p ]
 
     lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam δ GlobalFiber[ p ]
 
@@ -230,17 +240,23 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
 
-  _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
-  _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> X ∣ p ↦ A Type -> ∀ {Δ Δp} -> Γ ∣ p ↦ Δ , Δp Ctx -> Δ ⊢ A / {!!} GlobalFiber[ p ]
+  record _⊢_/_GlobalFibered[_] (Γ : Ctx) (X : ◯Type) (δ : ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ]) (ps : 𝒫ᶠⁱⁿ (Proc L)) : 𝒰 (𝑗) where
+    constructor incl
+    field ⟨_⟩ : ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : X ∣ p ↦ A Type) -> ∀ {Δ Δp} -> (Γp : Γ ∣ p ↦ Δ , Δp Ctx) -> Δ ⊢ A / asLocal Γp Xp δ GlobalFiber[ p ]
+
+  open _⊢_/_GlobalFibered[_] public
+
+  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
+  -- _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : X ∣ p ↦ A Type) -> ∀ {Δ Δp} -> (Γp : Γ ∣ p ↦ Δ , Δp Ctx) -> Δ ⊢ A / asLocal Γp Xp δ GlobalFiber[ p ]
 
   lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ls ] -> Γ ⊢ X ⇒ Y / lam δ GlobalFibered[ ls ]
-  lam-GlobalFibered t l l∈ls {A = A ⇒ B} (X↦A ⇒ Y↦B) Γ↦Δ = lam (t l l∈ls {A = {!!}} Y↦B (Γ↦Δ , X↦A))
+  lam-GlobalFibered t = incl λ {l l∈ls {A = A ⇒ B} (X↦A ⇒ Y↦B) Γ↦Δ -> lam (⟨ t ⟩ l l∈ls Y↦B (Γ↦Δ , X↦A))}
 
-  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-◯Type Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
+  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
 
 
 
-  data _⇛_/_GlobalFibered[_] : (Γ Δ : Ctx) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ Δ ⟧-Ctx Com[ ⟦_⟧-◯Type ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
+  data _⇛_/_GlobalFibered[_] : (Γ Δ : Ctx) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ Δ ⟧-Ctx Com[ PlType ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   data _⇛_/_GlobalFibered[_] where
     ε : Γ ⇛ ε / tt GlobalFibered[ ks ]
     _,_ : Γ ⇛ Δ / δ₀ GlobalFibered[ ks ] -> Γ ⊢ X / δ₁ GlobalFibered[ ks ] -> Γ ⇛ Δ , X / δ₀ , δ₁ GlobalFibered[ ks ]

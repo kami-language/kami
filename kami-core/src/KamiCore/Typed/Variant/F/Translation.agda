@@ -18,7 +18,7 @@ open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition hiding (_◆_)
 
 open import KamiTheory.Order.StrictOrder.Base
-open import KamiTheory.Basics
+open import KamiTheory.Basics hiding (_⋆_)
 
 
 
@@ -81,22 +81,41 @@ module Translation (n : ℕ) where
   ⦋ ▲ ⦌-Mode = ▲
   ⦋ ◯ ⦌-Mode = ◯
 
-  ⦋_⦌-Type : ⊢Type a -> Type ⦋ a ⦌-Mode
-  ⦋ ⟨ X ∣ x ⟩ ⦌-Type = {!!}
-  ⦋ Unit ⦌-Type = Unit
-  ⦋ Tr X ⦌-Type = Wrap ⦋ X ⦌-Type
-  ⦋ ⟮ X ∣ x ⟯⇒ X₁ ⦌-Type = {!!}
-
   F-Type : (ModeHom' a b) -> Type ⦋ a ⦌-Mode -> Type ⦋ b ⦌-Mode
   F-Type id x = x
   F-Type (`＠` U ⨾ μ) x = F-Type μ (x ＠ U)
   F-Type (`[]` ⨾ μ) x = F-Type μ (◻ x)
+
+  ⦋_⦌-Type : ⊢Type a -> Type ⦋ a ⦌-Mode
+  ⦋ ⟨ X ∣ μ ⟩ ⦌-Type = F-Type μ ⦋ X ⦌-Type
+  ⦋ Unit ⦌-Type = Unit
+  ⦋ Tr X ⦌-Type = Wrap ⦋ X ⦌-Type
+  ⦋ ⟮ X ∣ μ ⟯⇒ Y ⦌-Type = F-Type μ ⦋ X ⦌-Type ⇒ ⦋ Y ⦌-Type
 
 
   ⦋_⦌-Ctx : ∀{μ : ModeHom' a ◯} -> CtxExt μ -> Ctx'
   ⦋ ε ⦌-Ctx = ε
   ⦋_⦌-Ctx {μ = μ} (Γ ∙⟮ x ∣ ν ⟯) = ⦋ Γ ⦌-Ctx , F-Type (ν ◆ μ) (⦋ x ⦌-Type)
   ⦋ Γ ∙! ω ⦌-Ctx = ⦋ Γ ⦌-Ctx
+
+
+  ⦋_⦌-Term : ∀{μ : ModeHom' a ◯} -> {Γ : CtxExt μ}
+             -> ∀{A} -> ε ⋆ Γ ⊢ A
+             -> ∑ λ δ -> ⦋ Γ ⦌-Ctx ⊢ F-Type μ ⦋ A ⦌-Type / δ GlobalFibered[ {!!} ]
+  ⦋ var x α ⦌-Term = {!!}
+  ⦋ tt ⦌-Term = {!!}
+  ⦋ mod μ t ⦌-Term = {!!}
+  ⦋ letmod ν t t₁ ⦌-Term = {!!}
+  ⦋ trans x t ⦌-Term = {!!}
+  ⦋ pure t ⦌-Term = {!!}
+  ⦋ seq t t₁ ⦌-Term = {!!}
+  ⦋ lam t ⦌-Term =
+    let δ' , t' = ⦋ t ⦌-Term
+    in {!δ'!} , {!!}
+  ⦋ app t t₁ ⦌-Term = {!!}
+
+
+
 
 
 
