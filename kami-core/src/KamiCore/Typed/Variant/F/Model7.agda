@@ -24,7 +24,7 @@ record isProcessSet 𝑗 : 𝒰 (𝑗 ⁺) where
     hasDecidableEquality:Proc = hasDecidableEquality:byStrictOrder
 
 open isProcessSet public using (Proc)
--- open isProcessSet {{...}} public using (split ; re ; all ; hasDecidableEquality:Proc)
+open isProcessSet {{...}} public using (hasDecidableEquality:Proc)
 
 
 
@@ -162,8 +162,8 @@ module IR {{L : isProcessSet 𝑗}} where
   ---------------------------------------------
 
   data _∣_↦_Type : ◯Type -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑗) where
-    -- proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
-    -- proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
+    proj-＠ : p ∈ ⟨ ps ⟩ -> A ＠ ps ∣ p ↦ A Type
+    proj-＠-≠ : (¬ p ∈ ⟨ ps ⟩) -> A ＠ ps ∣ p ↦ Unit Type
     _⇒_ : X ∣ p ↦ A Type -> Y ∣ p ↦ B Type -> (X ⇒ Y) ∣ p ↦ (A ⇒ B) Type
 
 
@@ -283,6 +283,8 @@ module IR {{L : isProcessSet 𝑗}} where
 
     lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam▲ δ GlobalFiber[ p ]
 
+    tt : Γ ⊢ Unit / tt GlobalFiber[ p ]
+
 
 
 
@@ -302,6 +304,30 @@ module IR {{L : isProcessSet 𝑗}} where
   lam-GlobalFibered t = incl λ {l l∈ls (X↦A ⇒ Y↦B) Γ↦Δ ->
     let δ' , _ , t' = (⟨ t ⟩ l l∈ls Y↦B (Γ↦Δ , X↦A))
     in lam▲ δ' , {!!} , lam t' }
+
+
+
+  -- showing that the ＠ modality commutes with exponentials
+  com-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / δ GlobalFibered[ qs ] -> Γ ⊢ (A ⇒ B) ＠ ps / {!!} GlobalFibered[ qs ]
+  ⟨ com-＠-Exp ps t ⟩ q q∈qs (proj-＠ q∈ps) Γp =
+    let δ' , _ , t' = (⟨ t ⟩ q q∈qs (proj-＠ q∈ps ⇒ proj-＠ q∈ps) Γp)
+    in δ' , {!!} , t'
+  ⟨ com-＠-Exp ps t ⟩ q q∈qs (proj-＠-≠ x) Γp = tt , {!!} , tt
+    -- let δ' , _ , t' = (⟨ t ⟩ q q∈qs {!!} Γp)
+    -- in δ' , {!!} , t'
+
+
+  -- with q ∈? ⟨ ps ⟩
+  -- ... | no x = {!!}
+  -- ... | yes x = {!!}
+
+
+    -- incl λ {l l∈ls Xp Γ↦Δ ->
+    -- let δ' , _ , t' = (⟨ t ⟩ l l∈ls {!!} {!!})
+    -- in {!!}
+    -- }
+
+
 
 {-
   -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)

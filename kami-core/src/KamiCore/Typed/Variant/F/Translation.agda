@@ -64,7 +64,7 @@ module Translation (n : ℕ) where
     isCategoryData:ModeHom = HomData {{isCategory:𝓂 {{Param}}}}
 
   -- Instantiating the target language with the preorder
-  open import KamiCore.Typed.Variant.F.Model6
+  open import KamiCore.Typed.Variant.F.Model7
 
   ρ : isProcessSet _
   ρ = record { Proc = 𝔽 n }
@@ -99,9 +99,13 @@ module Translation (n : ℕ) where
   ⦋ Γ ∙! ω ⦌-Ctx = ⦋ Γ ⦌-Ctx
 
 
+
+
+
+
   ⦋_⦌-Term : ∀{μ : ModeHom' a ◯} -> {Γ : CtxExt μ}
              -> ∀{A} -> ε ⋆ Γ ⊢ A
-             -> ∑ λ δ -> ⦋ Γ ⦌-Ctx ⊢ F-Type μ ⦋ A ⦌-Type / δ GlobalFibered[ {!!} ]
+             -> ∑ λ δ -> ⦋ Γ ⦌-Ctx ⊢ ⦋ ⟨ A ∣ μ ⟩ ⦌-Type / δ GlobalFibered[ {!!} ]
   ⦋ var x α ⦌-Term = {!!}
   ⦋ tt ⦌-Term = {!!}
   ⦋ mod μ t ⦌-Term = {!!}
@@ -111,8 +115,11 @@ module Translation (n : ℕ) where
   ⦋ seq t t₁ ⦌-Term = {!!}
   ⦋ lam t ⦌-Term =
     let δ' , t' = ⦋ t ⦌-Term
-    in {!δ'!} , {!!}
-  ⦋ app t t₁ ⦌-Term = {!!}
+    in {!δ'!} , {!lam-GlobalFibered t'!}
+  ⦋ app t s ⦌-Term =
+    let δt' , t' = ⦋ t ⦌-Term
+        δs' , s' = ⦋ s ⦌-Term
+    in {!!}
 
 
 
