@@ -297,8 +297,6 @@ module IR {{L : isProcessSet 𝑗}} where
 
   open _⊢_/_GlobalFibered[_] public
 
-  -- _⊢_/_GlobalFibered[_] : (Γ : Ctx) -> (X : ◯Type) -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
-  -- _⊢_/_GlobalFibered[_] Γ X δ ps = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : X ∣ p ↦ A Type) -> ∀ {Δ Δp} -> (Γp : Γ ∣ p ↦ Δ , Δp Ctx) -> Δ ⊢ A / asLocal Γp Xp δ GlobalFiber[ p ]
 
   lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ls ] -> Γ ⊢ X ⇒ Y / lam◯ δ GlobalFibered[ ls ]
   lam-GlobalFibered t = incl λ {l l∈ls (X↦A ⇒ Y↦B) Γ↦Δ ->
@@ -307,14 +305,19 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
 
+  -- Γ ⊢ ◻ A ⇒ ◻ B -> Γ ⊢ ◻ (A ⇒ B)
   -- showing that the ＠ modality commutes with exponentials
-  com-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / δ GlobalFibered[ qs ] -> Γ ⊢ (A ⇒ B) ＠ ps / {!!} GlobalFibered[ qs ]
-  ⟨ com-＠-Exp ps t ⟩ q q∈qs (proj-＠ q∈ps) Γp =
+  commute-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / δ GlobalFibered[ qs ] -> Γ ⊢ (A ⇒ B) ＠ ps / {!!} GlobalFibered[ qs ]
+  ⟨ commute-＠-Exp ps t ⟩ q q∈qs (proj-＠ q∈ps) Γp =
     let δ' , _ , t' = (⟨ t ⟩ q q∈qs (proj-＠ q∈ps ⇒ proj-＠ q∈ps) Γp)
     in δ' , {!!} , t'
-  ⟨ com-＠-Exp ps t ⟩ q q∈qs (proj-＠-≠ x) Γp = tt , {!!} , tt
-    -- let δ' , _ , t' = (⟨ t ⟩ q q∈qs {!!} Γp)
-    -- in δ' , {!!} , t'
+  ⟨ commute-＠-Exp ps t ⟩ q q∈qs (proj-＠-≠ x) Γp = tt , {!!} , tt
+
+
+  commute⁻¹-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ (A ⇒ B) ＠ ps / δ GlobalFibered[ qs ] -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / {!!} GlobalFibered[ qs ]
+  commute⁻¹-＠-Exp = {!!}
+
+
 
 
   -- with q ∈? ⟨ ps ⟩

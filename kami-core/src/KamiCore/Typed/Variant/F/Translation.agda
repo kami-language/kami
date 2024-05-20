@@ -103,9 +103,9 @@ module Translation (n : ℕ) where
 
 
 
-  ⦋_⦌-Term : ∀{μ : ModeHom' a ◯} -> {Γ : CtxExt μ}
+  ⦋_⦌-Term : ∀{ps} -> ∀{μ : ModeHom' a ◯} -> {Γ : CtxExt μ}
              -> ∀{A} -> ε ⋆ Γ ⊢ A
-             -> ∑ λ δ -> ⦋ Γ ⦌-Ctx ⊢ ⦋ ⟨ A ∣ μ ⟩ ⦌-Type / δ GlobalFibered[ {!!} ]
+             -> ∑ λ δ -> ⦋ Γ ⦌-Ctx ⊢ ⦋ ⟨ A ∣ μ ⟩ ⦌-Type / δ GlobalFibered[ ps ]
   ⦋ var x α ⦌-Term = {!!}
   ⦋ tt ⦌-Term = {!!}
   ⦋ mod μ t ⦌-Term = {!!}
@@ -113,13 +113,20 @@ module Translation (n : ℕ) where
   ⦋ trans x t ⦌-Term = {!!}
   ⦋ pure t ⦌-Term = {!!}
   ⦋ seq t t₁ ⦌-Term = {!!}
-  ⦋ lam t ⦌-Term =
+  ⦋_⦌-Term {μ = id} (lam t) =
     let δ' , t' = ⦋ t ⦌-Term
-    in {!δ'!} , {!lam-GlobalFibered t'!}
-  ⦋ app t s ⦌-Term =
-    let δt' , t' = ⦋ t ⦌-Term
-        δs' , s' = ⦋ s ⦌-Term
-    in {!!}
+    in lam◯ δ' , lam-GlobalFibered t'
+  ⦋_⦌-Term {μ = `＠` i ⨾ id} (lam {μ = id} t) =
+    let δ' , t' = ⦋ t ⦌-Term
+        t'' = lam-GlobalFibered t'
+    in {!!} , commute-＠-Exp _ t''
+  ⦋_⦌-Term {μ = μ} (lam t) = {!!}
+    -- let δ' , t' = ⦋ t ⦌-Term
+    -- in {!δ'!} , {!lam-GlobalFibered t'!}
+  ⦋ app t s ⦌-Term = {!!}
+    -- let δt' , t' = ⦋ t ⦌-Term
+    --     δs' , s' = ⦋ s ⦌-Term
+    -- in {!!}
 
 
 
