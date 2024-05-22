@@ -152,7 +152,9 @@ module Translation (n : ℕ) where
 
       -- functions
       lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ id' ⟯⇒ B
-      app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+
+      -- app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ A -> Γ ⊢ B
+      app : Γ ⊢ ⟮ A ∣ id' ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
     -- shift-＠ : ∀{i} -> {A : ⊢Type a} -> (Γ ∙! (`＠` i ⨾ id')) ∙⟮ A ∣ μ ⟯ ⊢ B -> (Γ ∙⟮ A ∣ μ ◆ (`＠` i ⨾ id') ⟯ ∙! (`＠` i ⨾ id')) ⊢ B
     -- shift-＠ = {!!}
@@ -212,6 +214,7 @@ module Translation (n : ℕ) where
              -- -> ∑ λ δ -> ∀ p -> p ∈ ⟨ ps ⟩ -> ∀{Δ Δp} -> transl-Ctx Γ Γp ∣ p ↦ Δ , Δp Ctx -> Δ ⊢ ⦋ A ⦌-Type / δ GlobalFiber[ p ]
 
   mutual
+    {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
     transl-Term-▲ : ∀{ps i} -> ∀{μ : ModeHom' ◯ ◯} -> (Γ : CtxExt μ) -> (Γp : isCtx₂ (ε ⋆ Γ))
               -> ∀{A} -> ε ⋆ Γ ∙! (`＠` i ⨾ id') ⊢ A
               -> ∑ λ δ -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) / δ GlobalFibered[ ps ]
@@ -219,11 +222,11 @@ module Translation (n : ℕ) where
     transl-Term-▲ Γ Γp tt = {!!}
     transl-Term-▲ Γ Γp (mod `[]` t) =
       let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
-      in {!!} , {!!}
+      in _ , box-GlobalFibered ts'
     transl-Term-▲ Γ Γp (letmod' `[]` t s) =
       let δt' , t' = transl-Term-▲ _ Γp t
           δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-      in {!? , app (lam t') ?!}
+      in _ , letin-GlobalFibered t' s'
     transl-Term-▲ Γ Γp (letmod μ ν t s) = {!!}
       -- let δt' , t' = transl-Term-▲ Γ Γp t
       -- in ?
@@ -253,7 +256,10 @@ module Translation (n : ℕ) where
     transl-Term-◯ Γ Γp (lam t) =
       let δ' , t' = transl-Term-◯ _ (stepVar Γp) t
       in lam◯ δ' , lam-GlobalFibered t'
-    transl-Term-◯ Γ Γp (app t t₁) = {!!}
+    transl-Term-◯ Γ Γp (app t s) =
+      let δt' , t' = transl-Term-◯ _ Γp t
+          δs' , s' = transl-Term-◯ _ Γp s
+      in app δt' δs' , app-GlobalFibered t' s'
 
 
 
