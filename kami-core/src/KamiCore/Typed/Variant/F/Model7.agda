@@ -77,6 +77,7 @@ module IR {{L : isProcessSet 𝑗}} where
     -- k l : 𝒫ᶠⁱⁿ (Proc L)
     ps qs ks ls : 𝒫ᶠⁱⁿ (Proc L)
     p q k l : ⟨ Proc L ⟩
+    is js : List ⟨ Proc L ⟩
 
   data Mode : 𝒰₀ where
     ◯ ▲ plain : Mode
@@ -117,22 +118,11 @@ module IR {{L : isProcessSet 𝑗}} where
   pl : ∀{m} -> Type m -> Type plain
   pl = {!!}
 
-  -- infix 45 _⇒_
 
-
-  -- data Ctx : 𝒰 𝑖 where
-  --   ε : Ctx
-  --   _,_©_ : Ctx -> ◯Type₊ l -> Com -> Ctx
-
-  -- infixl 30 _,_©_
-
-
-  -- data ▲Ctx : 𝒰 𝑖 where
-  --   ε : ▲Ctx
-  --   _,_©_ : ▲Ctx -> ▲Type -> Com -> ▲Ctx
 
   data Ctx : 𝒰 (𝑗) where
     ε : Ctx
+    _,[_] : Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> Ctx
     _,_ : Ctx -> ◯Type -> Ctx
 
 
@@ -274,6 +264,8 @@ module IR {{L : isProcessSet 𝑗}} where
 -}
 
 
+  record _⊢_/_GlobalFibered[_] (Γ : Ctx) (X : ◯Type) (δ : Γ ⊢ X Com) (ps : 𝒫ᶠⁱⁿ (Proc L)) : 𝒰 (𝑗)
+
   data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> Γ ⊢ A Com -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
     recv : X ∣ p ↦ A Type -> Γ ⊢ Wrap A / com X δ₀ δ₁ GlobalFiber[ p ]
     send : X ∣ p ↦ A Type
@@ -285,11 +277,11 @@ module IR {{L : isProcessSet 𝑗}} where
 
     tt : Γ ⊢ Unit / tt GlobalFiber[ p ]
 
+    box : Γ ,[ ⦗ p ⦘ ] ⊢ X / {!!} GlobalFibered[ {!!} ]
+          -> Γ ⊢ ◻ X / {!!} GlobalFiber[ p ]
 
-
-
-  record _⊢_/_GlobalFibered[_] (Γ : Ctx) (X : ◯Type) (δ : Γ ⊢ X Com) (ps : 𝒫ᶠⁱⁿ (Proc L)) : 𝒰 (𝑗) where
-    constructor incl
+  record _⊢_/_GlobalFibered[_] Γ X δ ps where
+    inductive ; constructor incl
     field ⟨_⟩ : ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : X ∣ p ↦ A Type)
                 -> ∀ {Δ Δp} -> (Γp : Γ ∣ p ↦ Δ , Δp Ctx)
                 -> ∑ λ δ' -> δ ∣ p ↦ δ' Com ×-𝒰
@@ -298,14 +290,22 @@ module IR {{L : isProcessSet 𝑗}} where
   open _⊢_/_GlobalFibered[_] public
 
 
-  lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ls ] -> Γ ⊢ X ⇒ Y / lam◯ δ GlobalFibered[ ls ]
-  lam-GlobalFibered t = incl λ {l l∈ls (X↦A ⇒ Y↦B) Γ↦Δ ->
-    let δ' , _ , t' = (⟨ t ⟩ l l∈ls Y↦B (Γ↦Δ , X↦A))
+  lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ps ] -> Γ ⊢ X ⇒ Y / lam◯ δ GlobalFibered[ ps ]
+  lam-GlobalFibered t = incl λ {p p∈ps (X↦A ⇒ Y↦B) Γ↦Δ ->
+    let δ' , _ , t' = (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , X↦A))
     in lam▲ δ' , {!!} , lam t' }
 
 
 
+  -- showing that the ◻ modality commutes with exponentials
   -- Γ ⊢ ◻ A ⇒ ◻ B -> Γ ⊢ ◻ (A ⇒ B)
+  -- Γ . ◻ X .{ ◻ } ⊢ Y ... ◻μ ⇒ ◻η  should split to   id ⋆ (μ ⇒ η),
+  -- Γ .{ ◻ } . X ⊢ Y
+  -- and in fact, every map ◻ ⇒ ◻ should be the identity. ◻ ⇒ ◻ ⨾ ＠ i ⨾ ◻ ⇒ 
+
+  commute-◻-Exp : ∀{δ} -> Γ ⊢ (◻ X ⇒ ◻ Y) / δ GlobalFiber[ p ] -> Γ ⊢ ◻ (X ⇒ Y) / {!!} GlobalFiber[ p ]
+  commute-◻-Exp {Γ} {X} {Y} {p} {δ} t = {!!}
+
   -- showing that the ＠ modality commutes with exponentials
   commute-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / δ GlobalFibered[ qs ] -> Γ ⊢ (A ⇒ B) ＠ ps / {!!} GlobalFibered[ qs ]
   ⟨ commute-＠-Exp ps t ⟩ q q∈qs (proj-＠ q∈ps) Γp =
@@ -314,9 +314,12 @@ module IR {{L : isProcessSet 𝑗}} where
   ⟨ commute-＠-Exp ps t ⟩ q q∈qs (proj-＠-≠ x) Γp = tt , {!!} , tt
 
 
+{-
   commute⁻¹-＠-Exp : ∀ ps -> ∀{δ} -> Γ ⊢ (A ⇒ B) ＠ ps / δ GlobalFibered[ qs ] -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) / {!!} GlobalFibered[ qs ]
   commute⁻¹-＠-Exp = {!!}
 
+
+-}
 
 
 
