@@ -133,9 +133,14 @@ module Translation (n : ℕ) where
 
       -- modalities
       mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-      letmod : ∀{μ : a ⟶ b} -> (ν : b ⟶ c)
+      letmod : ∀(μ : a ⟶ b) -> (ν : b ⟶ c)
             -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
             -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
+            -> Γ ⊢ B
+
+      letmod' : ∀(μ : BaseModeHom-SRN a b)
+            -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+            -> Γ ∙⟮ A ∣ μ ⨾ id' ⟯ ⊢ B
             -> Γ ⊢ B
 
       -- explicit transformations
@@ -154,6 +159,9 @@ module Translation (n : ℕ) where
 
     shift-＠ : ∀{i} -> {A : ⊢Type ▲} -> (Γ ∙! (`＠` i ⨾ id')) ∙⟮ A ∣ id' ⟯ ⊢ B -> (Γ ∙⟮ ⟨ A ∣ (`＠` i ⨾ id') ⟩ ∣ id' ⟯ ∙! (`＠` i ⨾ id')) ⊢ B
     shift-＠ = {!!}
+
+    id-annotate : ∀{Γ : Ctx a} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ ⟨ A ∣ μ ⟩ ∣ id' ⟯ ⊢ B
+    id-annotate = {!!}
 
 
 
@@ -212,7 +220,13 @@ module Translation (n : ℕ) where
     transl-Term-▲ Γ Γp (mod `[]` t) =
       let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
       in {!!} , {!!}
-    transl-Term-▲ Γ Γp (letmod ν t t₁) = {!!}
+    transl-Term-▲ Γ Γp (letmod' `[]` t s) =
+      let δt' , t' = transl-Term-▲ _ Γp t
+          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+      in {!? , app (lam t') ?!}
+    transl-Term-▲ Γ Γp (letmod μ ν t s) = {!!}
+      -- let δt' , t' = transl-Term-▲ Γ Γp t
+      -- in ?
     transl-Term-▲ Γ Γp (trans x t) = {!!}
     transl-Term-▲ Γ Γp (pure t) = {!!}
     transl-Term-▲ Γ Γp (seq t t₁) = {!!}
@@ -228,8 +242,11 @@ module Translation (n : ℕ) where
               -> ∑ λ δ -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type / δ GlobalFibered[ ps ]
     transl-Term-◯ Γ Γp (var x α) = {!!}
     transl-Term-◯ Γ Γp tt = {!!}
-    transl-Term-◯ Γ Γp (mod (`＠` U) t) = {!!}
-    transl-Term-◯ Γ Γp (letmod ν t t₁) = {!!}
+    transl-Term-◯ Γ Γp (mod (`＠` U) t) =
+      let δ' , t' = transl-Term-▲ _ Γp t
+      in δ' , t'
+    transl-Term-◯ Γ Γp (letmod μ ν t t₁) = {!!}
+    transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!!}
     transl-Term-◯ Γ Γp (trans x t) = {!!}
     transl-Term-◯ Γ Γp (pure t) = {!!}
     transl-Term-◯ Γ Γp (seq t t₁) = {!!}
