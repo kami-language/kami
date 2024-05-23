@@ -29,6 +29,10 @@ open isProcessSet {{...}} public using (hasDecidableEquality:Proc)
 
 
 
+module _ {A : 𝒰 𝑖} where
+  data isPrefix : List A -> List A -> 𝒰 𝑖 where
+    done : ∀{xs} -> isPrefix [] xs
+    step : ∀{a as bs} -> isPrefix as bs -> isPrefix (a ∷ as) (a ∷ bs)
 
 
 
@@ -103,7 +107,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
   data Type where
     ◻ : Type ◯ -> Type ▲
-    [_]◅_ : Type ◯ -> Type ▲ -> Type ▲
+    [_∣_]◅_ : Type ◯ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
     NN : Type ▲
     Unit : ∀{m} -> Type m
     Either : ∀{m} -> Type m -> Type m -> Type m
@@ -159,13 +163,17 @@ module IR {{L : isProcessSet 𝑗}} where
 
   --   proj-◻ : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> ◻ X ∣ ⦗ p ⦘ ∷ [] ↦ [ X ]◅ A Type
 
-  data _∣_↦_Type : ∀{m} -> Type m -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type -> 𝒰 (𝑗) where
-    proj-＠ : ∀{ps pps qs} -> ⟨ ps ⟩ ⊆ ⟨ qs ⟩ -> A ∣ pps ↦ B Type -> A ＠ qs ∣ (ps ∷ pps) ↦ B Type
-    proj-＠-≠ : ∀{ps pps qs} -> (¬ ⟨ ps ⟩ ⊆ ⟨ qs ⟩) -> A ＠ qs ∣ (ps ∷ pps) ↦ Unit Type
-    _⇒_ : ∀{p} -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Y ∣ ⦗ p ⦘ ∷ [] ↦ B Type -> (X ⇒ Y) ∣ ⦗ p ⦘ ∷ [] ↦ (A ⇒ B) Type
 
-    proj-◻ : ∀{ps} -> X ∣ ps ↦ A Type -> ◻ X ∣ ps ↦ [ X ]◅ A Type
+  data _∣_↦_Type : ∀{m} -> Type m -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type -> 𝒰 (𝑗) where
+    proj-＠ : ∀{ps pps qs} -> ps ≤ qs -> A ∣ pps ↦ B Type -> A ＠ qs ∣ (ps ∷ pps) ↦ B Type
+    proj-＠-≠ : ∀{ps pps qs} -> (¬ ps ≤ qs) -> A ＠ qs ∣ (ps ∷ pps) ↦ Unit Type
+    _⇒_ : ∀{p} -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Y ∣ ⦗ p ⦘ ∷ [] ↦ B Type -> (X ⇒ Y) ∣ ⦗ p ⦘ ∷ [] ↦ (A ⇒ B) Type
+    Unit-◯ : ∀{p ps} -> Unit {m = ◯} ∣ p ∷ ps ↦ Unit Type
+
+    proj-◻ : ∀{ps} -> X ∣ ps ↦ A Type -> ◻ X ∣ ps ↦ [ X ∣ ps ]◅ A Type
+    proj-[] : ∀{p ps qs} -> isPrefix ps qs -> A ∣ qs ↦ B Type -> ([ X ∣ p ∷ ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p ∷ qs ]◅ B Type
     done : A ∣ [] ↦ A Type
+    Unit-▲ : ∀{ps} -> Unit {m = ▲} ∣ ps ↦ Unit Type
 
 
 
@@ -354,56 +362,74 @@ module IR {{L : isProcessSet 𝑗}} where
                      -> Γ ⊢ Y / app (lam◯ δ₀) δ₁ GlobalFibered[ ps ]
   letin-GlobalFibered t s = app-GlobalFibered (lam-GlobalFibered s) t
 
-  lem-11 : ∀{p ps qs} -> T ∣ p ∷ ps ↦ A Type -> T ∣ qs ↦ B Type -> (A ＠ p) ∣ qs ↦ B Type
-  lem-11 = {!!}
+  -- lem-11 : ∀{p ps qs} -> T ∣ p ∷ ps ↦ A Type -> T ∣ qs ↦ B Type -> (A ＠ p) ∣ qs ↦ B Type
+  -- lem-11 (proj-＠ x v) w = {!!}
+  -- lem-11 (proj-＠-≠ x) w = {!!}
+  -- lem-11 (v ⇒ v₁) w = {!!}
+  -- lem-11 (proj-◻ v) w = {!!}
+  -- lem-11 (proj-[] x v) (proj-[] x₁ w) = {!!}
+  -- lem-11 (proj-[] x v) done = {!!}
+  -- lem-11 (proj-＠ x v) (proj-＠ x₁ w) = proj-＠ {!!} {!!}
+  -- lem-11 (proj-＠ x v) (proj-＠-≠ x₁) = {!!}
+  -- lem-11 (proj-＠-≠ x) w = {!!}
+  -- lem-11 (v ⇒ v₁) w = {!!}
+  -- lem-11 (proj-◻ v) w = {!!}
+  -- lem-11 x (proj-[] x₁ x₂) = {!!}
+  -- lem-11 {T = [ T ∣ x₁ ]◅ T₁} x done = {!!}
 
-  projVar : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]
-  projVar (p , v) (zero w) = zero (lem-11 v w)
-  projVar (p , x) (suc v) = suc (projVar p v)
-  projVar (stepRes p) (res v) = res (projVar p v)
+
+  mutual
+    lem-13' : ∀{ps qs} -> C ∣ ps ↦ A Type -> C ∣ ps <> qs ↦ B Type -> A ∣ ps <> qs ↦ B Type
+    lem-13' {ps = x ∷ ps} (proj-◻ v) (proj-◻ w) =  let z = lem-13 v w in proj-[] {!!} z
+    lem-13' {ps = x ∷ ps} (proj-[] x₁ x₂) (proj-[] x₃ x₄) = proj-[] {!!} (lem-13' x₂ x₄)
+    lem-13' {ps = []} Unit-▲ x = x
+    lem-13' {ps = x ∷ ps} Unit-▲ Unit-▲ = Unit-▲
+    lem-13' done w = w
+
+    lem-13 : ∀{p ps qs} -> X ∣ p ∷ ps ↦ A Type -> X ∣ p ∷ ps <> qs ↦ B Type -> A ∣ ps <> qs ↦ B Type
+    lem-13 (proj-＠ x v) (proj-＠ x₁ w) = lem-13' v w
+    lem-13 (proj-＠ x v) (proj-＠-≠ x₁) = ⊥-elim (x₁ x)
+    lem-13 (proj-＠-≠ x) (proj-＠ x₁ w) = ⊥-elim (x x₁)
+    lem-13 (proj-＠-≠ x) (proj-＠-≠ x₁) = Unit-▲
+    lem-13 (v ⇒ v₁) (w ⇒ w₁) = {!!}
+    lem-13 Unit-◯ Unit-◯ = Unit-▲
+
+  lem-12 : ∀{p ps qs} -> X ∣ p ∷ ps ↦ A Type -> X ∣ p ∷ ps <> qs ↦ B Type -> (A ＠ p) ∣ p ∷ ps <> qs ↦ B Type
+  lem-12 v w = proj-＠ refl-≤ (lem-13 v w)
+
+  -- projVar : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]
+  -- projVar (p , v) (zero w) = zero (lem-11 v w)
+  -- projVar (p , x) (suc v) = suc (projVar p v)
+  -- projVar (stepRes p) (res v) = res (projVar p v)
+
+  projVar1 : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ ps <> qs ] -> Δ ⊢Var A GlobalFiber[ ps <> qs ]
+  projVar1 (p , v) (zero w) = zero (lem-12 v w )
+  projVar1 (p , x) (suc v) = suc (projVar1 p v)
+  projVar1 (stepRes p) (res v) = res (projVar1 p v)
+
+  projVar3 : ∀{p qs} -> Γ ∣ p ∷ [] ↦ Δ Ctx -> Γ ,[ p ] ⊢Var A GlobalFiber[ qs ] -> Δ ,[ p ] ⊢Var A GlobalFiber[ qs ]
+  projVar3 p (res v) with projVar1 p (v)
+  ... | (w) = res w
 
   map-Var : (∀{qs A} -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]) -> Γ ⊢ X / δ GlobalFibered[ ps ] -> Δ ⊢ X / {!!} GlobalFibered[ ps ]
   map-Var = {!!}
 
-  transRes-GlobalFibered : ∀{qs rs δ} -> ⟨ rs ⟩ ⊆ ⟨ qs ⟩ -> Γ ,[ qs ] ⊢ X / δ GlobalFibered[ ps ] -> Γ ,[ rs ] ⊢ X / {!!} GlobalFibered[ ps ]
+
+  resVar : ∀{qs rs ps ps'} -> rs ≤ qs -> Γ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Γ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
+  resVar p (zero x) = zero {!!}
+  resVar p (suc v) = suc (resVar p v)
+  resVar {ps = ps} rel (res {p = p} v) = res (resVar {ps = p ∷ ps} rel v)
+
+  transRes-GlobalFibered : ∀{qs rs δ} -> rs ≤ qs -> Γ ,[ qs ] ⊢ X / δ GlobalFibered[ ps ] -> Γ ,[ rs ] ⊢ X / {!!} GlobalFibered[ ps ]
   transRes-GlobalFibered = {!!}
 
-
-  postulate
-    lem-10 : ∀{Γ qs q pps Δ Δ' δ}
-             -> q ∈ ⟨ qs ⟩
-             -> Γ ∣ qs ∷ pps ↦ Δ' Ctx
-             -> Γ ∣ ⦗ q ⦘ ∷ pps ↦ Δ Ctx
-             -> Δ' ⊢ A / δ GlobalFiber[ p ]
-             -> Δ ⊢ A / {!!} GlobalFiber[ p ]
-
-
-  compose-↦ : ∀{Γ Δ Ξ qs qqs} -> Γ ∣ qs ∷ [] ↦ Δ Ctx -> Δ ,[ qs ] ∣ qqs ↦ Ξ Ctx -> Γ ∣ qs ∷ qqs ↦ Ξ Ctx
-  compose-↦ ε (stepRes ε) = {!ε!}
-  compose-↦ (v , x) w = {!!}
-  compose-↦ (stepRes v) w = {!!}
-
-  lem-15 : ∀{Γ Δ Ξ qs qqs}
-            -> Γ ∣ qs ∷ [] ↦ Δ Ctx
-            -> Δ ∣ qs ∷ qqs ↦ Ξ Ctx
-            -> Γ ∣ qs ∷ qqs ↦ Ξ Ctx
-  lem-15 ε ε = ε
-  lem-15 (v , x) (w , x₁) = lem-15 v w , {!!}
-  lem-15 (stepRes v) w = {!!}
 
 
   box-GlobalFibered : Γ ,[ qs ] ⊢ X / δ GlobalFibered[ ps ]
                      -> Γ ⊢ ◻ X ＠ qs / {!!} GlobalFibered[ ps ]
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠ x done) Γ↦Δ =
     let t' = transRes-GlobalFibered x t
-    in {!!} , {!!} , box' {p = p} (map-Var (projVar (stepRes Γ↦Δ)) t')
-    -- (x _ here)
-    -- (incl λ {r r∈rs _ (stepRes Γp)
-    --   -> let Γp' = π-Ctx-Proof _ _
-    --          _ , _ , t' = ⟨ t ⟩ r r∈rs {!!} (stepRes Γp')
-    --          t'' = lem-10 {!!} Γp' (lem-15 Γ↦Δ Γp) t'
-    --      in {!!} , {!!} , {!!}
-    --   })
+    in {!!} , {!!} , box' {p = p} (map-Var (projVar3 (Γ↦Δ)) t')
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = {!!} , {!!} , tt
 
 
