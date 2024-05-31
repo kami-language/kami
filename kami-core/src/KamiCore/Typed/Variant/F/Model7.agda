@@ -190,7 +190,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
   data _∣_↦_Ctx : Ctx -> (l : List (𝒫ᶠⁱⁿ (Proc L))) -> Ctx -> 𝒰 (𝑗) where
     ε : ∀{p} -> ε ∣ ⦗ p ⦘ ∷ [] ↦ ε Ctx
-    _,_ : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> X ∣ p ∷ ps ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
+    _,_ : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> X ∣ p ∷ [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
     stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
 
 
@@ -318,6 +318,8 @@ module IR {{L : isProcessSet 𝑗}} where
            -> Γ ⊢ ◻ X / δ₀ GlobalFiber[ p ]
            -> Γ ⊢ Wrap A / com X (unbox δ₀) δ₁ GlobalFiber[ p ]
 
+    extern : Γ ,[ ⦗ q ⦘ ] ⊢ A / δ GlobalFiber[ p ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
+
     lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam▲ δ GlobalFiber[ p ]
     app : Γ ⊢ A ⇒ B / δ₀ GlobalFiber[ p ] -> Γ ⊢ A / δ₁ GlobalFiber[ p ] -> Γ ⊢ B / app δ₀ δ₁ GlobalFiber[ p ]
 
@@ -328,6 +330,8 @@ module IR {{L : isProcessSet 𝑗}} where
 
     box' : Γ ,[ ⦗ p ⦘ ] ⊢ X / δ GlobalFibered[ ps ]
           -> Γ ⊢ ◻ X / {!!} GlobalFiber[ p ]
+
+    box-close : ∀{p ps δ} -> Γ ⊢ [ X ∣ p ∷ ps ]◅ A / δ GlobalFiber[ q ] -> Γ ⊢ ◻ X / {!!} GlobalFiber[ q ]
 
   record _⊢_/_GlobalFibered[_] Γ X δ ps where
     inductive ; constructor incl
@@ -433,6 +437,23 @@ module IR {{L : isProcessSet 𝑗}} where
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = {!!} , {!!} , tt
 
 
+
+  -- map-local-project-var : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢Var B GlobalFiber[ p ] -> Γ ⊢Var A GlobalFiber[ p ]
+
+  -- map-local-project-var : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢Var B GlobalFiber[ p ] -> Γ ⊢Var A GlobalFiber[ p ]
+  -- map-local-project-var q (zero x) = zero {!!}
+  -- map-local-project-var q (suc v) = {!!}
+  -- map-local-project-var q (res v) = res (map-local-project-var q v)
+
+  map-local-project : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
+  map-local-project = {!!}
+  -- -- map-local-project = {!!}
+  -- map-local-project (proj-◻ q) t = {!!}
+  -- map-local-project (proj-[] x q) t = let t' = map-local-project q {!!} in {!!}
+  -- map-local-project done t = t
+  -- map-local-project Unit-▲ t = t
+  {-
+  -}
 
 
   -- showing that the ◻ modality commutes with exponentials

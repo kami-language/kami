@@ -133,9 +133,9 @@ module Translation (n : ℕ) where
 
       -- modalities
       mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-      letmod : ∀(μ : a ⟶ b) -> (ν : b ⟶ c)
-            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
-            -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
+      letmod : ∀(μ : BaseModeHom-SRN a b) -> (ν : b ⟶ c)
+            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+            -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
             -> Γ ⊢ B
 
       letmod' : ∀(μ : BaseModeHom-SRN a b)
@@ -162,6 +162,9 @@ module Translation (n : ℕ) where
     shift-＠ : ∀{i} -> {A : ⊢Type ▲} -> (Γ ∙! (`＠` i ⨾ id')) ∙⟮ A ∣ id' ⟯ ⊢ B -> (Γ ∙⟮ ⟨ A ∣ (`＠` i ⨾ id') ⟩ ∣ id' ⟯ ∙! (`＠` i ⨾ id')) ⊢ B
     shift-＠ = {!!}
 
+    split-path : ∀{μs : ModeHom' b c} -> ∀{μ} -> ∀{A : ⊢Type a} -> Γ ∙! (μ ⨾ μs) ⊢ A -> (Γ ∙! μs) ∙! (μ ⨾ id') ⊢ A
+    split-path = {!!}
+
     id-annotate : ∀{Γ : Ctx a} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ ⟨ A ∣ μ ⟩ ∣ id' ⟯ ⊢ B
     id-annotate = {!!}
 
@@ -170,8 +173,9 @@ module Translation (n : ℕ) where
   data isCtx₂ : Ctx a -> 𝒰₀ where
     ε : isCtx₂ {a = a} ε
     stepVar : {Γ : Ctx ◯} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
-    stepRes-◻ : {Γ : Ctx ▲} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`[]` ⨾ id))
-    stepRes-＠ : {Γ : Ctx ◯} -> ∀{p} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`＠` p ⨾ id))
+    stepRes : {Γ : Ctx a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! μ)
+    -- stepRes-◻ : {Γ : Ctx ▲} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`[]` ⨾ id))
+    -- stepRes-＠ : {Γ : Ctx ◯} -> ∀{p} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`＠` p ⨾ id))
 
 
 
@@ -199,19 +203,44 @@ module Translation (n : ℕ) where
   TargetCtx ▲ = Ctx' × ⟨ P ⟩
   TargetCtx ◯ = Ctx'
 
+  addRestr : (μ : ModeHom' a b) -> TargetCtx b -> TargetCtx a
+  addRestr id' Γ = Γ
+  addRestr (`＠` U ⨾ μ) Γ = addRestr μ Γ , U
+  addRestr (`[]` ⨾ μ) Γ = let Γ' , U = addRestr μ Γ in Γ' ,[ U ]
 
   transl-Ctx : ∀{μ : ModeHom' a ◯} -> (Γ : CtxExt μ) -> isCtx₂ (ε ⋆ Γ) -> TargetCtx a
   transl-Ctx ε Γp = ε
   transl-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
-  transl-Ctx (Γ ∙! (`[]` ⨾ id')) (stepRes-◻ Γp) = let Γ , i = transl-Ctx Γ Γp in Γ ,[ i ]
-  transl-Ctx (Γ ∙! (`＠` i ⨾ id')) (stepRes-＠ Γp) = transl-Ctx Γ Γp , i
+  transl-Ctx (_∙!_ Γ μ) (stepRes Γp) = addRestr μ (transl-Ctx Γ Γp)
+    -- let Γ' , i = transl-Ctx Γ Γp
+    -- in {!!}
+  -- transl-Ctx (_∙!_ {◯} Γ μ) (stepRes Γp) = {!!}
+  -- transl-Ctx (Γ ∙! (`[]` ⨾ id')) (stepRes-◻ Γp) = let Γ , i = transl-Ctx Γ Γp in Γ ,[ i ]
+  -- transl-Ctx (Γ ∙! (`＠` i ⨾ id')) (stepRes-＠ Γp) = transl-Ctx Γ Γp , i
 
   -- ⦋ ε ⦌-Ctx = ε
   -- ⦋_⦌-Ctx {μ = μ} (Γ ∙⟮ x ∣ ν ⟯) = ⦋ Γ ⦌-Ctx , F-Type (ν ◆ μ) (⦋ x ⦌-Type)
   -- ⦋ Γ ∙! ω ⦌-Ctx = ⦋ Γ ⦌-Ctx
-
-
              -- -> ∑ λ δ -> ∀ p -> p ∈ ⟨ ps ⟩ -> ∀{Δ Δp} -> transl-Ctx Γ Γp ∣ p ↦ Δ , Δp Ctx -> Δ ⊢ ⦋ A ⦌-Type / δ GlobalFiber[ p ]
+
+  pre-schedule : ∀{Γ A i j δ ps} -> Γ , A ＠ i ,[ i ] ⊢ A ＠ j / δ GlobalFibered[ ps ]
+  ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.done) (IR.stepRes (Γp IR., IR.proj-＠ x₂ IR.done)) = {!!} , {!!} , let B = {!!}
+                                                                                                              t = var (res (zero (proj-＠ {!!} B)))
+                                                                                                            in map-local-project B t -- var (IR.res (zero {!!}))
+  ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.done) (IR.stepRes (Γp IR., IR.proj-＠ x₂ IR.Unit-▲)) = {!!} , {!!} , {!!}
+  ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.done) (IR.stepRes (Γp IR., IR.proj-＠-≠ x₂)) = {!!} , {!!} , {!!}
+  ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.Unit-▲) (IR.stepRes (Γp IR., x₂)) = {!!} , {!!} , {!!}
+  -- ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.done) (IR.stepRes (Γp IR., x₂)) = {!!} , {!!} , {!!} -- var (IR.res (zero (proj-＠ refl-≤ {!!})))
+  -- ⟨ pre-schedule ⟩ p x (IR.proj-＠ x₁ IR.Unit-▲) (IR.stepRes (Γp IR., x₂)) = {!!} , {!!} , var (IR.res (zero {!!}))
+  ⟨ pre-schedule ⟩ p x (proj-＠-≠ x₁) Γp = {!!}
+
+  -- schedule : ∀{Γ A i j} -> Γ , A ＠ i ⊢ ◻ (A ＠ j) / {!!} GlobalFiber[ {!!} ]
+  -- schedule = {!!}
+
+  multibox : ∀{ν : ModeHom' ◯ ▲} -> ∀{Γ i X δ ps} -> addRestr ν (Γ , i) ⊢ X / δ GlobalFibered[ ps ]
+             -> Γ ⊢ F-Type ν X ＠ i / {!!} GlobalFibered[ ps ]
+  multibox {ν = `[]` ⨾ id'} t = box-GlobalFibered t
+  multibox {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox {ν = ν} (box-GlobalFibered t)
 
   mutual
     {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
@@ -220,16 +249,32 @@ module Translation (n : ℕ) where
               -> ∑ λ δ -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) / δ GlobalFibered[ ps ]
     transl-Term-▲ Γ Γp (var x α) = {!!}
     transl-Term-▲ Γ Γp tt = {!!}
-    transl-Term-▲ Γ Γp (mod `[]` t) =
-      let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
-      in _ , box-GlobalFibered ts'
+    transl-Term-▲ Γ Γp (mod `[]` t) = {!!}
+      -- let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
+      -- in _ , box-GlobalFibered ts'
     transl-Term-▲ Γ Γp (letmod' `[]` t s) =
       let δt' , t' = transl-Term-▲ _ Γp t
           δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
       in _ , letin-GlobalFibered t' s'
-    transl-Term-▲ Γ Γp (letmod μ ν t s) = {!!}
-      -- let δt' , t' = transl-Term-▲ Γ Γp t
-      -- in ?
+    transl-Term-▲ Γ Γp (letmod (`＠` U) ν t s) =
+
+          -- t'  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ⦋ A₁ ⦌-Type ＠ U /
+      let δt' , t' = transl-Term-◯ _ (stepRes (stepRes Γp)) t
+
+          -- s'  : (transl-Ctx Γ Γp , (F-Type ν (⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i / ...
+          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+      in {!!} , letin-GlobalFibered (multibox t') s'
+    transl-Term-▲ Γ Γp (letmod `[]` id' t s) = {!!}
+    transl-Term-▲ Γ Γp (letmod `[]` (`＠` U ⨾ ν) t s) =
+      let t' = split-path t
+
+          -- t''  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ◻ ⦋ A₁ ⦌-Type ＠ U /
+          δt'' , t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
+
+          -- s'   : (transl-Ctx Γ Γp , (F-Type ν (◻ ⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i /
+          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+
+      in {!!} , letin-GlobalFibered (multibox t'') s'
     transl-Term-▲ Γ Γp (trans x t) = {!!}
     transl-Term-▲ Γ Γp (pure t) = {!!}
     transl-Term-▲ Γ Γp (seq t t₁) = {!!}
@@ -248,8 +293,9 @@ module Translation (n : ℕ) where
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
       let δ' , t' = transl-Term-▲ _ Γp t
       in δ' , t'
-    transl-Term-◯ Γ Γp (letmod μ ν t t₁) = {!!}
-    transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!!}
+    transl-Term-◯ Γ Γp (letmod (`＠` U) ν t t₁) = {!!}
+    transl-Term-◯ Γ Γp (letmod `[]` ν t t₁) = {!!}
+    transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
     transl-Term-◯ Γ Γp (trans x t) = {!!}
     transl-Term-◯ Γ Γp (pure t) = {!!}
     transl-Term-◯ Γ Γp (seq t t₁) = {!!}
