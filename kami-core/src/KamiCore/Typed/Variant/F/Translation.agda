@@ -242,6 +242,11 @@ module Translation (n : ℕ) where
   multibox {ν = `[]` ⨾ id'} t = box-GlobalFibered t
   multibox {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox {ν = ν} (box-GlobalFibered t)
 
+  multibox' : ∀{ν : ModeHom' ◯ ◯} -> ∀{Γ X δ ps} -> addRestr ν Γ ⊢ X / δ GlobalFibered[ ps ]
+             -> Γ ⊢ F-Type ν X / {!!} GlobalFibered[ ps ]
+  multibox' {ν = id'} t = t
+  multibox' {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox' {ν = ν} (box-GlobalFibered t)
+
   mutual
     {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
     transl-Term-▲ : ∀{ps i} -> ∀{μ : ModeHom' ◯ ◯} -> (Γ : CtxExt μ) -> (Γp : isCtx₂ (ε ⋆ Γ))
@@ -293,8 +298,19 @@ module Translation (n : ℕ) where
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
       let δ' , t' = transl-Term-▲ _ Γp t
       in δ' , t'
-    transl-Term-◯ Γ Γp (letmod (`＠` U) ν t t₁) = {!!}
-    transl-Term-◯ Γ Γp (letmod `[]` ν t t₁) = {!!}
+    transl-Term-◯ Γ Γp (letmod (`＠` U) ν t s) =
+      let δt' , t' = transl-Term-◯ _ (stepRes Γp) t
+          δs' , s' = transl-Term-◯ _ (stepVar Γp) s
+      in {!!} , letin-GlobalFibered (multibox' t') s'
+      -- in _ , letin-GlobalFibered t' s'
+    transl-Term-◯ Γ Γp (letmod `[]` (`＠` i ⨾ ν) t s) =
+      let t' = split-path t
+
+          δt'' , t'' = transl-Term-▲ _ (stepRes Γp) t'
+
+          δs' , s' = transl-Term-◯ _ (stepVar Γp) s
+      in {!!} , letin-GlobalFibered (multibox' t'') s'
+
     transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
     transl-Term-◯ Γ Γp (trans x t) = {!!}
     transl-Term-◯ Γ Γp (pure t) = {!!}
