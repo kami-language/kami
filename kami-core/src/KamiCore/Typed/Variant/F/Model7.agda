@@ -107,12 +107,12 @@ module IR {{L : isProcessSet 𝑗}} where
 
   data Type where
     ◻ : Type ◯ -> Type ▲
-    [_∣_]◅_ : Type ◯ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
+    [_∣_]◅_ : Type ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
     NN : Type ▲
     Unit : ∀{m} -> Type m
     Either : ∀{m} -> Type m -> Type m -> Type m
     _⇒_ : ∀{m} -> Type m -> Type m -> Type m
-    Wrap : ∀{m} -> Type m -> Type m
+    Tr : ∀{m} -> Type m -> Type m
 
     _＠_ : Type ▲ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Type ◯
 
@@ -120,8 +120,8 @@ module IR {{L : isProcessSet 𝑗}} where
 
   infix 30 _＠_
 
-  pl : ∀{m} -> Type m -> Type plain
-  pl = {!!}
+  -- pl : ∀{m} -> Type m -> Type plain
+  -- pl = {!!}
 
 
 
@@ -164,29 +164,59 @@ module IR {{L : isProcessSet 𝑗}} where
   --   proj-◻ : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> ◻ X ∣ ⦗ p ⦘ ∷ [] ↦ [ X ]◅ A Type
 
 
-  data _∣_↦_Type : ∀{m} -> Type m -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type -> 𝒰 (𝑗) where
-    proj-＠ : ∀{ps pps qs} -> ps ≤ qs -> A ∣ pps ↦ B Type -> A ＠ qs ∣ (ps ∷ pps) ↦ B Type
-    proj-＠-≠ : ∀{ps pps qs} -> (¬ ps ≤ qs) -> A ＠ qs ∣ (ps ∷ pps) ↦ Unit Type
-    _⇒_ : ∀{p} -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Y ∣ ⦗ p ⦘ ∷ [] ↦ B Type -> (X ⇒ Y) ∣ ⦗ p ⦘ ∷ [] ↦ (A ⇒ B) Type
-    Unit-◯ : ∀{p ps} -> Unit {m = ◯} ∣ p ∷ ps ↦ Unit Type
-
-    proj-◻ : ∀{ps} -> X ∣ ps ↦ A Type -> ◻ X ∣ ps ↦ [ X ∣ ps ]◅ A Type
-    proj-[] : ∀{p ps qs} -> isPrefix ps qs -> A ∣ qs ↦ B Type -> ([ X ∣ p ∷ ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p ∷ qs ]◅ B Type
-    done : A ∣ [] ↦ A Type
-    Unit-▲ : ∀{ps} -> Unit {m = ▲} ∣ ps ↦ Unit Type
+  mutual
+    data π_∣_↦_Type : Type ◯ -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> ▲Type -> 𝒰 (𝑗) where
+      proj-＠ : ∀{ps pps qs} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
+      proj-＠-≠ : ∀{ps pps qs} -> (¬ ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
+      _⇒_ : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ⇒ Y) ∣ p , ps ↦ (A ⇒ B) Type
+      Either : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (Either X Y) ∣ p , ps ↦ Either A B Type
+      Tr : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> π (Tr X) ∣ p , ps ↦ Tr A Type
+      Unit : ∀{p ps} -> π Unit ∣ p , ps ↦ Unit Type
 
 
+    data ω_∣_↦_Type : Type ▲ -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type -> 𝒰 (𝑗) where
+      done : ω A ∣ [] ↦ A Type
+      proj-◻ : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ [ X ∣ p , ps ]◅ A Type
+      proj-[] : ∀{p ps qs} -> isPrefix ps qs -> ω A ∣ qs ↦ B Type -> ω ([ X ∣ p , ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p , qs ]◅ B Type
+      Unit-▲ : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
 
-  π-Type : ◯Type -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type
-  π-Type = {!!}
 
-  π-Type-Proof : (X : ◯Type) -> (i : List (𝒫ᶠⁱⁿ (Proc L))) -> X ∣ i ↦ π-Type X i Type
-  π-Type-Proof = {!!}
+  mutual
+    π-Type : ◯Type -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> ▲Type
+    π-Type Unit ps = Unit
+    π-Type (Either X Y) ps = Either (π-Type X ps) (π-Type Y ps)
+    π-Type (X ⇒ Y) ps = π-Type X ps ⇒ π-Type Y ps
+    π-Type (Tr X) ps = Tr (π-Type X ps)
+    π-Type (A ＠ l) (p , ps) with decide-≤ p l
+    ... | no x = Unit
+    ... | yes x = ω-Type A ps
+
+    ω-Type : ▲Type -> List (𝒫ᶠⁱⁿ (Proc L)) -> ▲Type
+    ω-Type A [] = A
+    ω-Type (◻ X) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X (p , ps)
+    ω-Type ([ A ∣ x₁ ]◅ A₁) (p ∷ ps) = {!!}
+    ω-Type NN (p ∷ ps) = {!!}
+    ω-Type Unit (p ∷ ps) = {!!}
+    ω-Type (Either A A₁) (p ∷ ps) = {!!}
+    ω-Type (A ⇒ A₁) (p ∷ ps) = {!!}
+    ω-Type (Tr A) (p ∷ ps) = {!!}
 
 
-  -- data _∣_↦_Ctx : Ctx -> (l : List ⟨ Proc L ⟩) -> ∑ isLocal ⦗ l ⦘ -> 𝒰 (𝑗) where
-  --   ε : ε ∣ ⦗ p ⦘ ∷ [] ↦ (ε , ε) Ctx
-  --   _,_ : ∀{Δp} -> Γ ∣ ⦗ p ⦘ ∷ [] ↦ Δ , Δp Ctx -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Γ , X ∣ ⦗ p ⦘ ∷ [] ↦ (Δ , A ＠ ⦗ p ⦘) , step Δp Ctx
+  mutual
+    π-Type-Proof : (X : ◯Type) -> (ps : (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> π X ∣ ps ↦ π-Type X ps Type
+    π-Type-Proof Unit ps = Unit
+    π-Type-Proof (Either X Y) ps = Either (π-Type-Proof X ps) (π-Type-Proof Y ps)
+    π-Type-Proof (X ⇒ Y) ps = π-Type-Proof X ps ⇒ π-Type-Proof Y ps
+    π-Type-Proof (Tr X) ps = Tr (π-Type-Proof X ps)
+    π-Type-Proof (A ＠ l) (p , ps) with decide-≤ p l
+    ... | no x = proj-＠-≠ x
+    ... | yes x = proj-＠ x (ω-Type-Proof A ps)
+
+    ω-Type-Proof : (A : ▲Type) -> (ps : List (𝒫ᶠⁱⁿ (Proc L))) -> ω A ∣ ps ↦ ω-Type A ps Type
+    ω-Type-Proof = {!!}
+
+
+{-
 
   data _∣_↦_Ctx : Ctx -> (l : List (𝒫ᶠⁱⁿ (Proc L))) -> Ctx -> 𝒰 (𝑗) where
     ε : ∀{p} -> ε ∣ ⦗ p ⦘ ∷ [] ↦ ε Ctx
@@ -219,9 +249,9 @@ module IR {{L : isProcessSet 𝑗}} where
     lam▲ : ∀{Γ A B ps} -> (Γ , A ＠ ps) ⊢ B Com -> Γ ⊢ A ⇒ B Com
     app : ∀{Γ} {m} {A B : Type m} -> Γ ⊢ A ⇒ B Com -> Γ ⊢ A Com -> Γ ⊢ B Com
     tt : ∀{Γ m} -> Γ ⊢ Unit {m = m} Com
-    com : ∀{Γ} (T : Type ◯) -> Γ ⊢ T Com -> Γ ⊢ S Com -> Γ ⊢ Wrap S Com
-    _≫_ : ∀{Γ} -> Γ ⊢ Wrap S Com -> Γ ⊢ Wrap S Com -> Γ ⊢ Wrap S Com
-    𝟘 : ∀{Γ} -> Γ ⊢ Wrap T Com
+    com : ∀{Γ} (T : Type ◯) -> Γ ⊢ T Com -> Γ ⊢ S Com -> Γ ⊢ Tr S Com
+    _≫_ : ∀{Γ} -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com
+    𝟘 : ∀{Γ} -> Γ ⊢ Tr T Com
 
     -- _⊹_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
@@ -257,13 +287,13 @@ module IR {{L : isProcessSet 𝑗}} where
   ⟦ Unit ⟧-Type = {!!}
   ⟦ Either A A₁ ⟧-Type = {!!}
   ⟦ A ⇒ B ⟧-Type = ⟦ A ⟧-Type ⇒ ⟦ B ⟧-Type
-  ⟦ Wrap A ⟧-Type = ℂ ×× ⟦ A ⟧-Type
+  ⟦ Tr A ⟧-Type = ℂ ×× ⟦ A ⟧-Type
 
   -- ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-Type
   -- ⟦ x ＠ _ ⟧-Type = ⟦ x ⟧-Type
   -- ⟦ X ⇒ Y ⟧-Type = ⟦ X ⟧-Type ⇒ ⟦ Y ⟧-Type
   -- ⟦ Either X Y ⟧-Type = ⟦ X ⟧-Type ×× ⟦ Y ⟧-Type
-  -- ⟦ Wrap X ⟧-Type = ℂ ×× ⟦ X ⟧-Type
+  -- ⟦ Tr X ⟧-Type = ℂ ×× ⟦ X ⟧-Type
   -- ⟦ Unit ⟧-Type = {!!}
 
   ⟦_⟧-Ctx : Ctx -> ComType
@@ -312,11 +342,11 @@ module IR {{L : isProcessSet 𝑗}} where
 
   data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> Γ ⊢ A Com -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
     var : ∀{p} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ ∷ [] ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
-    recv : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Γ ⊢ Wrap A / com X δ₀ δ₁ GlobalFiber[ p ]
+    recv : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Γ ⊢ Tr A / com X δ₀ δ₁ GlobalFiber[ p ]
     send : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type
            -> unbox δ₀ ∣ p ↦ δ₁ Com
            -> Γ ⊢ ◻ X / δ₀ GlobalFiber[ p ]
-           -> Γ ⊢ Wrap A / com X (unbox δ₀) δ₁ GlobalFiber[ p ]
+           -> Γ ⊢ Tr A / com X (unbox δ₀) δ₁ GlobalFiber[ p ]
 
     extern : Γ ,[ ⦗ q ⦘ ] ⊢ A / δ GlobalFiber[ p ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
 
@@ -365,21 +395,6 @@ module IR {{L : isProcessSet 𝑗}} where
                      -> Γ , X ⊢ Y / δ₀ GlobalFibered[ ps ]
                      -> Γ ⊢ Y / app (lam◯ δ₀) δ₁ GlobalFibered[ ps ]
   letin-GlobalFibered t s = app-GlobalFibered (lam-GlobalFibered s) t
-
-  -- lem-11 : ∀{p ps qs} -> T ∣ p ∷ ps ↦ A Type -> T ∣ qs ↦ B Type -> (A ＠ p) ∣ qs ↦ B Type
-  -- lem-11 (proj-＠ x v) w = {!!}
-  -- lem-11 (proj-＠-≠ x) w = {!!}
-  -- lem-11 (v ⇒ v₁) w = {!!}
-  -- lem-11 (proj-◻ v) w = {!!}
-  -- lem-11 (proj-[] x v) (proj-[] x₁ w) = {!!}
-  -- lem-11 (proj-[] x v) done = {!!}
-  -- lem-11 (proj-＠ x v) (proj-＠ x₁ w) = proj-＠ {!!} {!!}
-  -- lem-11 (proj-＠ x v) (proj-＠-≠ x₁) = {!!}
-  -- lem-11 (proj-＠-≠ x) w = {!!}
-  -- lem-11 (v ⇒ v₁) w = {!!}
-  -- lem-11 (proj-◻ v) w = {!!}
-  -- lem-11 x (proj-[] x₁ x₂) = {!!}
-  -- lem-11 {T = [ T ∣ x₁ ]◅ T₁} x done = {!!}
 
 
   mutual
@@ -899,4 +914,4 @@ module _ where
 -}
 
 -}
-
+-}
