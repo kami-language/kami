@@ -87,12 +87,12 @@ module IR {{L : isProcessSet 𝑗}} where
     ◯ ▲ : Mode
 
   data Type : Mode -> 𝒰 𝑗
-  data Type₊ : Mode -> 𝒰 𝑗
+  data isClosed : ∀{m} -> Type m -> 𝒰 𝑗
 
   -- data ▲Type : 𝒰 (𝑗)
-  -- data ▲Type₊ : 𝒰 (𝑗)
+  -- data ▲Type : 𝒰 (𝑗)
   -- data ◯Type : 𝒰 (𝑗)
-  -- data ◯Type₊ : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
+  -- data ◯Type : 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
   -- data Com : 𝒰 𝑖
 
   -- data ▲Ann : ▲Type -> 𝒰 𝑖
@@ -108,7 +108,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
   data Type where
     ◻ : Type ◯ -> Type ▲
-    -- [_∣_]◅_ : Type ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
+    [_∣_]◅_ : Type ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
     NN : ∀{m} -> Type m
     Unit : ∀{m} -> Type m
     Either : ∀{m} -> Type m -> Type m -> Type m
@@ -116,15 +116,21 @@ module IR {{L : isProcessSet 𝑗}} where
     Tr : ∀{m} -> Type m -> Type m
     _＠_ : Type ▲ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Type ◯
 
-  data Type₊ where
-    ◻ : Type₊ ◯ -> Type₊ ▲
-    [_∣_]◅_ : Type₊ ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type₊ ▲ -> Type₊ ▲
-    NN : ∀{m} -> Type₊ m
-    Unit : ∀{m} -> Type₊ m
-    Either : ∀{m} -> Type₊ m -> Type₊ m -> Type₊ m
-    _⇒_ : ∀{m} -> Type₊ m -> Type₊ m -> Type₊ m
-    Tr : ∀{m} -> Type₊ m -> Type₊ m
-    _＠_ : Type₊ ▲ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Type₊ ◯
+  private variable
+    m : Mode
+    X Y Z : ◯Type
+    A B C D : ▲Type
+    T S U : Type m
+
+  data isClosed where
+    ◻ : isClosed X -> isClosed (◻ X)
+    -- [_∣_]◅_ : Type ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
+    NN : isClosed {m} NN
+    Unit : isClosed {m} Unit
+    Either : isClosed T -> isClosed S -> isClosed (Either T S)
+    _⇒_ : isClosed T -> isClosed S -> isClosed (_⇒_ T S)
+    Tr : isClosed T -> isClosed (Tr T)
+    _＠_ : isClosed A -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> isClosed (A ＠ l)
 
   pattern BB = Either Unit Unit
 
@@ -154,14 +160,9 @@ module IR {{L : isProcessSet 𝑗}} where
   private variable
     -- Ξ : ▲Ctx
     Γ Δ : Ctx
-    X Y Z : ◯Type
-    -- X₊ Y₊ Z₊ : ◯Type₊ l
-    A B C D : ▲Type
     x y z : ComType
-    -- A₊ B₊ C₊ D₊ : ▲Type₊
+    -- A₊ B₊ C₊ D₊ : ▲Type
     -- c d : x ⊢ ℂ Com[ PlType ]
-    m : Mode
-    T S U : Type m
 
 
   ---------------------------------------------
@@ -175,7 +176,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
   mutual
-    data π_∣_↦_Type : Type ◯ -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type₊ ▲ -> 𝒰 (𝑗) where
+    data π_∣_↦_Type : Type ◯ -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type ▲ -> 𝒰 (𝑗) where
       proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
       proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
       _⇒_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ⇒ Y) ∣ p , ps ↦ (A ⇒ B) Type
@@ -184,7 +185,7 @@ module IR {{L : isProcessSet 𝑗}} where
       Unit : ∀{p ps} -> π Unit ∣ p , ps ↦ Unit Type
 
 
-    data ω_∣_↦_Type : Type ▲ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type₊ ▲ -> 𝒰 (𝑗) where
+    data ω_∣_↦_Type : Type ▲ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> 𝒰 (𝑗) where
       done : ∀{A} -> ω A ∣ [] ↦ A Type
       proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ [ X ∣ p , ps ]◅ A Type
       -- proj-[] : ∀{p ps qs} -> isPrefix ps qs -> ω A ∣ qs ↦ B Type -> ω ([ X ∣ p , ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p , qs ]◅ B Type
@@ -192,38 +193,38 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
   mutual
-    π-Type : ◯Type -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type₊ ▲
-    π-Type Unit ps = Unit
-    π-Type (Either X Y) ps = Either (π-Type X ps) (π-Type Y ps)
-    π-Type (X ⇒ Y) ps = π-Type X ps ⇒ π-Type Y ps
-    π-Type (Tr X) ps = Tr (π-Type X ps)
-    π-Type (A ＠ l) (p , ps) with decide-≤ p l
+    π-Type : (X : ◯Type) -> isClosed X -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type ▲
+    π-Type Unit Unit ps = Unit
+    π-Type NN NN ps = NN
+    π-Type (Either X Y) (Either Xp Yp) ps = Either (π-Type X Xp ps) (π-Type Y Yp ps)
+    π-Type (X ⇒ Y) (Xp ⇒ Yp) ps = π-Type X Xp ps ⇒ π-Type Y Yp ps
+    π-Type (Tr X) (Tr Xp) ps = Tr (π-Type X Xp ps)
+    π-Type (A ＠ l) (Ap ＠ l) (p , ps) with decide-≤ p l
     ... | no x = Unit
-    ... | yes x = ω-Type A ps
+    ... | yes x = ω-Type A Ap ps
 
-    ω-Type : ▲Type -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type₊ ▲
-    ω-Type A [] = A
-    ω-Type (◻ X) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X (p , ps)
-    ω-Type ([ A ∣ x₁ ]◅ A₁) (p ∷ ps) = {!!}
-    ω-Type NN (p ∷ ps) = {!!}
-    ω-Type Unit (p ∷ ps) = {!!}
-    ω-Type (Either A A₁) (p ∷ ps) = {!!}
-    ω-Type (A ⇒ A₁) (p ∷ ps) = {!!}
-    ω-Type (Tr A) (p ∷ ps) = {!!}
+    ω-Type : (A : ▲Type) -> isClosed A -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲
+    ω-Type A Ap [] = A
+    ω-Type (◻ X) (◻ Xp) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X Xp (p , ps)
+    ω-Type NN NN (p ∷ ps) = {!!}
+    ω-Type Unit Unit (p ∷ ps) = {!!}
+    ω-Type (Either T S) (Either x x₁) (x₂ ∷ x₃) = {!!}
+    ω-Type (T ⇒ S) (x ⇒ x₁) (x₂ ∷ x₃) = {!!}
+    ω-Type (Tr T) (Tr x) (x₁ ∷ x₂) = {!!}
 
 
-  mutual
-    π-Type-Proof : (X : Type ◯) -> (ps : (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> π X ∣ ps ↦ π-Type X ps Type
-    π-Type-Proof Unit ps = Unit
-    π-Type-Proof (Either X Y) ps = Either (π-Type-Proof X ps) (π-Type-Proof Y ps)
-    π-Type-Proof (X ⇒ Y) ps = π-Type-Proof X ps ⇒ π-Type-Proof Y ps
-    π-Type-Proof (Tr X) ps = Tr (π-Type-Proof X ps)
-    π-Type-Proof (A ＠ l) (p , ps) with decide-≤ p l
-    ... | no x = proj-＠-≠ x
-    ... | yes x = proj-＠ x (ω-Type-Proof A ps)
+  -- mutual
+  --   π-Type-Proof : (X : Type ◯) -> (ps : (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> π X ∣ ps ↦ π-Type X ps Type
+  --   π-Type-Proof Unit ps = Unit
+  --   π-Type-Proof (Either X Y) ps = Either (π-Type-Proof X ps) (π-Type-Proof Y ps)
+  --   π-Type-Proof (X ⇒ Y) ps = π-Type-Proof X ps ⇒ π-Type-Proof Y ps
+  --   π-Type-Proof (Tr X) ps = Tr (π-Type-Proof X ps)
+  --   π-Type-Proof (A ＠ l) (p , ps) with decide-≤ p l
+  --   ... | no x = proj-＠-≠ x
+  --   ... | yes x = proj-＠ x (ω-Type-Proof A ps)
 
-    ω-Type-Proof : (A : Type ▲) -> (ps : List (𝒫ᶠⁱⁿ (Proc L))) -> ω A ∣ ps ↦ ω-Type A ps Type
-    ω-Type-Proof = {!!}
+  --   ω-Type-Proof : (A : Type ▲) -> (ps : List (𝒫ᶠⁱⁿ (Proc L))) -> ω A ∣ ps ↦ ω-Type A ps Type
+  --   ω-Type-Proof = {!!}
 
 
 {-
@@ -673,7 +674,7 @@ module IR {{L : isProcessSet 𝑗}} where
     _＠_ : ∀{A} -> ▲Ann A -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> ◯Ann (A ＠ l)
     _[_]⇒_ : ∀{X Y : ◯Type} -> ◯Ann (X) -> Com -> ◯Ann (Y) -> ◯Ann (X ⇒ Y)
 
-  ◯mer : (X : ◯Type) -> ◯Ann X -> ◯Type₊ l
+  ◯mer : (X : ◯Type) -> ◯Ann X -> ◯Type l
   ◯mer = {!!}
 
 
@@ -687,13 +688,13 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
   -- data _⊢◯_ : Ctx -> ◯Type -> 𝒰 𝑖
-  data _⊢◯-Var_©_ : Ctx -> ◯Type₊ l -> Com -> 𝒰 𝑖
+  data _⊢◯-Var_©_ : Ctx -> ◯Type l -> Com -> 𝒰 𝑖
   -- data _⊢_//_ : Ctx -> ▲Type -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 𝑖
   data _⇛_∣_ : Ctx -> Ctx -> 𝒫ᶠⁱⁿ (Proc L) -> 𝒰 (𝑗)
 
   data Com where
     -- var : Γ ⊢◯-Var X -> Com
-    com : ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> Com
+    com : ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com
     _∥_ : (δ₀ δ₁ : Com) -> Com
     _≫_ : (δ₀ δ₁ : Com) -> Com
     _⊹_ : (δ₀ δ₁ : Com) -> Com
@@ -717,16 +718,16 @@ module IR {{L : isProcessSet 𝑗}} where
     suc : Γ ⊢◯-Var X © δ₀ -> Γ , Y © δ₁  ⊢◯-Var X © δ₀
 
 
-  data _∣_↦_ : ◯Type₊ l -> ⟨ Proc L ⟩ -> ▲Type₊ -> 𝒰 (𝑗) where
+  data _∣_↦_ : ◯Type l -> ⟨ Proc L ⟩ -> ▲Type -> 𝒰 (𝑗) where
     proj-＠ : ∀{k} -> l ≤ re k -> A ＠ l ∣ k ↦ A
     proj-＠-≠ : ∀{k} -> (¬ l ≤ re k) -> A ＠ l ∣ k ↦ Unit
 
 
-  data _⊢◯_//_©_ : (Γ : Ctx) -> ▲Type₊ -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑗)
+  data _⊢◯_//_©_ : (Γ : Ctx) -> ▲Type -> ⟨ Proc L ⟩ -> Com -> 𝒰 (𝑗)
 
 
 
-  _⊢◻_∣_//_ : Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
+  _⊢◻_∣_//_ : Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> ⟨ Proc L ⟩ -> 𝒰 _
   _⊢◻_∣_//_ Γ X ks q = ∀ p -> p ∈ ⟨ ks ⟩ -> ∀ A -> X ∣ ⦗ p ⦘ ∷ [] ↦ A -> Γ ⊢◯ A // q © []
 
 
@@ -738,7 +739,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
 
-  _⊢◯_∣_©_ : Ctx -> ◯Type₊ l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
+  _⊢◯_∣_©_ : Ctx -> ◯Type l -> 𝒫ᶠⁱⁿ (Proc L) -> Com -> 𝒰 _
   _⊢◯_∣_©_ Γ X ps δ = ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ A -> X ∣ ⦗ p ⦘ ∷ [] ↦ A -> Γ ⊢◯ A // p © δ
 
 {-
@@ -765,7 +766,7 @@ module IR {{L : isProcessSet 𝑗}} where
         -> Γ , A ＠ re p © [] ⊢◯ B // p © δ₁
         -> Γ ⊢◯ B // p © (δ₀ ≫ δ₁)
 
-    box : ∀{X : ◯Type₊ k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
+    box : ∀{X : ◯Type k} -> Γ ⊢◻ X ∣ split {{L}} k // p -> Γ ⊢◯ ◻ X // p © []
 
     rec-Either : Γ ⊢◯ Either A B // p © []
                -> Γ , A ＠ re p © [] ⊢◯ C // p © δ₀
