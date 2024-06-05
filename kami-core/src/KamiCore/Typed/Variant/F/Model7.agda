@@ -38,7 +38,7 @@ module _ {A : 𝒰 𝑖} where
 
 -- module _ (I : 𝒰 𝑖) where
 data ComType : 𝒰₀ where
-  ℂ : ComType
+  Com : ComType
   Unit : ComType
   _××_ : ComType -> ComType -> ComType
   _⇒_ : ComType -> ComType -> ComType
@@ -113,6 +113,7 @@ module IR {{L : isProcessSet 𝑗}} where
     Unit : ∀{m} -> Type m
     Either : ∀{m} -> Type m -> Type m -> Type m
     _⇒_ : ∀{m} -> Type m -> Type m -> Type m
+    _××_ : ∀{m} -> Type m -> Type m -> Type m
     Tr : ∀{m} -> Type m -> Type m
     _＠_ : Type ▲ -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Type ◯
 
@@ -121,6 +122,7 @@ module IR {{L : isProcessSet 𝑗}} where
     X Y Z : ◯Type
     A B C D : ▲Type
     T S U : Type m
+    T₀ T₁ S₀ S₁ : Type m
 
   data isClosed where
     ◻ : isClosed X -> isClosed (◻ X)
@@ -129,6 +131,7 @@ module IR {{L : isProcessSet 𝑗}} where
     Unit : isClosed {m} Unit
     Either : isClosed T -> isClosed S -> isClosed (Either T S)
     _⇒_ : isClosed T -> isClosed S -> isClosed (_⇒_ T S)
+    _××_ : isClosed T -> isClosed S -> isClosed (_××_ T S)
     Tr : isClosed T -> isClosed (Tr T)
     _＠_ : isClosed A -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> isClosed (A ＠ l)
 
@@ -180,10 +183,10 @@ module IR {{L : isProcessSet 𝑗}} where
       proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
       proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
       _⇒_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ⇒ Y) ∣ p , ps ↦ (A ⇒ B) Type
+      _××_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ×× Y) ∣ p , ps ↦ (A ×× B) Type
       Either : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (Either X Y) ∣ p , ps ↦ Either A B Type
       Tr : ∀{p ps A } -> π X ∣ p , ps ↦ A Type -> π (Tr X) ∣ p , ps ↦ Tr A Type
       Unit : ∀{p ps} -> π Unit ∣ p , ps ↦ Unit Type
-
 
     data ω_∣_↦_Type : Type ▲ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> 𝒰 (𝑗) where
       done : ∀{A} -> ω A ∣ [] ↦ A Type
@@ -198,6 +201,7 @@ module IR {{L : isProcessSet 𝑗}} where
     π-Type NN NN ps = NN
     π-Type (Either X Y) (Either Xp Yp) ps = Either (π-Type X Xp ps) (π-Type Y Yp ps)
     π-Type (X ⇒ Y) (Xp ⇒ Yp) ps = π-Type X Xp ps ⇒ π-Type Y Yp ps
+    π-Type (X ×× Y) (Xp ×× Yp) ps = π-Type X Xp ps ×× π-Type Y Yp ps
     π-Type (Tr X) (Tr Xp) ps = Tr (π-Type X Xp ps)
     π-Type (A ＠ l) (Ap ＠ l) (p , ps) with decide-≤ p l
     ... | no x = Unit
@@ -210,7 +214,17 @@ module IR {{L : isProcessSet 𝑗}} where
     ω-Type Unit Unit (p ∷ ps) = {!!}
     ω-Type (Either T S) (Either x x₁) (x₂ ∷ x₃) = {!!}
     ω-Type (T ⇒ S) (x ⇒ x₁) (x₂ ∷ x₃) = {!!}
+    ω-Type (T ×× S) (x ×× x₁) (x₂ ∷ x₃) = {!!}
     ω-Type (Tr T) (Tr x) (x₁ ∷ x₂) = {!!}
+
+
+  data ϕ_↦_ : ∀{m} -> Type m -> Type m -> 𝒰 𝑗 where
+    proj-◻ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ ◻ X
+    proj-＠ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ A
+    _⇒_ : ϕ T₀ ↦ T₁ -> ϕ S₀ ↦ S₁ -> ϕ (T₀ ⇒ S₀) ↦ (T₁ ⇒ S₁)
+
+  id-ϕ : ∀{X : Type m} -> ϕ X ↦ X
+  id-ϕ = {!!}
 
 
   -- mutual
@@ -227,11 +241,10 @@ module IR {{L : isProcessSet 𝑗}} where
   --   ω-Type-Proof = {!!}
 
 
-{-
 
   data _∣_↦_Ctx : Ctx -> (l : List (𝒫ᶠⁱⁿ (Proc L))) -> Ctx -> 𝒰 (𝑗) where
     ε : ∀{p} -> ε ∣ ⦗ p ⦘ ∷ [] ↦ ε Ctx
-    _,_ : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> X ∣ p ∷ [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
+    _,_ : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
     stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
 
 
@@ -245,34 +258,92 @@ module IR {{L : isProcessSet 𝑗}} where
   ----------------------------------------------------------
   -- Com terms
 
+  ↓_ : Type m -> ComType
+  ↓ ◻ T = ↓ T
+  ↓ ([ T ∣ x ]◅ T₁) = {!!}
+  ↓ NN = Unit
+  ↓ Unit = Unit
+  ↓ Either T T₁ = {!!}
+  ↓ (T ⇒ S) = ↓ T ⇒ ↓ S
+  ↓ (T ×× S) = ↓ T ×× ↓ S
+  ↓ Tr T = Com ×× ↓ T
+  ↓ (T ＠ l) = ↓ T
+
+  infix 50 ↓_
+
+  data _⊢Var_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> 𝒰 (𝑗) where
+    zero : ∀{ps} -> π X ∣ ps ↦ A Type -> ϕ A ↦ B -> Γ , X ⊢Var B GlobalFiber[ ps ]
+    suc : ∀{ps} -> Γ ⊢Var A GlobalFiber[ ps ] -> Γ , X ⊢Var A GlobalFiber[ ps ]
+    res : ∀{p p' ps} -> Γ ⊢Var A GlobalFiber[ p , (p' ∷ ps) ] -> Γ ,[ p ] ⊢Var A GlobalFiber[ p' , ps ]
+
   data _⊢Var_Global : Ctx -> Type ◯ -> 𝒰 𝑗 where
     zero : ∀{Γ A} -> Γ , A ⊢Var A Global
     suc : ∀{Γ A B} -> Γ ⊢Var A Global -> (Γ , B) ⊢Var A Global
 
-  data _⊢_Com : ∀{m} -> Ctx -> Type m -> 𝒰 𝑗 where
-    var : ∀{Γ A} -> Γ ⊢Var A Global -> Γ ⊢ A Com
 
-    _＠_ : Γ ⊢ A Com -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Γ ⊢ A ＠ l Com
-    unbox : Γ ⊢ ◻ X Com -> Γ ⊢ X Com
+  data _⊢_Com : Ctx -> ComType -> 𝒰 𝑗 where
+    var : ∀{Γ A p} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ , [] ] -> Γ ⊢ ↓ A Com
+    extern : ∀{Γ A p} -> Γ ,[ p ] ⊢ A Com -> Γ ⊢ A Com
 
-    -- _,_ : ∀{Γ A B} -> Γ ⊢ A Com -> Γ ⊢ B Com -> Γ ⊢ A ×× B Com
-    lam◯ : ∀{Γ A B} -> (Γ , A) ⊢ B Com -> Γ ⊢ A ⇒ B Com
-    lam▲ : ∀{Γ A B ps} -> (Γ , A ＠ ps) ⊢ B Com -> Γ ⊢ A ⇒ B Com
-    app : ∀{Γ} {m} {A B : Type m} -> Γ ⊢ A ⇒ B Com -> Γ ⊢ A Com -> Γ ⊢ B Com
-    tt : ∀{Γ m} -> Γ ⊢ Unit {m = m} Com
-    com : ∀{Γ} (T : Type ◯) -> Γ ⊢ T Com -> Γ ⊢ S Com -> Γ ⊢ Tr S Com
-    _≫_ : ∀{Γ} -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com
-    𝟘 : ∀{Γ} -> Γ ⊢ Tr T Com
+    -- _＠_ : Γ ⊢ A Com -> (l : 𝒫ᶠⁱⁿ (Proc L)) -> Γ ⊢ A ＠ l Com
+    -- unbox : Γ ⊢ ◻ X Com -> Γ ⊢ X Com
+
+    _,_ : ∀{Γ A B} -> Γ ⊢ A Com -> Γ ⊢ B Com -> Γ ⊢ A ×× B Com
+    -- lam◯ : ∀{Γ A B} -> (Γ , A) ⊢ B Com -> Γ ⊢ A ⇒ B Com
+    lam : ∀{Γ X B} -> (Γ , X) ⊢ B Com -> Γ ⊢ ↓ X ⇒ B Com
+    app : ∀{Γ} {A B} -> Γ ⊢ A ⇒ B Com -> Γ ⊢ A Com -> Γ ⊢ B Com
+    tt : ∀{Γ} -> Γ ⊢ Unit Com
+
+    com : ∀{Γ} (p : ⟨ Proc L ⟩) (T : Type ◯) -> Γ ⊢ Com Com
+    -- com : ∀{Γ} (T : Type ◯) -> Γ ⊢ T Com -> Γ ⊢ S Com -> Γ ⊢ Tr S Com
+    -- _≫_ : ∀{Γ} -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com -> Γ ⊢ Tr S Com
+    -- 𝟘 : ∀{Γ} -> Γ ⊢ Tr T Com
 
     -- _⊹_ : ∀{Γ} -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com -> Γ ⊢ ℂ Com
 
   private variable
-    δ δ₀ δ₁ : Γ ⊢ T Com
+    c d : ComType
+    δ δ₀ δ₁ : Γ ⊢ c Com
+
+  wk-Com : Γ ⊢ c Com -> Γ , X ⊢ c Com
+  wk-Com = {!!}
 
   -- data _∣_↦_Com : ∀{Γ Δ} -> Γ ∣ ⦗ p ⦘ ∷ [] ↦ Δ , Δp Ctx -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> 𝒰 (𝑗) where
-  data _∣_↦_Com : ∀{Γ Δ} -> Γ ⊢ X Com -> ⟨ Proc L ⟩ -> Δ ⊢ A Com -> 𝒰 (𝑗) where
-    proj-＠ : p ∈ ⟨ ps ⟩ -> δ ＠ ps ∣ p ↦ δ Com
 
+  -- data _∣_↦_Com : ∀{Γ Δ} -> Γ ⊢ X Com -> ⟨ Proc L ⟩ -> Δ ⊢ A Com -> 𝒰 (𝑗) where
+  --   proj-＠ : p ∈ ⟨ ps ⟩ -> δ ＠ ps ∣ p ↦ δ Com
+
+  π-Com : ∀{p} -> π X ∣ p , [] ↦ A Type -> Γ ⊢ ↓ X Com -> Γ ⊢ ↓ A Com
+  π-Com = {!!}
+
+
+  π-Com2 : ∀{p} -> Γ ∣ p ∷ [] ↦ Δ Ctx -> Γ ⊢ c Com -> Δ ⊢ c Com
+  π-Com2 Γp (var x) = {!!}
+  π-Com2 Γp (extern t) = {!!}
+  π-Com2 Γp (t , t₁) = {!!}
+  π-Com2 Γp (lam t) = lam (π-Com2 (Γp , {!!}) t)
+  π-Com2 Γp (app t t₁) = {!!}
+  π-Com2 Γp tt = {!!}
+  π-Com2 Γp (com p T) = {!!}
+
+  v1-Com : ∀ X -> Γ , X ⊢ ↓ X Com
+  v1-Com NN = {!!}
+  v1-Com Unit = {!!}
+  v1-Com (Either X X₁) = {!!}
+  v1-Com (X ⇒ X₁) = {!!}
+  v1-Com (X ×× Y) = {!!}
+  v1-Com (Tr X) = {!!}
+  v1-Com (X ＠ l) = var (zero (proj-＠ {!!} done) {!!})
+
+
+  π-Com' : ∀{p} -> Γ ∣ p ∷ [] ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ ⊢ ↓ X Com -> Δ ⊢ ↓ A Com
+  π-Com' {X = Unit} {Unit} Γp Unit t = tt
+  π-Com' {X = Either X X₁} {A} Γp Xp t = {!!}
+  π-Com' {X = X ⇒ X₁} {.(_ ⇒ _)} Γp (Xp ⇒ Xp₁) t = lam (π-Com' (Γp , Xp) Xp₁ (app (wk-Com t) {!!}))
+  π-Com' {X = X ×× X₁} {.(_ ×× _)} Γp (Xp ×× Xp₁) t = {!!}
+  π-Com' {X = Tr X} {A} Γp Xp t = {!!}
+  π-Com' {X = X ＠ l} {.X} Γp (proj-＠ x done) t = {!!}
+  π-Com' {X = X ＠ l} {.Unit} Γp (proj-＠-≠ x) t = tt
 
 
 
@@ -280,46 +351,9 @@ module IR {{L : isProcessSet 𝑗}} where
 
   ----------------------------------------------------------
   -- Old
-  {-
 
 
-  _⊹-Com_ : (δ₀ δ₁ : x ⊢ y Com[ PlType ]) -> x ⊢ y Com[ PlType ]
-  _⊹-Com_ {y = ℂ} d e = d ⊹ e
-  _⊹-Com_ {y = Unit} d e = tt
-  _⊹-Com_ {y = y₀ ×× y₁} d e = {!!}
-  _⊹-Com_ {y = y ⇒ y₁} d e = {!!}
-
-
-  -- ⟦_⟧₊-◯Type : ◯Type -> ComType
-  -- ⟦_⟧-Type : ∀{m} -> Type m -> ComType
-  ⟦ ◻ x ⟧-Type = ⟦ x ⟧-Type
-  ⟦ x ＠ _ ⟧-Type = ⟦ x ⟧-Type
-  ⟦ NN ⟧-Type = {!!}
-  ⟦ Unit ⟧-Type = {!!}
-  ⟦ Either A A₁ ⟧-Type = {!!}
-  ⟦ A ⇒ B ⟧-Type = ⟦ A ⟧-Type ⇒ ⟦ B ⟧-Type
-  ⟦ Tr A ⟧-Type = ℂ ×× ⟦ A ⟧-Type
-
-  -- ⟦_⟧₊-◯Type X = ℂ ×× ⟦ X ⟧-Type
-  -- ⟦ x ＠ _ ⟧-Type = ⟦ x ⟧-Type
-  -- ⟦ X ⇒ Y ⟧-Type = ⟦ X ⟧-Type ⇒ ⟦ Y ⟧-Type
-  -- ⟦ Either X Y ⟧-Type = ⟦ X ⟧-Type ×× ⟦ Y ⟧-Type
-  -- ⟦ Tr X ⟧-Type = ℂ ×× ⟦ X ⟧-Type
-  -- ⟦ Unit ⟧-Type = {!!}
-
-  ⟦_⟧-Ctx : Ctx -> ComType
-  ⟦ ε ⟧-Ctx = Unit
-  ⟦ Γ , x ⟧-Ctx = ⟦ Γ ⟧-Ctx ×× ⟦ x ⟧-Type
-
-  asLocal : ∀{Δp} -> Γ ∣ ⦗ p ⦘ ∷ [] ↦ Δ , Δp Ctx -> X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> ⟦ Γ ⟧-Ctx ⊢ ⟦ X ⟧-Type Com[ PlType ] -> ⟦ Δ ⟧-Ctx ⊢ ⟦ A ⟧-Type Com[ PlType ]
-  asLocal p (q ⇒ q₁) (var x) = {!!}
-  asLocal p (q ⇒ q₁) (lam δ) = lam (asLocal (p , q) q₁ δ)
-  asLocal p (q ⇒ q₁) (app δ δ₁) = {!!}
-
--}
-
-
-  data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> Γ ⊢ X Com -> 𝒰 (𝑗) where
+  -- data _⊢_/_Global : (Γ : Ctx) -> (X : ◯Type) -> Γ ⊢ X Com -> 𝒰 (𝑗) where
 
 {-
     lam : Γ , X ⊢ Y / δ Global -> Γ ⊢ X ⇒ Y / (lam δ) Global
@@ -343,54 +377,57 @@ module IR {{L : isProcessSet 𝑗}} where
 
 -}
 
-  data _⊢Var_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> List (𝒫ᶠⁱⁿ (Proc L)) -> 𝒰 (𝑗) where
-    zero : ∀{ps} -> X ∣ ps ↦ A Type -> Γ , X ⊢Var A GlobalFiber[ ps ]
-    suc : ∀{ps} -> Γ ⊢Var A GlobalFiber[ ps ] -> Γ , X ⊢Var A GlobalFiber[ ps ]
-    res : ∀{p ps} -> Γ ⊢Var A GlobalFiber[ p ∷ ps ] -> Γ ,[ p ] ⊢Var A GlobalFiber[ ps ]
 
 
-  record _⊢_/_GlobalFibered[_] (Γ : Ctx) (X : ◯Type) (δ : Γ ⊢ X Com) (ps : 𝒫ᶠⁱⁿ (Proc L)) : 𝒰 (𝑗)
+  record _⊢_/_GlobalFibered[_] (Γ : Ctx) (X : ◯Type) (δ : Γ ⊢ ↓ X Com) (ps : 𝒫ᶠⁱⁿ (Proc L)) : 𝒰 (𝑗)
 
-  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> Γ ⊢ A Com -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
-    var : ∀{p} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ ∷ [] ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
-    recv : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type -> Γ ⊢ Tr A / com X δ₀ δ₁ GlobalFiber[ p ]
-    send : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type
-           -> unbox δ₀ ∣ p ↦ δ₁ Com
+  data _⊢_/_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> Γ ⊢ ↓ A Com -> ⟨ Proc L ⟩ -> 𝒰 (𝑗) where
+    var : ∀{p} -> (v : Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ , [] ]) -> Γ ⊢ A / var v GlobalFiber[ p ]
+
+    recv : π X ∣ ⦗ p ⦘ , [] ↦ A Type -> Γ ⊢ Tr A / com q X , δ GlobalFiber[ p ]
+
+    send : (v : π X ∣ ⦗ p ⦘ , [] ↦ A Type)
+           -- -> unbox δ₀ ∣ p ↦ δ₁ Com
            -> Γ ⊢ ◻ X / δ₀ GlobalFiber[ p ]
-           -> Γ ⊢ Tr A / com X (unbox δ₀) δ₁ GlobalFiber[ p ]
+           -> Γ ⊢ Tr A / com p X , π-Com v δ₀ GlobalFiber[ p ]
 
-    extern : Γ ,[ ⦗ q ⦘ ] ⊢ A / δ GlobalFiber[ p ] -> Γ ⊢ A / {!!} GlobalFiber[ p ]
+    extern : Γ ,[ ⦗ q ⦘ ] ⊢ A / δ GlobalFiber[ p ] -> Γ ⊢ A / extern δ GlobalFiber[ p ]
 
-    lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam▲ δ GlobalFiber[ p ]
+    lam : Γ , A ＠ ⦗ p ⦘ ⊢ B / δ GlobalFiber[ p ] -> Γ ⊢ A ⇒ B / lam δ GlobalFiber[ p ]
     app : Γ ⊢ A ⇒ B / δ₀ GlobalFiber[ p ] -> Γ ⊢ A / δ₁ GlobalFiber[ p ] -> Γ ⊢ B / app δ₀ δ₁ GlobalFiber[ p ]
 
     tt : Γ ⊢ Unit / tt GlobalFiber[ p ]
 
     box : p ∈ ⟨ qs ⟩ -> Γ ,[ qs ] ⊢ X / δ GlobalFibered[ ps ]
-          -> Γ ⊢ ◻ X / {!!} GlobalFiber[ p ]
+          -> Γ ⊢ ◻ X / extern δ GlobalFiber[ p ]
 
-    box' : Γ ,[ ⦗ p ⦘ ] ⊢ X / δ GlobalFibered[ ps ]
-          -> Γ ⊢ ◻ X / {!!} GlobalFiber[ p ]
+    -- box' : Γ ,[ ⦗ p ⦘ ] ⊢ X / δ GlobalFibered[ ps ]
+    --       -> Γ ⊢ ◻ X / {!!} GlobalFiber[ p ]
 
-    box-close : ∀{p ps δ} -> Γ ⊢ [ X ∣ p ∷ ps ]◅ A / δ GlobalFiber[ q ] -> Γ ⊢ ◻ X / {!!} GlobalFiber[ q ]
+    -- box-close : ∀{p ps δ} -> Γ ⊢ [ X ∣ p , ps ]◅ A / δ GlobalFiber[ q ] -> Γ ⊢ ◻ X / {!!} GlobalFiber[ q ]
+
 
   record _⊢_/_GlobalFibered[_] Γ X δ ps where
     inductive ; constructor incl
-    field ⟨_⟩ : ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : X ∣ ⦗ p ⦘ ∷ [] ↦ A Type)
+    field ⟨_⟩ : ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : π X ∣ ⦗ p ⦘ , [] ↦ A Type)
                 -> ∀ {Δ} -> (Γp : Γ ∣ ⦗ p ⦘ ∷ [] ↦ Δ Ctx)
-                -> ∑ λ δ' -> δ ∣ p ↦ δ' Com ×-𝒰
-                Δ ⊢ A / δ' GlobalFiber[ p ]
+                -- -> ∑ λ δ' -> δ ∣ p ↦ δ' Com ×-𝒰
+                -> Δ ⊢ A / π-Com' Γp Xp δ GlobalFiber[ p ]
 
   open _⊢_/_GlobalFibered[_] public
 
+{-
+-}
 
 
-  lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ps ] -> Γ ⊢ X ⇒ Y / lam◯ δ GlobalFibered[ ps ]
-  lam-GlobalFibered t = incl λ {p p∈ps (X↦A ⇒ Y↦B) Γ↦Δ ->
-    let δ' , _ , t' = (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , X↦A))
-    in lam▲ δ' , {!!} , lam t' }
+
+  lam-GlobalFibered : Γ , X ⊢ Y / δ GlobalFibered[ ps ] -> Γ ⊢ X ⇒ Y / lam δ GlobalFibered[ ps ]
+  lam-GlobalFibered t = incl λ {p p∈ps (X↦A ⇒ Y↦B) Γ↦Δ -> {!!} } -- lam (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , X↦A)) }
+    -- let δ' , _ , t' = (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , X↦A))
+    -- in lam▲ δ' , {!!} , lam t' }
 
 
+{-
   app-GlobalFibered : Γ ⊢ X ⇒ Y / δ₀ GlobalFibered[ ps ]
                    -> Γ ⊢ X / δ₁ GlobalFibered[ ps ]
                    -> Γ ⊢ Y / app δ₀ δ₁ GlobalFibered[ ps ]
