@@ -21,14 +21,43 @@ record 𝕍 𝑖 : 𝒰 (𝑖 ⁺) where
 open 𝕍 public
 
 
+mutual
+  record ∞-Point (v : 𝕍 𝑖) : 𝒰 (𝑖 ⁺) where
+    coinductive
+    field h : H v
+    field t : ∞-Open (T v h)
+
+  record ∞-Open (v : 𝕍 𝑖) : 𝒰 (𝑖 ⁺) where
+    coinductive
+    field Ix : 𝒰 𝑖
+    field h : Ix -> H v
+    field t : ∀ i -> ∞-Point (T v (h i))
+
+
+data Kind : 𝒰₀ where
+  pt op : Kind
 
 mutual
-  data BaseOpen {𝑖} : 𝕍 𝑖 -> 𝒰 (𝑖 ⁺) where
-    [] : ∀{v} -> BaseOpen v
-    _∷_ : ∀{v} -> (h : H v) -> Point (T v h) -> BaseOpen v
+  data PointStep {𝑖} : Kind -> 𝕍 𝑖 -> 𝒰 (𝑖 ⁺) where
+    [] : ∀{v} -> PointStep pt v
+    _∷_ : ∀{v k} -> {I : 𝒰 𝑖} -> (h : I -> H v) -> (∀ i -> OpenStep k (T v (h i))) -> PointStep k v
 
-  data Point {𝑖} : 𝕍 𝑖 -> 𝒰 (𝑖 ⁺) where
-    _∷_ : ∀{v} -> (h : H v) -> BaseOpen (T v h) -> Point v
+  data OpenStep {𝑖} : Kind -> 𝕍 𝑖 -> 𝒰 (𝑖 ⁺) where
+    [] : ∀{v} -> OpenStep op v
+    _∷_ : ∀{k v} -> (h : H v) -> PointStep k (T v h) -> OpenStep k v
+
+Point : 𝕍 𝑖 -> _
+Point = OpenStep pt
+
+Open : 𝕍 𝑖 -> _
+Open = PointStep op
+
+-- _∋_ : ∀{v} -> Open v -> Point v -> 
+
+
+
+  -- A point is given by x ∷ [] or x ∷ U ∷ z ∷ []
+  -- A Open is given by [] or U ∷ x ∷ []
 
 record Trace (v : 𝕍 𝑖) : 𝒰 𝑖 where
   coinductive
@@ -73,16 +102,49 @@ module Example where
   i0 : Impl-∀ v0
   i0 = Ev λ a → tt , Ev λ b → +-comm a b , Ev λ h → tt , vempty-∀
 
+
   p0 : Point v0
   p0 = 1 ∷ []
 
   p1 : Point v0
-  p1 = 1 ∷ tt ∷ 2 ∷ []
+  p1 = 1 ∷ const tt ∷ λ (i : 𝟙) -> 2 ∷ []
 
-  p2 : Point v0
-  p2 = 1 ∷ tt ∷ 2 ∷ refl-≡ ∷ tt ∷ []
-
-
+  -- p2 : Point v0
+  -- p2 = 1 ∷ ? ∷ 2 ∷ refl-≡ ∷ tt ∷ []
 
 
+{-
+-- record isGenTop (X : 𝒰 𝑖) : 𝒰 𝑖 where
+--   field Ix : 
 
+
+-- If we have a sequence a = (a0 , a1 , a2 , a3) and b = (b0 , b1 , b2 , b3), we can combine
+-- them into a ∨ b = (a0 ∨ b0 , a1 ∨ b1 , a2 ∨ b2 , ...).
+--
+-- We have a subrelation where a ≤ 0 forall a. And a multiplication where a * a = a
+-- The point is that a * b ≤ a and a * b ≤ b.
+--
+-- We have a preorder with products and top element. Then we can do pointwise ∧ to compute the
+-- common largest sequence.
+--
+-- (a0 , a1 , a2)
+-- ∧
+-- (a0 , ⊤ , ⊤)
+--
+-- (a0 ∧ a0 , a1 , a2)
+--
+-- For simple values we can make a meet lattice by saying:
+-- A = V + 1
+-- * : A -> A -> A
+-- a * b = a = b ? => a else 0
+-- 0 * b = 0
+-- a * 0 = 0
+--
+-- a ≤ b if ∃ x. a * x = b
+--
+-- The thing is that the family F : A -> 𝕍 𝑖 has to preserve the subset structure
+-- if I have (a ∧ b) ≤ a, then if I have (x : F a), I should get (x' : F (a ∧ b)).
+--
+-- An open set is an external choice of response.
+
+-}
