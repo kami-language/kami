@@ -1,7 +1,7 @@
 
 {-# OPTIONS --allow-unsolved-metas --rewriting #-}
 
-module KamiCore.Typed.Variant.F.Translation where
+module KamiCore.Typed.Variant.F.Translation8 where
 
 open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
@@ -75,7 +75,7 @@ module Translation (n : ℕ) where
 
 
   -- Instantiating the target language with the preorder
-  open import KamiCore.Typed.Variant.F.Model7
+  open import KamiCore.Typed.Variant.F.Model8
 
   ρ : isProcessSet _
   ρ = record { Proc = 𝔽 n }
@@ -239,13 +239,13 @@ module Translation (n : ℕ) where
   -- schedule : ∀{Γ A i j} -> Γ , A ＠ i ⊢ ◻ (A ＠ j) / {!!} GlobalFiber[ {!!} ]
   -- schedule = {!!}
 
-  multibox : ∀{ν : ModeHom' ◯ ▲} -> ∀{Γ i X δ ps} -> addRestr ν (Γ , i) ⊢ X / δ GlobalFibered[ ps ]
-             -> Γ ⊢ F-Type ν X ＠ i / {!!} GlobalFibered[ ps ]
+  multibox : ∀{ν : ModeHom' ◯ ▲} -> ∀{Γ i X ps} -> addRestr ν (Γ , i) ⊢ X GlobalFibered[ ps ]
+             -> Γ ⊢ F-Type ν X ＠ i GlobalFibered[ ps ]
   multibox {ν = `[]` ⨾ id'} t = box-GlobalFibered t
   multibox {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox {ν = ν} (box-GlobalFibered t)
 
-  multibox' : ∀{ν : ModeHom' ◯ ◯} -> ∀{Γ X δ ps} -> addRestr ν Γ ⊢ X / δ GlobalFibered[ ps ]
-             -> Γ ⊢ F-Type ν X / {!!} GlobalFibered[ ps ]
+  multibox' : ∀{ν : ModeHom' ◯ ◯} -> ∀{Γ X ps} -> addRestr ν Γ ⊢ X GlobalFibered[ ps ]
+             -> Γ ⊢ F-Type ν X GlobalFibered[ ps ]
   multibox' {ν = id'} t = t
   multibox' {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox' {ν = ν} (box-GlobalFibered t)
 
@@ -253,77 +253,77 @@ module Translation (n : ℕ) where
     {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
     transl-Term-▲ : ∀{ps i} -> ∀{μ : ModeHom' ◯ ◯} -> (Γ : CtxExt μ) -> (Γp : isCtx₂ (ε ⋆ Γ))
               -> ∀{A} -> ε ⋆ Γ ∙! (`＠` i ⨾ id') ⊢ A
-              -> ∑ λ δ -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) / δ GlobalFibered[ ps ]
+              -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
     transl-Term-▲ Γ Γp (var x α) = {!!}
     transl-Term-▲ Γ Γp tt = {!!}
     transl-Term-▲ Γ Γp (mod `[]` t) = {!!}
       -- let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
       -- in _ , box-GlobalFibered ts'
     transl-Term-▲ Γ Γp (letmod' `[]` t s) =
-      let δt' , t' = transl-Term-▲ _ Γp t
-          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-      in _ , letin-GlobalFibered t' s'
+      let t' = transl-Term-▲ _ Γp t
+          s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+      in letin-GlobalFibered t' s'
     transl-Term-▲ Γ Γp (letmod (`＠` U) ν t s) =
 
           -- t'  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ⦋ A₁ ⦌-Type ＠ U /
-      let δt' , t' = transl-Term-◯ _ (stepRes (stepRes Γp)) t
+      let t' = transl-Term-◯ _ (stepRes (stepRes Γp)) t
 
           -- s'  : (transl-Ctx Γ Γp , (F-Type ν (⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i / ...
-          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-      in {!!} , letin-GlobalFibered (multibox t') s'
+          s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+      in letin-GlobalFibered (multibox t') s'
     transl-Term-▲ Γ Γp (letmod `[]` id' t s) = {!!}
     transl-Term-▲ Γ Γp (letmod `[]` (`＠` U ⨾ ν) t s) =
       let t' = split-path t
 
           -- t''  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ◻ ⦋ A₁ ⦌-Type ＠ U /
-          δt'' , t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
+          t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
 
           -- s'   : (transl-Ctx Γ Γp , (F-Type ν (◻ ⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i /
-          δs' , s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+          s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
 
-      in {!!} , letin-GlobalFibered (multibox t'') s'
+      in letin-GlobalFibered (multibox t'') s'
     transl-Term-▲ Γ Γp (trans x t) = {!!}
     transl-Term-▲ Γ Γp (pure t) = {!!}
     transl-Term-▲ Γ Γp (seq t t₁) = {!!}
     transl-Term-▲ Γ Γp (lam t) =
       let t' = shift-＠ t
-          δ' , rest' = transl-Term-▲ _ (stepVar Γp) t'
-      in {!lam◯ ?!} , commute-＠-Exp _ (lam-GlobalFibered rest')
+          rest' = transl-Term-▲ _ (stepVar Γp) t'
+      in commute-＠-Exp _ (lam-GlobalFibered rest')
     transl-Term-▲ Γ Γp (app t t₁) = {!!}
 
 
     transl-Term-◯ : ∀{ps} -> ∀{μ : ModeHom' ◯ ◯} -> (Γ : CtxExt μ) -> (Γp : isCtx₂ (ε ⋆ Γ))
               -> ∀{A} -> ε ⋆ Γ ⊢ A
-              -> ∑ λ δ -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type / δ GlobalFibered[ ps ]
+              -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
     transl-Term-◯ Γ Γp (var x α) = {!!}
     transl-Term-◯ Γ Γp tt = {!!}
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
-      let δ' , t' = transl-Term-▲ _ Γp t
-      in δ' , t'
+      let t' = transl-Term-▲ _ Γp t
+      in t'
     transl-Term-◯ Γ Γp (letmod (`＠` U) ν t s) =
-      let δt' , t' = transl-Term-◯ _ (stepRes Γp) t
-          δs' , s' = transl-Term-◯ _ (stepVar Γp) s
-      in {!!} , letin-GlobalFibered (multibox' t') s'
+      let t' = transl-Term-◯ _ (stepRes Γp) t
+          s' = transl-Term-◯ _ (stepVar Γp) s
+      in letin-GlobalFibered (multibox' t') s'
       -- in _ , letin-GlobalFibered t' s'
     transl-Term-◯ Γ Γp (letmod `[]` (`＠` i ⨾ ν) t s) =
       let t' = split-path t
 
-          δt'' , t'' = transl-Term-▲ _ (stepRes Γp) t'
+          t'' = transl-Term-▲ _ (stepRes Γp) t'
 
-          δs' , s' = transl-Term-◯ _ (stepVar Γp) s
-      in {!!} , letin-GlobalFibered (multibox' t'') s'
+          s' = transl-Term-◯ _ (stepVar Γp) s
+      in letin-GlobalFibered (multibox' t'') s'
 
     transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
     transl-Term-◯ Γ Γp (trans x t) = {!!}
     transl-Term-◯ Γ Γp (pure t) = {!!}
     transl-Term-◯ Γ Γp (seq t t₁) = {!!}
     transl-Term-◯ Γ Γp (lam t) =
-      let δ' , t' = transl-Term-◯ _ (stepVar Γp) t
-      in lam◯ δ' , lam-GlobalFibered t'
+      let t' = transl-Term-◯ _ (stepVar Γp) t
+      in lam-GlobalFibered t'
     transl-Term-◯ Γ Γp (app t s) =
-      let δt' , t' = transl-Term-◯ _ Γp t
-          δs' , s' = transl-Term-◯ _ Γp s
-      in app δt' δs' , app-GlobalFibered t' s'
+      let t' = transl-Term-◯ _ Γp t
+          s' = transl-Term-◯ _ Γp s
+      in app-GlobalFibered t' s'
 
 
 
@@ -355,7 +355,6 @@ module Translation (n : ℕ) where
     -- in {!!}
 
 -}
-
 
 
 
