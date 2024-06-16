@@ -40,6 +40,8 @@ module Translation (n : ℕ) where
   -- Getting the mode system
   import KamiTheory.Main.Generic.ModeSystem.2Graph.Example as 2GraphExample
   import KamiTheory.Main.Generic.ModeSystem.2Cell.Example as 2CellExample
+  import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition as 2CellDefinition
+  open 2CellDefinition.2CellDefinition hiding (id)
   open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example
   open SendReceiveNarrow-ModeSystem P {{it}} {{it}}
   open 2GraphExample.SendReceiveNarrow-2Graph P
@@ -87,6 +89,11 @@ module Translation (n : ℕ) where
   private variable
     a b c : Mode SRN-ModeSystem
     μ ν η ω : ModeHom' a b
+
+  data isBroadcast : ∀{a b} -> {μ ν : ModeHom' a b} -> μ ⟹ ν -> 𝒰₀ where
+  -- data isBroadcast {a b} : {μ ν : ModeHom' a b} -> μ ⟹ ν -> 𝒰₀ where
+    -- br : ∀{U ϕ₀ ϕ₁} -> isBroadcast [ (incl []) ∣ incl (incl (ϕ₀ ⌟[ recv U ]⌞ (ϕ₁ ⌟)) ∷ []) ]
+    br : ∀{U} -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
 
 
 
@@ -144,7 +151,7 @@ module Translation (n : ℕ) where
             -> Γ ⊢ B
 
       -- explicit transformations
-      trans : ∀ {μ ν : a ⟶ b} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : a ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
@@ -282,7 +289,7 @@ module Translation (n : ℕ) where
           s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
 
       in letin-GlobalFibered (multibox t'') s'
-    transl-Term-▲ Γ Γp (trans x t) = {!!}
+    transl-Term-▲ Γ Γp (trans x xP t) = {!!}
     transl-Term-▲ Γ Γp (pure t) = {!!}
     transl-Term-▲ Γ Γp (seq t t₁) = {!!}
     transl-Term-▲ Γ Γp (lam t) =
@@ -314,7 +321,9 @@ module Translation (n : ℕ) where
       in letin-GlobalFibered (multibox' t'') s'
 
     transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
-    transl-Term-◯ Γ Γp (trans x t) = {!!}
+    transl-Term-◯ Γ Γp (trans .([ incl [] ∣ incl (incl (id' ⌟[ recv _ ]⌞ id' ⌟) ∷ []) ]) br t) =
+      let t' = transl-Term-◯ _ Γp t
+      in broadcast-GlobalFibered t'
     transl-Term-◯ Γ Γp (pure t) = {!!}
     transl-Term-◯ Γ Γp (seq t t₁) = {!!}
     transl-Term-◯ Γ Γp (lam t) =

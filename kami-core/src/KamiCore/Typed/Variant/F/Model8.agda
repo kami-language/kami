@@ -520,6 +520,14 @@ module IR {{L : isProcessSet 𝑗}} where
     in box' {p = p} (map-Var (projVar3 (Γ↦Δ)) t')
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = tt
 
+  broadcast-GlobalFibered : Γ ⊢ ◻ X ＠ qs GlobalFibered[ ps ]
+                            -> Γ ⊢ Tr X GlobalFibered[ ps ]
+  ⟨ broadcast-GlobalFibered {X = X} {qs = qs} t ⟩ p x (Tr Xp) Γp with p ∈? ⟨ qs ⟩
+  ... | no p∉qs = recv Xp
+  ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl f) done) Γp)
+    where
+      f = λ { _ here → p∈qs}
+
 
 
   -- map-local-project-var : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢Var B GlobalFiber[ p ] -> Γ ⊢Var A GlobalFiber[ p ]
