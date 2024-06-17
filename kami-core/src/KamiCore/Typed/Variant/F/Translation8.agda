@@ -272,20 +272,14 @@ module Translation (n : ℕ) where
       in letin-GlobalFibered t' s'
     transl-Term-▲ Γ Γp (letmod (`＠` U) ν t s) =
 
-          -- t'  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ⦋ A₁ ⦌-Type ＠ U /
       let t' = transl-Term-◯ _ (stepRes (stepRes Γp)) t
-
-          -- s'  : (transl-Ctx Γ Γp , (F-Type ν (⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i / ...
           s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
       in letin-GlobalFibered (multibox t') s'
     transl-Term-▲ Γ Γp (letmod `[]` id' t s) = {!!}
     transl-Term-▲ Γ Γp (letmod `[]` (`＠` U ⨾ ν) t s) =
       let t' = split-path t
 
-          -- t''  : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ◻ ⦋ A₁ ⦌-Type ＠ U /
           t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
-
-          -- s'   : (transl-Ctx Γ Γp , (F-Type ν (◻ ⦋ A₁ ⦌-Type ＠ U) ＠ i)) ⊢ ⦋ A ⦌-Type ＠ i /
           s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
 
       in letin-GlobalFibered (multibox t'') s'

@@ -430,8 +430,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
   open _⊢_GlobalFibered[_] public
 
-{-
--}
+
 
 
 
@@ -554,8 +553,8 @@ module IR {{L : isProcessSet 𝑗}} where
   -- Γ .{ ◻ } . X ⊢ Y
   -- and in fact, every map ◻ ⇒ ◻ should be the identity. ◻ ⇒ ◻ ⨾ ＠ i ⨾ ◻ ⇒ 
 
-  commute-◻-Exp : Γ ⊢ (◻ X ⇒ ◻ Y) GlobalFiber[ p ] -> Γ ⊢ ◻ (X ⇒ Y) GlobalFiber[ p ]
-  commute-◻-Exp {Γ} {X} {Y} {p} t = {!!}
+  -- commute-◻-Exp : Γ ⊢ (◻ X ⇒ ◻ Y) GlobalFiber[ p ] -> Γ ⊢ ◻ (X ⇒ Y) GlobalFiber[ p ]
+  -- commute-◻-Exp {Γ} {X} {Y} {p} t = {!!}
 
   -- showing that the ＠ modality commutes with exponentials
   commute-＠-Exp : ∀ ps -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) GlobalFibered[ qs ] -> Γ ⊢ (A ⇒ B) ＠ ps GlobalFibered[ qs ]
@@ -563,6 +562,14 @@ module IR {{L : isProcessSet 𝑗}} where
     let t' = (⟨ t ⟩ q q∈qs (proj-＠ q∈ps done ⇒ proj-＠ q∈ps done) Γp)
     in t'
   ⟨ commute-＠-Exp ps t ⟩ q q∈qs (proj-＠-≠ x) Γp = tt
+
+
+
+
+
+
+
+
 
 {-
 
