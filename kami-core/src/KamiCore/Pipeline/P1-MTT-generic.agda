@@ -121,7 +121,7 @@ module Translation (n : ℕ) where
              and letmod[ `＠` ⦗ i ⦘ ⨾ id ] var (suc! zero) id₂
              and seq (trans (ev ⦗ i ⦘) (mod _ (var (suc! zero) id₂)))
                      (letmod (var (suc! zero) id₂)
-                       and var zero id₂)
+                       and pure (var zero id₂))
 
     globalize'-Either : Γ ⊢' ⟮ Either A B ＠ ⦗ i ⦘ ∣ id' ⟯⇒ ◻ (Either (A ＠ ⦗ i ⦘) (B ＠ ⦗ i ⦘)) ＠ ⦗ i ⦘
     globalize'-Either = lam (letmod id' (var (suc! zero) id₂)
@@ -149,13 +149,22 @@ module Translation (n : ℕ) where
     com : ∀{i j} -> Γ ⊢' A ＠ i ⇒ Tr (A ＠ j)
     com = Λ trans {!!} (var zero id₂)
 
+    single-map : Γ ⊢' (A ＠ ⦗ j ⦘ ⇒ B ＠ ⦗ j ⦘) ⇒ A ＠ ⦗ i ⦘ ⇒ Tr (B ＠ ⦗ i ⦘)
+    single-map = Λ Λ seq (com ∘' var zero id₂) (seq (com ∘' (var (suc (suc zero)) id₂ ∘' var zero id₂)) (pure (var zero id₂)))
+
+
     remote-map : Γ ∙⟮ A ＠ ⦗ j ⦘ ⇒ B ＠ ⦗ j ⦘ ∣ id' ⟯
                    ∙⟮ Lst A ＠ ⦗ i ⦘ ∣ id' ⟯
                  ⊢' Tr (Lst B ＠ ⦗ i ⦘)
     remote-map = seq (globalize-Lst ∘' (var zero id₂))
                  (rec-Lst (var zero id₂)
-                          {!!}
-                          {!!}
+                          (pure (mod _ []))
+                          (seq ((single-map ∘' var (suc (suc (suc (suc zero)))) id₂) ∘' (var (suc zero) id₂))
+                           (seq (var (suc zero) id₂)
+                           (letmod (var (suc! (suc zero)) id₂)
+                             and letmod (var (suc! (suc zero)) id₂)
+                             and pure (mod _ (var (suc! (suc zero)) id₂ ∷ var (suc! zero) id₂))
+                             )))
                  )
 
 

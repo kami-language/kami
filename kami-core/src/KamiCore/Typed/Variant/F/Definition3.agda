@@ -155,7 +155,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
 
     -- transformations monad
     pure : Γ ⊢ A -> Γ ⊢ Tr A
-    seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ B -> Γ ⊢ Tr B
+    seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
     -- functions
     lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
