@@ -529,22 +529,9 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
 
-  -- map-local-project-var : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢Var B GlobalFiber[ p ] -> Γ ⊢Var A GlobalFiber[ p ]
-
-  -- map-local-project-var : ∀{ps p} -> A ∣ ps ↦ B Type -> Γ ⊢Var B GlobalFiber[ p ] -> Γ ⊢Var A GlobalFiber[ p ]
-  -- map-local-project-var q (zero x) = zero {!!}
-  -- map-local-project-var q (suc v) = {!!}
-  -- map-local-project-var q (res v) = res (map-local-project-var q v)
 
   map-local-project : ∀{ps p} -> ω A ∣ ps ↦ B Type -> Γ ⊢ B GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ]
   map-local-project = {!!}
-  -- -- map-local-project = {!!}
-  -- map-local-project (proj-◻ q) t = {!!}
-  -- map-local-project (proj-[] x q) t = let t' = map-local-project q {!!} in {!!}
-  -- map-local-project done t = t
-  -- map-local-project Unit-▲ t = t
-  {-
-  -}
 
 
   -- showing that the ◻ modality commutes with exponentials

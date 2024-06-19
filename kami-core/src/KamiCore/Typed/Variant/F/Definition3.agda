@@ -49,6 +49,8 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
     Unit : ⊢Type m
     Tr : ⊢Type m -> ⊢Type m
+    Either : ⊢Type m -> ⊢Type m -> ⊢Type m
+    Lst : ⊢Type m -> ⊢Type m
     ⟮_∣_⟯⇒_ : ⊢Type m -> m ⟶ n -> ⊢Type n -> ⊢Type n
 
   infix 30 ⟨_∣_⟩ ⟮_∣_⟯⇒_
@@ -56,6 +58,7 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
   private variable
     A : ⊢Type m
     B : ⊢Type n
+    C : ⊢Type k
 
   data Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
     ε : Ctx m
@@ -136,19 +139,19 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
     field snd : η ⟹ target
 
-  data _⊢_ : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
+  data _⊢_ {m} : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
     var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
     tt : Γ ⊢ Unit
 
     -- modalities
     mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
-    letmod : ∀{μ : m ⟶ n} -> (ν : n ⟶ o)
+    letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
            -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
            -> Γ ⊢ B
 
     -- explicit transformations
-    trans : ∀ {μ ν : m ⟶ n} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+    trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
     -- transformations monad
     pure : Γ ⊢ A -> Γ ⊢ Tr A
@@ -157,6 +160,16 @@ module Definition-MTTꟳ {𝑖 : 𝔏 ^ 5} {{Param : MTTꟳ 𝑖}} where
     -- functions
     lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
     app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+
+    -- sum types
+    left : Γ ⊢ A -> Γ ⊢ Either A B
+    right : Γ ⊢ B -> Γ ⊢ Either A B
+    either : Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+
+    -- list types
+    [] : Γ ⊢ Lst A
+    _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
+    rec-Lst : Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
   data _⟼_ : Ctx m -> Ctx m -> 𝒰 𝑖 where
     id-Ctx : Γ ⟼ Γ
