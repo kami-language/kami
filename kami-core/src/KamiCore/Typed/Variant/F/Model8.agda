@@ -102,6 +102,7 @@ module IR {{L : isProcessSet 𝑗}} where
   data Type where
     ◻ : Type ◯ -> Type ▲
     [_∣_]◅_ : Type ◯ -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> Type ▲
+    _∥_ : Type ▲ -> Type ▲ -> Type ▲
     NN : ∀{m} -> Type m
     Unit : ∀{m} -> Type m
     Either : ∀{m} -> Type m -> Type m -> Type m
@@ -194,37 +195,44 @@ module IR {{L : isProcessSet 𝑗}} where
 
     data ω_∣_↦_Type : Type ▲ -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲ -> 𝒰 (𝑗) where
       done : ∀{A} -> ω A ∣ [] ↦ A Type
-      proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ [ X ∣ p , ps ]◅ A Type
+      -- proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ [ X ∣ p , ps ]◅ A Type
+      proj-◻ : ∀{p ps A B} -> ω ◻ X ∣ ps ↦ B Type -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ B ∥ A Type
       -- proj-[] : ∀{p ps qs} -> isPrefix ps qs -> ω A ∣ qs ↦ B Type -> ω ([ X ∣ p , ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p , qs ]◅ B Type
       Unit : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
 
 
   mutual
-    π-Type : (X : ◯Type) -> isClosed X -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type ▲
-    π-Type Unit Unit ps = Unit
-    π-Type NN NN ps = NN
-    π-Type (Either X Y) (Either Xp Yp) ps = Either (π-Type X Xp ps) (π-Type Y Yp ps)
-    π-Type (X ⇒ Y) (Xp ⇒ Yp) ps = π-Type X Xp ps ⇒ π-Type Y Yp ps
-    π-Type (X ×× Y) (Xp ×× Yp) ps = π-Type X Xp ps ×× π-Type Y Yp ps
-    π-Type (Tr X) (Tr Xp) ps = Tr (π-Type X Xp ps)
-    π-Type (A ＠ l) (Ap ＠ l) (p , ps) with decide-≤ p l
+    π-Type : (X : ◯Type) -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type ▲
+    π-Type Unit ps = Unit
+    π-Type NN ps = NN
+    π-Type (Either X Y) ps = Either (π-Type X ps) (π-Type Y ps)
+    π-Type (X ⇒ Y) ps = π-Type X ps ⇒ π-Type Y ps
+    π-Type (X ×× Y)  ps = π-Type X ps ×× π-Type Y ps
+    π-Type (Tr X)  ps = Tr (π-Type X ps)
+    π-Type (A ＠ l) (p , ps) with decide-≤ p l
     ... | no x = Unit
-    ... | yes x = ω-Type A Ap ps
+    ... | yes x = ω-Type A ps
 
-    ω-Type : (A : ▲Type) -> isClosed A -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲
-    ω-Type A Ap [] = A
-    ω-Type (◻ X) (◻ Xp) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X Xp (p , ps)
-    ω-Type NN NN (p ∷ ps) = {!!}
-    ω-Type Unit Unit (p ∷ ps) = {!!}
-    ω-Type (Either T S) (Either x x₁) (x₂ ∷ x₃) = {!!}
-    ω-Type (T ⇒ S) (x ⇒ x₁) (x₂ ∷ x₃) = {!!}
-    ω-Type (T ×× S) (x ×× x₁) (x₂ ∷ x₃) = {!!}
-    ω-Type (Tr T) (Tr x) (x₁ ∷ x₂) = {!!}
+    ω-Type : (A : ▲Type) -> List (𝒫ᶠⁱⁿ (Proc L)) -> Type ▲
+    ω-Type A [] = A
+    -- ω-Type (◻ X) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X (p , ps)
+    ω-Type (◻ X) (p ∷ ps) = ω-Type (◻ X) ps ∥ π-Type X (p , ps)
+    ω-Type NN (p ∷ ps) = {!!}
+    ω-Type Unit (p ∷ ps) = {!!}
+    ω-Type (Either T S)  (x₂ ∷ x₃) = {!!}
+    ω-Type (T ⇒ S) (x₂ ∷ x₃) = {!!}
+    ω-Type (T ×× S) (x₂ ∷ x₃) = {!!}
+    ω-Type (Tr T) (x₁ ∷ x₂) = {!!}
+    ω-Type ([ A ∣ x ]◅ A₁) (x₁ ∷ x₂) = Unit
+    ω-Type (A ∥ B) (x₁ ∷ x₂) = Unit
 
 
   data ϕ_↦_ : ∀{m} -> Type m -> Type m -> 𝒰 𝑗 where
-    proj-◻ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ ◻ X
-    proj-＠ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ A
+    -- proj-◻ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ ◻ X
+    -- proj-＠ : ∀{p ps} -> ϕ [ X ∣ p , ps ]◅ A ↦ A
+
+    proj-◻ : ϕ A ∥ B ↦ A
+    proj-＠ : ϕ A ∥ B ↦ B
     _⇒_ : ϕ T₀ ↦ T₁ -> ϕ S₀ ↦ S₁ -> ϕ (T₀ ⇒ S₀) ↦ (T₁ ⇒ S₁)
 
   id-ϕ : ∀{X : Type m} -> ϕ X ↦ X
@@ -232,7 +240,7 @@ module IR {{L : isProcessSet 𝑗}} where
 
 
   mutual
-    π-Type-Proof : (X : Type ◯) -> (Xp : isClosed X) -> (ps : (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> π X ∣ ps ↦ π-Type X Xp ps Type
+    π-Type-Proof : (X : Type ◯) -> (Xp : isClosed X) -> (ps : (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> π X ∣ ps ↦ π-Type X ps Type
     π-Type-Proof Unit Unit ps = Unit
     π-Type-Proof (Either X Y) (Either Xp Yp) ps = Either (π-Type-Proof X Xp ps) (π-Type-Proof Y Yp ps)
     π-Type-Proof (X ⇒ Y) (Xp ⇒ Yp) ps = π-Type-Proof X Xp ps ⇒ π-Type-Proof Y Yp ps
@@ -243,7 +251,7 @@ module IR {{L : isProcessSet 𝑗}} where
     π-Type-Proof .NN NN ps = {!!}
     π-Type-Proof (T ×× S) (Xp ×× Xp₁) ps = {!!}
 
-    ω-Type-Proof : (A : Type ▲) -> (Ap : isClosed A) -> (ps : List (𝒫ᶠⁱⁿ (Proc L))) -> ω A ∣ ps ↦ ω-Type A Ap ps Type
+    ω-Type-Proof : (A : Type ▲) -> (Ap : isClosed A) -> (ps : List (𝒫ᶠⁱⁿ (Proc L))) -> ω A ∣ ps ↦ ω-Type A ps Type
     ω-Type-Proof = {!!}
 
 
@@ -264,6 +272,7 @@ module IR {{L : isProcessSet 𝑗}} where
   ----------------------------------------------------------
   -- Com terms
 
+{-
   ↓_ : Type m -> ComType
   ↓ ◻ T = ↓ T
   ↓ ([ T ∣ x ]◅ T₁) = {!!}
@@ -276,6 +285,7 @@ module IR {{L : isProcessSet 𝑗}} where
   ↓ (T ＠ l) = ↓ T
 
   infix 50 ↓_
+  -}
 
 {-
   data _⊢Var_GlobalFiber[_] : (Γ : Ctx) -> (A : ▲Type) -> (𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L)) -> 𝒰 (𝑗) where
@@ -294,6 +304,7 @@ module IR {{L : isProcessSet 𝑗}} where
     suc : ∀{Γ A B} -> Γ ⊢Var A Global -> (Γ , B) ⊢Var A Global
 
 
+{-
   data _⊢_Com : Ctx -> ComType -> 𝒰 𝑗 where
     -- var : ∀{Γ A p} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ , [] ] -> Γ ⊢ ↓ A Com
     extern : ∀{Γ A p} -> Γ ,[ p ] ⊢ A Com -> Γ ⊢ A Com
@@ -328,6 +339,8 @@ module IR {{L : isProcessSet 𝑗}} where
 
   π-Com : ∀{p} -> π X ∣ p , [] ↦ A Type -> Γ ⊢ ↓ X Com -> Γ ⊢ ↓ A Com
   π-Com = {!!}
+
+-}
 
 
 {-
@@ -444,7 +457,7 @@ module IR {{L : isProcessSet 𝑗}} where
                    -> Γ ⊢ X GlobalFibered[ ps ]
                    -> Γ ⊢ Y GlobalFibered[ ps ]
   ⟨ app-GlobalFibered {X = X} t s ⟩ p p∈ps Y↦Y' Γ↦Δ =
-    let X' = π-Type X {!!} (⦗ p ⦘ , [])
+    let X' = π-Type X (⦗ p ⦘ , [])
         X↦X' = π-Type-Proof X {!!} (⦗ p ⦘ , [])
         t' = (⟨ t ⟩ p p∈ps (X↦X' ⇒ Y↦Y') Γ↦Δ)
         s' = (⟨ s ⟩ p p∈ps X↦X' Γ↦Δ)
