@@ -155,15 +155,12 @@ module IR {{L : isProcessSet 𝑗}} where
     _,_ : Ctx -> ◯Type -> Ctx
 
 
-  data isLocal (l : 𝒫ᶠⁱⁿ (Proc L)) : Ctx -> 𝒰 (𝑗) where
-    ε : isLocal l ε
-    step : ∀{Γ A} -> isLocal l Γ -> isLocal l (Γ , A ＠ l)
+  data isLocal : (l : 𝒫ᶠⁱⁿ (Proc L)) -> Ctx -> 𝒰 (𝑗) where
+    ε : ∀{l} -> isLocal l ε
+    _,_ : ∀{Γ l} -> isLocal l Γ -> ∀ A -> isLocal l (Γ , A ＠ l)
+    stepRes : ∀{Γ k l} -> isLocal l Γ -> isLocal k (Γ ,[ l ])
 
 
-  -- ⟦_⟧-Type : ◯Type -> ComType
-  -- ⟦_⟧-Type : ∀{m} -> Type m -> ComType
-  -- PlType : Type plain -> ComType
-  -- PlType = ⟦_⟧-Type
 
   private variable
     -- Ξ : ▲Ctx
@@ -265,8 +262,14 @@ module IR {{L : isProcessSet 𝑗}} where
   π-Ctx : Ctx -> List (𝒫ᶠⁱⁿ (Proc L)) -> Ctx
   π-Ctx = {!!}
 
+
   π-Ctx-Proof : (Γ : Ctx) -> (i : List (𝒫ᶠⁱⁿ (Proc L))) -> Γ ∣ i ↦ π-Ctx Γ i Ctx
   π-Ctx-Proof = {!!}
+
+  local-Proof : ∀ {Γ Δ p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> isLocal p Δ
+  local-Proof ε = ε
+  local-Proof (p , x) = (local-Proof p) , _
+  local-Proof (stepRes p) = stepRes (local-Proof p)
 
 
   ----------------------------------------------------------
