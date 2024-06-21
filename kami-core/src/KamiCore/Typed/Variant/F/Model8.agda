@@ -197,6 +197,8 @@ module IR {{L : isProcessSet 𝑗}} where
       -- proj-[] : ∀{p ps qs} -> isPrefix ps qs -> ω A ∣ qs ↦ B Type -> ω ([ X ∣ p , ps ]◅ A) ∣ p ∷ qs ↦ [ X ∣ p , qs ]◅ B Type
       Unit : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
 
+  unique-π : ∀{X A B ps} -> π X ∣ ps ↦ A Type -> π X ∣ ps ↦ B Type -> A ≡ B
+  unique-π p q = {!!}
 
   mutual
     π-Type : (X : ◯Type) -> ((𝒫ᶠⁱⁿ (Proc L)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc L))) -> Type ▲
@@ -234,6 +236,23 @@ module IR {{L : isProcessSet 𝑗}} where
 
   id-ϕ : ∀{X : Type m} -> ϕ X ↦ X
   id-ϕ = {!!}
+
+  split-π : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> ω π-Type X (p , []) ∣ ps ↦ A Type
+  split-π {p = p} (proj-＠ {qs = qs} x x₁) with decide-≤ p qs
+  ... | no x₂ = ⊥-elim (x₂ x)
+  ... | yes x₂ = x₁
+  split-π {p = p} (proj-＠-≠ {qs = qs} x) with decide-≤ p qs
+  split-π {p = p} {[]} (proj-＠-≠ {qs = _} x) | no x₂ = done
+  split-π {p = p} {x₁ ∷ ps} (proj-＠-≠ {qs = _} x) | no x₂ = Unit
+  ... | yes x₂ = ⊥-elim (x x₂)
+  split-π (P ⇒ P₁) = {!!}
+  split-π (P ×× P₁) = {!!}
+  split-π (Either P P₁) = {!!}
+  split-π (Tr P) = {!!}
+  split-π Unit = {!!}
+
+
+
 
 
   mutual

@@ -106,16 +106,15 @@ module Finalize (n : ℕ) where
   wk : Γ ⊢ A Locally -> Γ , B ⊢ A Locally
   wk = {!!}
 
-  tπ : ∀{X B p ps} -> π X ∣ p , ps ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tπ (proj-＠ x x₁) t = {!!}
-  tπ (proj-＠-≠ x) t = tt
-  tπ (p ⇒ p₁) t = {!!}
-  tπ (p ×× p₁) t = {!!}
-  tπ (Either p p₁) t = {!!}
-  tπ (Tr p) t = {!!}
-  tπ Unit t = {!!}
+  tπ' : ∀{X B p} -> π X ∣ ⦗ p ⦘ , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
+  tπ' {X = X} {p = p} P t with unique-π P (π-Type-Proof X {!!} (⦗ p ⦘ , []))
+  ... | refl-≡ = proj t p
 
   tω : ∀{A B ps} -> ω A ∣ ps ↦ B Type -> Γ ⊢ ⟦ A ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
+
+  tπ : ∀{X B p ps} -> π X ∣ p , ps ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
+  tπ P t = tω (split-π P) (tπ' (π-Type-Proof _ {!!} _) t)
+
   tω done t = t
   tω (proj-◻ p x) t = tω p t , tπ x t
   tω Unit t = t
@@ -142,7 +141,7 @@ module Finalize (n : ℕ) where
     let t' = tr (Δp , {!!}) t
     in lam t'
   tr Δp (app t t₁) = {!!}
-  tr Δp tt = {!!}
+  tr Δp tt = tt
   tr Δp (box x x₁) = {!!}
   tr {Δ} Δp (box' x) =
     let t' = ta {Γ = Δ ,[ _ ]} x
