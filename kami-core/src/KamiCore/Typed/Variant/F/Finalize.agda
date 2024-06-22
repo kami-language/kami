@@ -25,7 +25,7 @@ open import KamiTheory.Basics hiding (_⋆_)
 
 module Finalize (n : ℕ) where
   -- Instantiating the target language with the preorder
-  open import KamiCore.Typed.Variant.F.Model9
+  open import KamiCore.Typed.Variant.F.Model8
 
   ρ : isProcessSet _
   ρ = record { Proc = 𝔽 n }
@@ -91,7 +91,7 @@ module Finalize (n : ℕ) where
   ⟦ T ×× S ⟧-LType = {!!}
   ⟦ Tr T ⟧-LType = {!!}
 
-  ⟦_⟧-FType X n = ⟦ π-Type X (n , []) ⟧-LType
+  ⟦_⟧-FType X n = ⟦ π-Type X (⦗ n ⦘ , []) ⟧-LType
 
   ⟦_⟧-LCtx : ∀ {Δ : Ctx'} -> ∀{p} -> isLocal p Δ -> LCtx
   ⟦_⟧-LCtx ε = ε
@@ -99,7 +99,7 @@ module Finalize (n : ℕ) where
   ⟦_⟧-LCtx (stepRes P) = ⟦ P ⟧-LCtx
 
   ⟦_⟧-FCtx : ∀ (Γ : Ctx') -> FCtx
-  ⟦_⟧-FCtx Γ n = ⟦ local-Proof (π-Ctx-Proof Γ (n ∷ [])) ⟧-LCtx
+  ⟦_⟧-FCtx Γ n = ⟦ local-Proof (π-Ctx-Proof Γ (⦗ n ⦘ ∷ [])) ⟧-LCtx
 
 
 
@@ -108,7 +108,7 @@ module Finalize (n : ℕ) where
 
   tπ' : ∀{X B p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
   tπ' {X = X} {p = p} P t with unique-π P (π-Type-Proof X {!!} (p , []))
-  ... | refl-≡ = proj t p
+  ... | refl-≡ = {!!} -- proj t p
 
   tω : ∀{A B ps} -> ω A ∣ ps ↦ B Type -> Γ ⊢ ⟦ A ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
 
@@ -116,14 +116,16 @@ module Finalize (n : ℕ) where
   tπ {X = X} {p = p} P t = tω (split-π P) (tπ' (π-Type-Proof X {!X!} (p , [])) t)
 
   tω done t = t
-  tω (proj-◻ p x) t = tω p t , tπ x t
+  tω (proj-◻ x) t = {!!} -- tπ x t
   tω Unit t = t
 
   tϕ : ∀{A B} -> ϕ A ↦ B -> Γ ⊢ ⟦ A ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tϕ = {!!}
+  tϕ IR.proj-◻ t = {!!}
+  tϕ IR.proj-＠ t = {!!}
+  tϕ (P IR.⇒ P₁) t = {!!}
 
-  tv  : ∀{Δ A p ps} -> (Δp : isLocal ⦗ p ⦘ Δ) -> Δ ⊢Var A GlobalFiber[ p ∷ ps ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
-  tv (Δp IR., A) (IR.zero (IR.proj-＠ x x₂) x₁) = tϕ x₁ (tω x₂ (var zero))
+  tv  : ∀{Δ A p ps} -> (Δp : isLocal p Δ) -> Δ ⊢Var A GlobalFiber[ p ∷ ps ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
+  tv (Δp IR., A) (IR.zero p q) = {!!} -- tϕ x₁ (tω x₂ (var zero))
   tv (Δp , A) (IR.suc v) = let x = tv Δp v in wk x
   tv (IR.stepRes Δp) (IR.res v) = let x = tv Δp v in x
 
@@ -138,7 +140,7 @@ module Finalize (n : ℕ) where
   tr Δp (send v t) = {!!}
   tr Δp (extern t) = {!!} -- tr {!stepRes Δp!} t
   tr {p = p} Δp (lam {A = A} {B = B} t) =
-    let t' = tr (Δp , {!!}) t
+    let t' = tr (Δp , _) t
     in lam t'
   tr Δp (app t t₁) = {!!}
   tr Δp tt = tt

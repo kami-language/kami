@@ -85,7 +85,7 @@ module Translation (n : ℕ) where
 
 
   -- Instantiating the target language with the preorder
-  open import KamiCore.Typed.Variant.F.Model8
+  open import KamiCore.Typed.Variant.F.Model9
 
   ρ : isProcessSet _
   ρ = record { Proc = 𝔽 n }
@@ -312,24 +312,13 @@ module Translation (n : ℕ) where
   postpend : ∀{A : 𝒰 𝑙} -> (List A) -> A -> A × List A
   postpend [] x = x , []
   postpend (x ∷ xs) z = x , cons (postpend xs z)
-  -- let a , as = postpend xs z in x , (a ∷ as)
-
-  -- map-restr : ∀{Γ B p ps} -> Γ ⊢Var B GlobalFiber[ ps <> cons (postpend (transl-Mod ω) p) ]
-  --                  -> addRestr ω Γ ⊢Var B GlobalFiber[ ps <> (p ∷ []) ]
-  -- map-restr {ω = id'} v = {!!}
-  -- map-restr {ω = (`[]` ⨾ `＠` U ⨾ ω)} v = res {!!}
 
   rev' : ∀{A : 𝒰 𝑙} -> List A -> List A
   rev' [] = []
   rev' (x ∷ xs) = cons (postpend (rev' xs) x)
 
-  -- map-restr : ∀{Γ B p} -> Γ ⊢Var B GlobalFiber[ (rev' (p ∷ transl-Mod ω)) ]
-  --                  -> addRestr ω Γ ⊢Var B GlobalFiber[ p ∷ [] ]
-  -- map-restr {ω = id'} v = {!!}
-  -- map-restr {ω = (`[]` ⨾ `＠` U ⨾ ω)} v =
-  --   let v' = map-restr {ω = ω} {!v!}
-  --   in {!!}
 
+{-
   map-restr : ∀{Γ B ps} -> Γ ⊢Var B GlobalFiber[ (rev (transl-Mod ω)) <> ps ]
                    -> addRestr ω Γ ⊢Var B GlobalFiber[ ps ]
   map-restr {ω = id'} v = v
@@ -351,11 +340,10 @@ module Translation (n : ℕ) where
                    -> addRestr ω Γ ⊢Var B GlobalFiber[ p ∷ [] ]
   map-restr' = {!!}
 
-  -- map-restr₂ : ∀{Γ B ps} -> Γ ⊢Var B GlobalFiber[ (rev (transl-Mod' ω xs)) <> ps ]
-  --                        -> addRestr ω Γ ⊢Var B GlobalFiber[ ps ]
-  -- map-restr₂ = ?
+-}
 
 
+{-
   transl-Var : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type ◯}
                -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
                -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π ⦋ X ⦌-Type ∣ p , transl-Mod (ν ◆' η) ↦ A Type
@@ -457,6 +445,8 @@ module Translation (n : ℕ) where
 
     in Ap ◆-ϕ Bp
 
+-}
+
 
 {-
   make-π-under-ind : ∀ (μ ν ω : ModeHom' ◯ ◯) X p -> ∀{C}
@@ -493,6 +483,7 @@ module Translation (n : ℕ) where
 
 
 
+{-
   make-π-id : ∀ (μ : ModeHom' ◯ ◯) X p -> ϕ π-Type (F-Type (μ) ⦋ X ⦌-Type) (postpend (rev' (transl-Mod μ)) p)
                                           ↦ π-Type (⦋ X ⦌-Type) (p , [])
   make-π-id μ X p = make-π-id-ind {ν = id} μ X p
@@ -509,11 +500,27 @@ module Translation (n : ℕ) where
                                                    ↦ π-Type (⦋ X ⦌-Type) (p , [])
   make-π-prepare' X p U V = make-π-prepare X U V p
 
+-}
+
 
 {-
 -}
 
+  transl-Var : ∀{ω : ModeHom' ◯ ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type ◯}
+               -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+               -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π ⦋ X ⦌-Type ∣ p , transl-Mod (ν ◆' η) ↦ A Type
+               -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ A Type
+               -- -> ∀{B} -> ϕ A ↦ B
+               -> ∀{p Δ B}
+               -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
+               -> (transl-Ctx Γ Γp) ∣ p ∷ [] ↦ Δ Ctx
+               -> Δ ⊢Var B GlobalFiber[ p ∷ [] ]
+  transl-Var (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) Γp Definition-MTTꟳ.zero Xp Γpp = {!!}
+  transl-Var (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) Γp (Definition-MTTꟳ.suc v) Xp Γpp = {!!}
+  transl-Var (Γ Definition-MTTꟳ.∙! ω) Γp (Definition-MTTꟳ.suc! v) Xp Γpp = {!!}
 
+
+{-
 
   mutual
     {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
@@ -523,7 +530,8 @@ module Translation (n : ℕ) where
     transl-Term-▲ Γ Γp (var x [ incl α₀ ∣ incl α₁ ]) =
       let α₀' = linearize α₀
           α₁' = linearize α₁
-      in {!!}
+      -- in {!!}
+      in {!!} --  IR.incl (λ p x₁ Xp Γp₁ → var (transl-Var Γ Γp x Xp Γp₁))
     transl-Term-▲ Γ Γp tt = {!!}
     transl-Term-▲ Γ Γp (mod `[]` t) = {!!}
       -- let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
@@ -562,8 +570,8 @@ module Translation (n : ℕ) where
     transl-Term-◯ Γ Γp (var {b = ◯} x [ incl α₀ ∣ incl α₁ ]) =
       let α₀' = linearize α₀
           α₁' = linearize α₁
-          xx = transl-Var' Γ Γp x {!!} {!!}
-      in IR.incl (λ p x₁ Xp Γp₁ → {!var xx!})
+          -- xx = transl-Var' Γ Γp x {!!} {!!}
+      in IR.incl (λ p x₁ Xp Γp₁ → var (transl-Var Γ Γp x Xp Γp₁))
     transl-Term-◯ Γ Γp tt = {!!}
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
       let t' = transl-Term-▲ _ Γp t
@@ -597,7 +605,7 @@ module Translation (n : ℕ) where
 
 
 
-
+-}
 
 
 
