@@ -39,6 +39,10 @@ module _ {A : 𝒰 𝑖} where
     take : ∀{x as bs} -> as ≼ bs -> x ∷ as ≼ x ∷ bs
     skip : ∀{x as bs} -> as ≼ bs -> as ≼ x ∷ bs
 
+  data _≼'_ : List A -> List A -> 𝒰 𝑖 where
+    [] : [] ≼' []
+    _∷_ : ∀ a -> ∀{as bs} -> as ≼ bs -> a ∷ as ≼' a ∷ bs
+
 
 
 -- module _ (I : 𝒰 𝑖) where
@@ -332,6 +336,7 @@ module IR {{L : isProcessSet 𝑗}} where
   data _⊢Var_Global : Ctx -> Type ◯ -> 𝒰 𝑗 where
     zero : ∀{Γ A} -> Γ , A ⊢Var A Global
     suc : ∀{Γ A B} -> Γ ⊢Var A Global -> (Γ , B) ⊢Var A Global
+
 
 
 {-

@@ -14,6 +14,7 @@ open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
+open import Data.List using (drop)
 
 
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
@@ -29,31 +30,34 @@ module _ {A B : 𝒰 𝑖} where
 
 
 
+
 module Translation (n : ℕ) where
 -- (P : Preorder 𝑖) {{_ : hasDecidableEquality ⟨ P ⟩}} {{_ : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)}} where
 
   P : Preorder _
   P = 𝒫ᶠⁱⁿ (𝔽 n)
 
-  instance
+  postulate instance
     hasDecidableEquality:P : hasDecidableEquality ⟨ P ⟩
-    hasDecidableEquality:P = {!!}
+    -- hasDecidableEquality:P = {!!}
 
-  instance
+  postulate instance
     isProp:≤ : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)
-    isProp:≤ = {!!}
+    -- isProp:≤ = {!!}
 
   -- Getting the mode system
-  import KamiTheory.Main.Generic.ModeSystem.2Graph.Example as 2GraphExample
-  import KamiTheory.Main.Generic.ModeSystem.2Cell.Example as 2CellExample
+  import KamiTheory.Main.Generic.ModeSystem.2Graph.Example2 as 2GraphExample
+  -- import KamiTheory.Main.Generic.ModeSystem.2Cell.Example as 2CellExample
   import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition as 2CellDefinition
+  import KamiTheory.Main.Generic.ModeSystem.2Cell.Rewriting as 2CellRewriting
   import KamiTheory.Main.Generic.ModeSystem.2Cell.Linear as 2CellLinear
   open 2CellDefinition.2CellDefinition hiding (id)
-  open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example
-  open SendReceiveNarrow-ModeSystem P {{it}} {{it}}
-  open 2GraphExample.SendReceiveNarrow-2Graph P
-  open 2CellLinear.2CellLinear SRN
-  -- open 2CellExample.SendReceiveNarrow-2Cells P {{it}} {{it}}
+  open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example2
+  open SendNarrow-ModeSystem P {{it}} {{it}}
+  open 2GraphExample.SendNarrow-2Graph P
+  open 2CellLinear.2CellLinear SN
+  open 2CellRewriting.2CellRewriting SN
+  -- open 2CellExample.SendNarrow-2Cells P {{it}} {{it}}
 
 
   -- Instantiating MTT with the 2category generated from the modesystem
@@ -62,9 +66,9 @@ module Translation (n : ℕ) where
   instance
     Param : MTTꟳ _
     Param = record
-      { 𝓂 = Mode SRN-ModeSystem
-      ; isCategory:𝓂 = isCategory:byModeSystem SRN-ModeSystem
-      ; is2Category:𝓂 = is2Category:byModeSystem SRN-ModeSystem
+      { 𝓂 = Mode SN-ModeSystem
+      ; isCategory:𝓂 = isCategory:byModeSystem SN-ModeSystem
+      ; is2Category:𝓂 = is2Category:byModeSystem SN-ModeSystem
       }
 
 
@@ -72,20 +76,20 @@ module Translation (n : ℕ) where
     renaming (ModeHom to ModeHom' ; _⊢_ to _⊢'_)
 
   instance
-    isCategoryData:ModeHom : isCategoryData (Mode SRN-ModeSystem) ModeHom'
+    isCategoryData:ModeHom : isCategoryData (Mode SN-ModeSystem) ModeHom'
     isCategoryData:ModeHom = HomData {{isCategory:𝓂 {{Param}}}}
 
   instance
-    isCategory:ModeHom : isCategory (Mode SRN-ModeSystem)
+    isCategory:ModeHom : isCategory (Mode SN-ModeSystem)
     isCategory:ModeHom = record { Hom = ModeHom' }
 
   instance
-    is2Category:ModeHom : is2Category ′(Mode SRN-ModeSystem)′
+    is2Category:ModeHom : is2Category ′(Mode SN-ModeSystem)′
     is2Category:ModeHom = is2Category:𝓂 {{Param}}
 
 
   -- Instantiating the target language with the preorder
-  open import KamiCore.Typed.Variant.F.Model9
+  open import KamiCore.Typed.Variant.F.Model8
 
   ρ : isProcessSet _
   ρ = record { Proc = 𝔽 n }
@@ -95,13 +99,38 @@ module Translation (n : ℕ) where
 
 
   private variable
-    a b c : Mode SRN-ModeSystem
+    a a₀ b c d : Mode SN-ModeSystem
     μ ν η ω : ModeHom' a b
+
+  isSuffix : (x : Edge (of SN-ModeSystem .graph) a b) -> ModeHom' c b -> 𝒰 _
+  isSuffix x μ = ∑ λ ν -> ν ◆' (x ⨾ id') ≡ μ
+
+  -- split-Path-eq : ∀{}
+
+  skipSuffixPrefix : ∀{y} -> {x : Edge (of SN-ModeSystem .graph) a₀ b} {μ : ModeHom' a b} {ω : ModeHom' c d} -> isSuffix x (ω ◆ (y ⨾ μ)) -> isSuffix x (y ⨾ μ)
+  skipSuffixPrefix {ω = id'} (η , P) = η , P
+  skipSuffixPrefix {ω = x ⨾ ω} (id' , P) = {!!} , {!!}
+  skipSuffixPrefix {ω = x ⨾ ω} (x₁ ⨾ η , P) = {!!} , {!!}
 
   data isBroadcast : ∀{a b} -> {μ ν : ModeHom' a b} -> μ ⟹ ν -> 𝒰₀ where
   -- data isBroadcast {a b} : {μ ν : ModeHom' a b} -> μ ⟹ ν -> 𝒰₀ where
     -- br : ∀{U ϕ₀ ϕ₁} -> isBroadcast [ (incl []) ∣ incl (incl (ϕ₀ ⌟[ recv U ]⌞ (ϕ₁ ⌟)) ∷ []) ]
-    br : ∀{U} -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
+    -- br : ∀{U} -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
+
+  derive-subset-Single : ∀{U V} -> {μ ν : ModeHom' a ▲} -> SingleFace' vis (μ ◆' `＠` U ⨾ id') (ν ◆' `＠` V ⨾ id') -> U ≡ V
+  derive-subset-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ (`＠` U₁ ⨾ idᵣ₁)) top₁ bot) = {!!}
+
+  derive-subset : ∀{U V} -> {μ ν : ModeHom' ◯ b} -> Linear2Cell vis (`＠` U ⨾ μ) (`＠` V ⨾ ν) -> U ≡ V
+  derive-subset = {!!}
+  -- derive-subset [] = {!!}
+  -- derive-subset (_∷_ {η = id'} (singleFace (id' ⌟[ send U ]⌞ idᵣ) top ()) x₁)
+  -- derive-subset (_∷_ {η = id'} (singleFace ((x ⨾ idₗ₁) ⌟[ send U ]⌞ idᵣ) top ()) x₁)
+  -- derive-subset (_∷_ {η = id'} (singleFace ((x ⨾ idₗ₁) ⌟[ recv U ]⌞ idᵣ) top ()) x₁)
+  -- derive-subset (2CellLinear.2CellLinear._∷_ {η = 2GraphExample.SendNarrow-2Graph.`＠` U ⨾ .(2GraphExample.SendNarrow-2Graph.`[]` ⨾ id' ◆' `＠` _ ⨾ idᵣ₁)} (2CellLinear.2CellLinear.singleFace (id' 2CellRewriting.2CellRewriting.⌟[ 2GraphExample.SendNarrow-2Graph.send .U ]⌞ (.(`＠` _) ⨾ idᵣ₁)) refl-≡ refl-≡) x₁) = {!!}
+  -- derive-subset (2CellLinear.2CellLinear._∷_ {η = 2GraphExample.SendNarrow-2Graph.`＠` U ⨾ η} (2CellLinear.2CellLinear.singleFace ((x ⨾ idₗ₁) 2CellRewriting.2CellRewriting.⌟[ 2GraphExample.SendNarrow-2Graph.send U₁ ]⌞ idᵣ₁) top₁ bot) x₁) = {!!}
+  -- derive-subset (2CellLinear.2CellLinear._∷_ {η = 2GraphExample.SendNarrow-2Graph.`＠` U ⨾ η} (2CellLinear.2CellLinear.singleFace (idₗ₁ 2CellRewriting.2CellRewriting.⌟[ 2GraphExample.SendNarrow-2Graph.recv U₁ ]⌞ idᵣ₁) top₁ bot) x₁) = {!!}
+
+
 
 
 
@@ -111,7 +140,7 @@ module Translation (n : ℕ) where
   data isCtx₁ : Ctx a -> 𝒰₀ where
     ε : isCtx₁ {a = a} ε
     stepVar : {Γ : Ctx b} -> isCtx₁ Γ -> {A : ⊢Type a} -> {μ : a ⟶ b} -> isCtx₁ (Γ ∙⟮ A ∣ μ ⟯)
-    stepRes : {Γ : Ctx b} -> isCtx₁ Γ -> {μ : BaseModeHom-SRN a b} -> isCtx₁ (Γ ∙! (μ ⨾ id))
+    stepRes : {Γ : Ctx b} -> isCtx₁ Γ -> {μ : BaseModeHom-SN a b} -> isCtx₁ (Γ ∙! (μ ⨾ id))
 
 
   addRes : (μ : a ⟶ b) -> ∑ isCtx₁ {a = b} -> ∑ isCtx₁ {a = a}
@@ -148,12 +177,12 @@ module Translation (n : ℕ) where
 
       -- modalities
       mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-      letmod : ∀(μ : BaseModeHom-SRN a b) -> (ν : b ⟶ c)
+      letmod : ∀(μ : BaseModeHom-SN a b) -> (ν : b ⟶ c)
             -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
             -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
             -> Γ ⊢ B
 
-      letmod' : ∀(μ : BaseModeHom-SRN a b)
+      letmod' : ∀(μ : BaseModeHom-SN a b)
             -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
             -> Γ ∙⟮ A ∣ μ ⨾ id' ⟯ ⊢ B
             -> Γ ⊢ B
@@ -188,7 +217,9 @@ module Translation (n : ℕ) where
   data isCtx₂ : Ctx a -> 𝒰₀ where
     ε : isCtx₂ {a = a} ε
     stepVar : {Γ : Ctx ◯} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
-    stepRes : {Γ : Ctx a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! μ)
+    -- stepRes : {Γ : Ctx a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! μ)
+    stepRes : ∀(x : Edge (of SN-ModeSystem .graph) b a) -> {Γ : Ctx a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
+
     -- stepRes-◻ : {Γ : Ctx ▲} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`[]` ⨾ id))
     -- stepRes-＠ : {Γ : Ctx ◯} -> ∀{p} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (`＠` p ⨾ id))
 
@@ -198,7 +229,7 @@ module Translation (n : ℕ) where
 
 
 
-  ⦋_⦌-Mode : Mode SRN-ModeSystem -> Mode'
+  ⦋_⦌-Mode : Mode SN-ModeSystem -> Mode'
   ⦋ ▲ ⦌-Mode = ▲
   ⦋ ◯ ⦌-Mode = ◯
 
@@ -225,7 +256,7 @@ module Translation (n : ℕ) where
   ⦋ Lst x ⦌-Type = {!!}
 
 
-  TargetCtx : Mode SRN-ModeSystem -> 𝒰 _
+  TargetCtx : Mode SN-ModeSystem -> 𝒰 _
   TargetCtx ▲ = Ctx' × ⟨ P ⟩
   TargetCtx ◯ = Ctx'
 
@@ -234,10 +265,27 @@ module Translation (n : ℕ) where
   addRestr (`＠` U ⨾ μ) Γ = addRestr μ Γ , U
   addRestr (`[]` ⨾ μ) Γ = let Γ' , U = addRestr μ Γ in Γ' ,[ U ]
 
+  forget : TargetCtx a -> Ctx'
+  forget {a = ◯} Γ = Γ
+  forget {a = ▲} Γ = fst Γ
+
+  addRestr' : (μ : ModeHom' a b) -> TargetCtx b -> Ctx'
+  addRestr' μ Γ = forget (addRestr μ Γ)
+
   transl-Ctx : ∀{μ : ModeHom' a ◯} -> (Γ : CtxExt μ) -> isCtx₂ (ε ⋆ Γ) -> TargetCtx a
   transl-Ctx ε Γp = ε
   transl-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
-  transl-Ctx (_∙!_ Γ μ) (stepRes Γp) = addRestr μ (transl-Ctx Γ Γp)
+  transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr μ (transl-Ctx Γ Γp)
+
+  transl-Ctx' : ∀{μ : ModeHom' a ◯} -> (Γ : CtxExt μ) -> isCtx₂ (ε ⋆ Γ) -> Ctx'
+  transl-Ctx' Γ Γp = forget (transl-Ctx Γ Γp)
+
+  transl₂-Ctx : ∀{μ : ModeHom' a b} -> (Γ : CtxExt μ) -> isCtx₂ (ε ⋆ Γ) -> TargetCtx a
+  transl₂-Ctx {2GraphExample.SendNarrow-2Graph.▲} Definition-MTTꟳ.ε Γp = {!!}
+  transl₂-Ctx {2GraphExample.SendNarrow-2Graph.◯} Definition-MTTꟳ.ε Γp = {!!}
+  transl₂-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl₂-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
+  transl₂-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr μ (transl₂-Ctx Γ Γp)
+
     -- let Γ' , i = transl-Ctx Γ Γp
     -- in {!!}
   -- transl-Ctx (_∙!_ {◯} Γ μ) (stepRes Γp) = {!!}
@@ -478,7 +526,7 @@ module Translation (n : ℕ) where
 -}
 
   local-var-impossible : ∀{a b c A} {Γ : Ctx a} -> (Γp : isCtx₂ Γ) -> {μ : ModeHom' b ▲} {η : ModeHom' c ▲} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> 𝟘-𝒰
-  local-var-impossible (stepRes Γp) (suc! v) = local-var-impossible Γp v
+  local-var-impossible (stepRes _ Γp) (suc! v) = local-var-impossible Γp v
   local-var-impossible (stepVar Γp) (suc v) = local-var-impossible Γp v
 
 
@@ -506,32 +554,162 @@ module Translation (n : ℕ) where
 {-
 -}
 
-  transl-Var : ∀{ω : ModeHom' ◯ ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type ◯}
-               -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
-               -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π ⦋ X ⦌-Type ∣ p , transl-Mod (ν ◆' η) ↦ A Type
-               -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ A Type
-               -- -> ∀{B} -> ϕ A ↦ B
-               -> ∀{p Δ B}
-               -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
-               -> (transl-Ctx Γ Γp) ∣ p ∷ [] ↦ Δ Ctx
-               -> Δ ⊢Var B GlobalFiber[ p ∷ [] ]
-  transl-Var (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) Γp Definition-MTTꟳ.zero Xp Γpp = {!!}
-  transl-Var (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) Γp (Definition-MTTꟳ.suc v) Xp Γpp = {!!}
-  transl-Var (Γ Definition-MTTꟳ.∙! ω) Γp (Definition-MTTꟳ.suc! v) Xp Γpp = {!!}
+    -- transl-Var' : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type ◯}
+    --             -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+    --             -> ∀{p Δ B}
+    --             -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
+    --             -> (transl-Ctx' Γ Γp) ∣ p ∷ [] ↦ Δ Ctx
+    --             -> Δ ⊢Var B GlobalFiber[ p ∷ [] ]
+    -- transl-Var' {a = ▲} (Γ ∙! ω) (stepRes Γp) (suc! v) Xp Γpp = let Z = transl-Var' Γ Γp v Xp {!!} in {!!} 
+    -- transl-Var' {a = ◯} Γ Γp v Xp Γpp = transl-Var Γ Γp v Xp Γpp
 
+
+  transl-Mod3 : ModeHom' ◯ a -> (List (𝒫ᶠⁱⁿ (Proc ρ)))
+  transl-Mod3 id' = []
+  transl-Mod3 (`[]` ⨾ id') = []
+  transl-Mod3 (`[]` ⨾ `＠` U ⨾ ω) = U ∷ transl-Mod3 ω
+
+  comp-transl-Mod3 : ∀{μ : ModeHom' ◯ ◯} {ν : ModeHom' ◯ a} -> transl-Mod3 (μ ◆' ν) ≡ transl-Mod3 μ <> transl-Mod3 ν
+  comp-transl-Mod3 {μ = id'} = refl-≡
+  comp-transl-Mod3 {μ = (`[]` ⨾ `＠` U ⨾ μ)} = cong-≡ (λ ξ -> U ∷ ξ) (comp-transl-Mod3 {μ = μ})
+
+  {-# REWRITE comp-transl-Mod3 #-}
+
+  addResProj : ∀{Γ Δ} {ω : ModeHom' ◯ a} -> ∀{ps} -> addRestr' ω Γ ∣ ps ↦ Δ Ctx
+                -> forget Γ ∣ ps <> transl-Mod3 ω  ↦ Δ Ctx
+  addResProj = {!!}
+
+
+  -- transl-Var : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type b}
+  --             -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --             -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π ⦋ X ⦌-Type ∣ p , transl-Mod (ν ◆' η) ↦ A Type
+  --             -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ A Type
+  --             -- -> ∀{B} -> ϕ A ↦ B
+  --             -> ∀{p ps Δ B}
+  --             -> π F-Type μ ⦋ X ⦌-Type ∣ p , ps ↦ B Type
+  --             -> (transl-Ctx' Γ Γp) ∣ p ∷ ps ↦ Δ Ctx
+  --             -> Δ ⊢Var B GlobalFiber[ p ∷ ps ]
+
+  -- β-addRestr : addRestr ν (Γ , X) ≡ 
+
+  -- transl-Var : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type b}
+  --             -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --             -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 (ν ◆' η))
+  --             -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π ⦋ X ⦌-Type ∣ p , transl-Mod (ν ◆' η) ↦ A Type
+  --             -- -> ∀{A p} -> ∀ (ν : ModeHom' ◯ a) -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ A Type
+  --             -- -> ∀{B} -> ϕ A ↦ B
+  --             -> ∀{p Δ B}
+  --             -- -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ B Type
+  --             -- -> π F-Type μ ⦋ X ⦌-Type ∣ postpend (rev' (transl-Mod (ν ◆' η))) p ↦ B Type
+  --             -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 ν)) p) ↦ Δ Ctx
+  --             -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+
+
+  F2-Type : (List (𝒫ᶠⁱⁿ (Proc ρ))) -> Type ◯ -> Type ◯
+  F2-Type [] X = X
+  F2-Type (x ∷ xs) X = ◻ (F2-Type xs X) ＠ x
+
+
+  F2-comp : ∀{X } -> ∀ xs ys -> F2-Type (xs <> ys) X ≡ F2-Type xs (F2-Type ys X)
+  F2-comp [] ys = refl-≡
+  F2-comp (x ∷ xs) ys = cong-≡ (λ X -> ◻ X ＠ x) (F2-comp xs ys)
+
+  F-prop : ∀{X} -> F-Type μ X ≡ F2-Type (rev (transl-Mod3 μ)) X
+  F-prop {μ = id'} = refl-≡
+  F-prop {μ = `[]` ⨾ `＠` U ⨾ μ} {X = X} =
+    let Z = F-prop {μ = μ} {X = (◻ X ＠ U)}
+    in Z ∙-≡ sym-≡ (F2-comp (rev (transl-Mod3 μ)) _ )
+
+  lift-π-single : ∀{X A p ps q} -> π X ∣ p , ps ↦ A Type -> π ◻ X ＠ q ∣ q , (p ∷ ps) ↦ A Type
+  lift-π-single X = proj-＠ refl-≤ (IR.proj-◻ X)
+
+  lift-π-impl : ∀{X A p ps r} -> π X ∣ r , [] ↦ A Type -> π F2-Type (p ∷ ps) X ∣ p , ps <> (r ∷ []) ↦ A Type
+  lift-π-impl {ps = []} Xp = proj-＠ refl-≤ (IR.proj-◻ Xp)
+  lift-π-impl {ps = x ∷ ps} Xp = lift-π-single (lift-π-impl Xp)
+
+  lift-π : ∀{X A ps qs r} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> π F2-Type ps X ∣ fst (postpend qs r) , drop 1 (ps <> (r ∷ [])) ↦ A Type
+  lift-π {qs = []} [] Xp = Xp
+  lift-π {qs = x ∷ qs} (_∷_ .x x₁) Xp = lift-π-impl Xp
+
+  mkVar : ∀{Δ X A r ps qs} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> Δ , F2-Type ps X ⊢Var A GlobalFiber[ cons (postpend qs r) ]
+  mkVar {r = r} {ps} {qs} [] Xp = zero done Xp -- (lift-π {ps = ps} {qs = qs} {r = r} P Xp)
+  mkVar {r = r} {ps} {qs} (a ∷ Ps) Xp = zero {!P!} (lift-π {ps = ps} {qs = qs} {r = r} (a ∷ Ps) Xp)
+
+  mkVar-▲ : ∀{Δ A p ps qs} -> (ps <> (p ∷ [])) ≼' qs -> Δ , F2-Type ps (A ＠ p) ⊢Var A GlobalFiber[ qs ]
+  mkVar-▲ {ps = []} (x ∷ xs) = zero done (proj-＠ refl-≤ done)
+  mkVar-▲ {p = p} {ps = ps@(_ ∷ _)} {qs = qs} (x ∷ xs) = zero {!!} (lift-π {ps = ps} {r = p} {!!} {!!})
+
+
+  -- transl-Var : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type b}
+  --             -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --             -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 (ν ◆' η))
+  --             -> ∀{p Δ B}
+  --             -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 ν)) p) ↦ Δ Ctx
+  --             -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+
+  transl-Var-▲ : ∀{ω : ModeHom' a ◯} (Γ : CtxExt ω) -> ∀ Γp -> {A : ⊢Type ▲} -> ∀{U V}
+              -> (ε ⋆ Γ) ⊢Var⟮ A ∣ (`＠` U ⨾ μ) ⇒ (η) ⟯
+              -> rev (transl-Mod3 (`[]` ⨾ `＠` U ⨾ μ)) ≼' rev' (transl-Mod3 (`[]` ⨾ (ν ◆' (`＠` V ⨾ η))))
+              -> ∀{p Δ B}
+              -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (`[]` ⨾ ν))) p) ↦ Δ Ctx
+              -> π ⦋ A ⦌-Type ＠ V ∣ p , [] ↦ B Type
+              -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (`[]` ⨾ ν))) p) ]
+  transl-Var-▲ = {!!}
+
+  transl-Var-◯ : ∀{ω : ModeHom' ◯ ◯} (Γ : CtxExt ω) -> ∀ Γp -> {X : ⊢Type ◯}
+              -> (ε ⋆ Γ) ⊢Var⟮ X ∣ μ ⇒ η ⟯
+              -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 (ν ◆' η))
+              -> ∀{p Δ B}
+              -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 ν)) p) ↦ Δ Ctx
+              -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
+              -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+
+  transl-Var-◯ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp IR., x₁) Xp =
+    let
+        YY : (Δ , F2-Type (rev (transl-Mod3 μ)) ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+        YY = mkVar {ps = (rev (transl-Mod3 μ))} {qs = (rev' (transl-Mod3 ν))} μ≼ν Xp
+
+        ZZ : (Δ , F-Type μ ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+        ZZ = {!!}
+    in {!!}
+  transl-Var-◯ {ν = ν} (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) (stepVar Γp) (Definition-MTTꟳ.suc v) PP (Γpp IR., x₁) Xp =
+    let res = transl-Var-◯ {ν = ν} Γ Γp v PP Γpp Xp
+    in suc res
+  transl-Var-◯ {ν = ν} (Γ ∙! (`＠` U ⨾ id') ∙! .(`[]` ⨾ id')) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP (stepRes Γpp) Xp =
+    let res = transl-Var-◯ {ν = ν ◆ (`[]` ⨾ `＠` U ⨾ id')} Γ Γp v ? {!Γpp!} Xp
+    in {!!}
+  -- transl-Var-◯ {a = ▲} (Γ ∙! ω) (stepRes x Γp) (suc! v) Γpp = {!!} -- let Z = transl-Var-◯ Γ Γp v Xp {!addResProj Γpp!} in {!!} 
 
 {-
+
+{-
+
+  extend-π : ∀{X A p} -> (π X ∣ ⦗ p ⦘ , [] ↦ A Type) -> π F-Type μ X ∣ postpend (rev' (transl-Mod η)) ⦗ p ⦘ ↦ A Type
+  extend-π = {!!}
+
+  widen-π : ∀{A B U V p} -> U ≤ V -> (π A ＠ U ∣ ⦗ p ⦘ , [] ↦ B Type) -> (π A ＠ V ∣ ⦗ p ⦘ , [] ↦ B Type)
+  widen-π = {!!}
+
+
+-}
+
+
 
   mutual
     {-# TERMINATING #-} -- NOTE: Agda does not see that the letmod case terminates
     transl-Term-▲ : ∀{ps i} -> ∀{μ : ModeHom' ◯ ◯} -> (Γ : CtxExt μ) -> (Γp : isCtx₂ (ε ⋆ Γ))
               -> ∀{A} -> ε ⋆ Γ ∙! (`＠` i ⨾ id') ⊢ A
               -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
-    transl-Term-▲ Γ Γp (var x [ incl α₀ ∣ incl α₁ ]) =
+    transl-Term-▲ Γ Γp (var {b = ▲} (suc! x) [ incl α₀ ∣ incl α₁ ]) = ⊥-elim (local-var-impossible Γp x)
+    transl-Term-▲ {i = i} Γ Γp (var {b = ◯} {μ = `＠` j ⨾ μ} (suc! x) [ incl α₀ ∣ incl α₁ ]) =
       let α₀' = linearize α₀
           α₁' = linearize α₁
+
+          P : i ≤ j
+          P = {!!}
+
       -- in {!!}
-      in {!!} --  IR.incl (λ p x₁ Xp Γp₁ → var (transl-Var Γ Γp x Xp Γp₁))
+      in IR.incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x {!!} Γp₁ Xp) in var XX)) -- (extend-π {μ = {!μ!}} Xp)
     transl-Term-▲ Γ Γp tt = {!!}
     transl-Term-▲ Γ Γp (mod `[]` t) = {!!}
       -- let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
@@ -567,11 +745,11 @@ module Translation (n : ℕ) where
               -> ∀{A} -> ε ⋆ Γ ⊢ A
               -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
     transl-Term-◯ Γ Γp (var {b = ▲} x [ incl α₀ ∣ incl α₁ ]) = ⊥-elim (local-var-impossible Γp x)
-    transl-Term-◯ Γ Γp (var {b = ◯} x [ incl α₀ ∣ incl α₁ ]) =
+    transl-Term-◯ Γ Γp (var {b = ◯} {μ = μ} x [ incl α₀ ∣ incl α₁ ]) =
       let α₀' = linearize α₀
           α₁' = linearize α₁
           -- xx = transl-Var' Γ Γp x {!!} {!!}
-      in IR.incl (λ p x₁ Xp Γp₁ → var (transl-Var Γ Γp x Xp Γp₁))
+      in IR.incl (λ p x₁ Xp Γp₁ → var (transl-Var-◯ {ν = id'} Γ Γp x {!!} Γp₁ Xp))
     transl-Term-◯ Γ Γp tt = {!!}
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
       let t' = transl-Term-▲ _ Γp t
@@ -590,9 +768,9 @@ module Translation (n : ℕ) where
       in letin-GlobalFibered (multibox' t'') s'
 
     transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
-    transl-Term-◯ Γ Γp (trans .([ incl [] ∣ incl (incl (id' ⌟[ recv _ ]⌞ id' ⌟) ∷ []) ]) br t) =
-      let t' = transl-Term-◯ _ Γp t
-      in broadcast-GlobalFibered t'
+    -- transl-Term-◯ Γ Γp (trans .([ incl [] ∣ incl (incl (id' ⌟[ recv _ ]⌞ id' ⌟) ∷ []) ]) br t) =
+    --   let t' = transl-Term-◯ _ Γp t
+    --   in broadcast-GlobalFibered t'
     transl-Term-◯ Γ Γp (pure t) = {!!}
     transl-Term-◯ Γ Γp (seq t t₁) = {!!}
     transl-Term-◯ Γ Γp (lam t) =
@@ -604,15 +782,4 @@ module Translation (n : ℕ) where
       in app-GlobalFibered t' s'
 
 
-
 -}
-
-
-
-
-
-
-
-
-
-
