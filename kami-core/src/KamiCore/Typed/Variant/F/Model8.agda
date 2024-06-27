@@ -39,6 +39,23 @@ module _ {A : 𝒰 𝑖} where
     take : ∀{x as bs} -> as ≼ bs -> x ∷ as ≼ x ∷ bs
     skip : ∀{x as bs} -> as ≼ bs -> as ≼ x ∷ bs
 
+  split-≼ : ∀ ps qs -> ∀{U V} -> (ps <> (U ∷ [])) ≼ (qs <> (V ∷ [])) -> (ps ≼ qs ×-𝒰 U ≡ V) +-𝒰 (ps <> (U ∷ []) ≼ qs)
+  split-≼ [] [] (take P) = left (done , refl-≡)
+  split-≼ [] (x ∷ qs) (take P) = yes (take (done))
+  split-≼ [] (x ∷ qs) (skip P) with split-≼ [] qs P
+  ... | no (P , Q) = no (skip P , Q)
+  ... | yes P = yes (skip P)
+  split-≼ (x ∷ ps) (.x ∷ qs) (take P) with split-≼ (ps) qs P
+  ... | no (P , Q) = no (take P , Q)
+  ... | yes P = yes (take P)
+  split-≼ (x ∷ ps) (x₁ ∷ qs) (skip P) with split-≼ (x ∷ ps) qs P
+  ... | no (P , Q) = no (skip P , Q)
+  ... | yes P = yes (skip P)
+  split-≼ (x ∷ []) [] (take ())
+  split-≼ (x ∷ []) [] (skip ())
+  split-≼ (x ∷ x₁ ∷ ps) [] (take ())
+  split-≼ (x ∷ x₁ ∷ ps) [] (skip ())
+
   data _≼'_ : List A -> List A -> 𝒰 𝑖 where
     [] : [] ≼' []
     _∷_ : ∀ a -> ∀{as bs} -> as ≼ bs -> a ∷ as ≼' a ∷ bs
@@ -332,6 +349,7 @@ module IR {{L : isProcessSet 𝑗}} where
     zero : ∀{p qs ps} -> ps ≼ qs -> π X ∣ p , ps ↦ A Type -> Γ , X ⊢Var A GlobalFiber[ p ∷ qs ]
     suc : ∀{ps} -> Γ ⊢Var A GlobalFiber[ ps ] -> Γ , X ⊢Var A GlobalFiber[ ps ]
     res : ∀{p ps} -> Γ ⊢Var A GlobalFiber[ p ∷ ps ] -> Γ ,[ p ] ⊢Var A GlobalFiber[ ps ]
+    none : ∀{p ps} -> Γ , X ⊢Var Unit GlobalFiber[ p ∷ ps ]
 
   data _⊢Var_Global : Ctx -> Type ◯ -> 𝒰 𝑗 where
     zero : ∀{Γ A} -> Γ , A ⊢Var A Global
@@ -528,6 +546,12 @@ module IR {{L : isProcessSet 𝑗}} where
   lem-12 : ∀{p ps qs} -> π X ∣ p , ps ↦ A Type -> π X ∣ p , ps <> qs ↦ B Type -> π (A ＠ p) ∣ p , ps <> qs ↦ B Type
   lem-12 v w = proj-＠ refl-≤ (lem-13 v w)
 
+  lem-14 : ∀{p q ps} -> (π X ∣ p , [] ↦ B Type) -> (π X ∣ q , ps ↦ A Type) -> (π B ＠ p ∣ q , ps ↦ A Type)
+  lem-14 {p = p} {q = q} {ps} v w with decide-≤ q p
+  ... | no x = {!!}
+  ... | yes x = proj-＠ x {!!}
+
+
 
   -- projVar : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]
   -- projVar (p , v) (zero w) = zero (lem-11 v w)
@@ -535,6 +559,7 @@ module IR {{L : isProcessSet 𝑗}} where
   -- projVar (stepRes p) (res v) = res (projVar p v)
 
   projVar1 : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ ps <> qs ] -> Δ ⊢Var A GlobalFiber[ ps <> qs ]
+  projVar1 (p , v) (none) = none
   projVar1 (p , v) (zero x w) = zero x (lem-12 v w )
   projVar1 (p , x) (suc v) = suc (projVar1 p v)
   projVar1 (stepRes p) (res v) = res (projVar1 p v)
