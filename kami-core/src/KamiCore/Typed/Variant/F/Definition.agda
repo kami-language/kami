@@ -161,7 +161,7 @@ module _ (𝒯 : MTTꟳ 𝑖) (a : 𝓂 {{𝒯}}) where
 instance
   isSTTFamily:MTTꟳ : isParametrizedSTT (MTTꟳ 𝑖)
   isSTTFamily:MTTꟳ = record
-    { Param = λ 𝒯 -> 𝓂 {{𝒯}}
+    {Trying to  Param = λ 𝒯 -> 𝓂 {{𝒯}}
     ; _at_ = λMTTꟳ
     }
 

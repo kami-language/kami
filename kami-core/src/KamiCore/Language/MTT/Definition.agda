@@ -23,7 +23,7 @@ open MTT {{...}} public
 
 
 
-module Definition-MTT {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
+module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   private
     𝓂' : Category _
     𝓂' = ′ 𝓂 ′
@@ -208,22 +208,30 @@ open import Agora.TypeTheory.Notation
 ----------------------------------------------------------
 -- The parametrized type theory
 module _ (𝒯 : MTT 𝑖) (a : 𝓂 {{𝒯}}) where
-  λMTT : SimpleTypeTheory
+  λMTT : STT _
   λMTT = record
-    { Ctx = Definition-MTT.Ctx {{𝒯}} a
-    ; Type = Definition-MTT.⊢Type {{𝒯}} a
-    ; Term = λ Γ X -> Definition-MTT._⊢_ {{𝒯}} Γ X
+    { Ctx = 𝔐TT/Definition.Ctx {{𝒯}} a
+    ; Type = 𝔐TT/Definition.⊢Type {{𝒯}} a
+    ; Term = λ Γ X -> 𝔐TT/Definition._⊢_ {{𝒯}} Γ X
     }
 
 instance
-  hasParSTT:MTT : hasParSTT (MTT 𝑖)
-  hasParSTT:MTT = record
+  hasParamSTT:MTT : hasParamSTT (MTT 𝑖)
+  hasParamSTT:MTT = record
     { Param = λ 𝒯 -> 𝓂 {{𝒯}}
     ; _at_ = λMTT
     }
 
-𝔐TT : ∀ 𝑖 -> ParSTT _
-𝔐TT 𝑖 = MTT 𝑖 since hasParSTT:MTT
+{-# OVERLAPS hasParamSTT:MTT #-}
+
+module _ 𝑖 where macro
+  𝔐TT = #structureOn (MTT 𝑖)
+
+-- 𝔐TT : ParamSTT _ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)
+-- 𝔐TT = MTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀) since hasParamSTT:MTT
+
+-- 𝔐TT : ∀ 𝑖 -> ParamSTT _
+-- 𝔐TT 𝑖 = MTT 𝑖 since hasParamSTT:MTT
 
 
 
