@@ -3,6 +3,7 @@
 
 module KamiCore.Typed.Variant.F.Model8 where
 
+open import KamiTheory.Basics hiding (_⋆_)
 open import Agora.Conventions hiding (k ; m ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
@@ -497,6 +498,8 @@ module IR {{L : isProcessSet 𝑗}} where
   open _⊢_GlobalFibered[_] public
 
 
+  cong-GlobalFibered : ∀{Γ Δ} -> Γ ≡ Δ -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
+  cong-GlobalFibered {X = X} {ps = ps} p = transp-≡ (cong-≡ (λ ξ -> ξ ⊢ X GlobalFibered[ ps ]) p)
 
 
 

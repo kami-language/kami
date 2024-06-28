@@ -23,8 +23,6 @@ open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Basics hiding (_⋆_)
 
 
-  -- cong-≡ 
-
 
 
 
@@ -203,11 +201,38 @@ module Translation (n : ℕ) where
     shift-＠ : ∀{i} -> {A : ⊢Type ▲} -> (Γ ∙! (`＠` i ⨾ id')) ∙⟮ A ∣ id' ⟯ ⊢ B -> (Γ ∙⟮ ⟨ A ∣ (`＠` i ⨾ id') ⟩ ∣ id' ⟯ ∙! (`＠` i ⨾ id')) ⊢ B
     shift-＠ = {!!}
 
+    id-annotate : ∀{Γ : Ctx a} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ ⟨ A ∣ μ ⟩ ∣ id' ⟯ ⊢ B
+    id-annotate = {!!}
+
     split-path : ∀{μs : ModeHom' b c} -> ∀{μ} -> ∀{A : ⊢Type a} -> Γ ∙! (μ ⨾ μs) ⊢ A -> (Γ ∙! μs) ∙! (μ ⨾ id') ⊢ A
     split-path = {!!}
 
-    id-annotate : ∀{Γ : Ctx a} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ ⟨ A ∣ μ ⟩ ∣ id' ⟯ ⊢ B
-    id-annotate = {!!}
+    add-id : Γ ⊢ A -> Γ ∙! id' ⊢ A
+    add-id = {!!}
+
+    remove-id : Γ ∙! id' ⊢ A -> Γ ⊢ A
+    remove-id = {!!}
+
+    -- _↶_ : Ctx b -> (ModeHom' a b) -> Ctx a
+    -- _↶_ Γ id' = Γ
+    -- _↶_ Γ (x ⨾ μ) = _↶_ Γ μ ∙! (x ⨾ id')
+
+    _↶_ : ∀{ω : ModeHom' b c} -> CtxExt ω -> (μ : ModeHom' a b) -> CtxExt (μ ◆ ω)
+    _↶_ Γ id' = Γ
+    _↶_ Γ (x ⨾ μ) = _↶_ Γ μ ∙! (x ⨾ id')
+
+
+    infixl 30 _↶_
+
+    splits-path : ∀{Γ : CtxExt ω} -> ∀{μs : ModeHom' a b} -> ∀{A : ⊢Type a} -> (ε ⋆ Γ) ∙! μs ⊢ A -> ε ⋆ Γ ↶ μs ⊢ A
+    splits-path {μs = id'} t = remove-id t
+    splits-path {μs = x ⨾ μs} t = {!splits-path !}
+
+    splits2-path : ∀{Γ : CtxExt ω} -> ∀{μs : ModeHom' a b} -> ∀{A : ⊢Type a} -> (ε ⋆ Γ) ∙! μs ⊢ A -> ε ⋆ Γ ↶ μs ⊢ A
+    splits2-path = {!!}
+
+
+
 
 
 
@@ -222,7 +247,8 @@ module Translation (n : ℕ) where
 
 
 
-
+  isGood:splits : {ω : ModeHom' b c} {Γ : CtxExt ω} {μs : ModeHom' a b} -> isCtx₂ (ε ⋆ Γ) -> isCtx₂ (ε ⋆ Γ ↶ μs)
+  isGood:splits = {!!}
 
 
 
@@ -282,6 +308,13 @@ module Translation (n : ℕ) where
   transl₂-Ctx {2GraphExample.SendNarrow-2Graph.◯} Definition-MTTꟳ.ε Γp = {!!}
   transl₂-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl₂-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
   transl₂-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr μ (transl₂-Ctx Γ Γp)
+
+
+
+  lemma:transl,restr : ∀{ω : ModeHom' a ◯} -> {μ : ModeHom' b a} -> {Γ : CtxExt ω} -> {Γp : isCtx₂ (ε ⋆ Γ)}
+                      -> transl-Ctx (Γ ↶ μ) (isGood:splits Γp) ≡ addRestr μ (transl-Ctx Γ Γp)
+  lemma:transl,restr = {!!}
+
 
     -- let Γ' , i = transl-Ctx Γ Γp
     -- in {!!}
@@ -657,7 +690,6 @@ module Translation (n : ℕ) where
 
 
 
-{-
 
 
 
@@ -686,10 +718,12 @@ module Translation (n : ℕ) where
         ZZ = {!!}
 
     in updateVar x₁ ZZ
-  transl-Var-▲ {ν = ν} (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) (stepVar Γp) (Definition-MTTꟳ.suc v) PP (Γpp IR., x₁) Xp = {!!}
-    -- let res = transl-Var-▲ {ν = ν} Γ Γp v PP Γpp Xp
-    -- in suc res
   transl-Var-▲ {ν = ν} (Γ ∙! (`＠` U ⨾ id') ∙! .(`[]` ⨾ id')) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp = {!!}
+  transl-Var-▲ {ν = ν} (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) (stepVar Γp) (Definition-MTTꟳ.suc v) PP (Γpp IR., x₁) Xp =
+    let res = transl-Var-▲ {ν = ν} Γ Γp v PP Γpp Xp
+    in suc res
+
+
     -- let Γpp' : transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν ◆ (`[]` ⨾ `＠` U ⨾ id')))) p) ↦ Δ Ctx
     --     Γpp' = {!!}
 
@@ -776,19 +810,26 @@ module Translation (n : ℕ) where
       let t' = transl-Term-▲ _ Γp t
           s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
       in letin-GlobalFibered t' s'
-    transl-Term-▲ Γ Γp (letmod (`＠` U) ν t s) = {!!}
-
-      -- let t' = transl-Term-◯ _ (stepRes (stepRes Γp)) t
-      --     s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-      -- in letin-GlobalFibered (multibox t') s'
+    transl-Term-▲ Γ Γp (letmod (`＠` U) ν t s) =
+      let t' = transl-Term-◯ _ (isGood:splits (stepRes _ Γp)) (splits-path t)
+          t'' = cong-GlobalFibered (lemma:transl,restr {μ = ν}) t'
+          s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+      in letin-GlobalFibered (multibox t'') s'
     transl-Term-▲ Γ Γp (letmod `[]` id' t s) = {!!}
-    transl-Term-▲ Γ Γp (letmod `[]` (`＠` U ⨾ ν) t s) = {!!}
+    transl-Term-▲ Γ Γp (letmod `[]` (`＠` U ⨾ ν) t s) =
       -- let t' = split-path t
 
       --     t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
       --     s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
 
       -- in letin-GlobalFibered (multibox t'') s'
+      let -- t' = split-path t
+
+          t'' = transl-Term-▲ _ ((isGood:splits {μs = ν} (stepRes _ Γp))) (splits-path t) -- (isGood:splits {μs = (`＠` U ⨾ ν)} (stepRes _ Γp))
+          t''' = cong-GlobalFibered ((lemma:transl,restr {μ = ν})) t''
+          s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+
+      in letin-GlobalFibered (multibox t''') s'
     transl-Term-▲ Γ Γp (trans x xP t) = {!!}
     transl-Term-▲ Γ Γp (pure t) = {!!}
     transl-Term-▲ Γ Γp (seq t t₁) = {!!}
@@ -812,18 +853,19 @@ module Translation (n : ℕ) where
     transl-Term-◯ Γ Γp (mod (`＠` U) t) =
       let t' = transl-Term-▲ _ Γp t
       in t'
-    transl-Term-◯ Γ Γp (letmod (`＠` U) ν t s) = {!!}
-      -- let t' = transl-Term-◯ _ (stepRes Γp) t
-      --     s' = transl-Term-◯ _ (stepVar Γp) s
-      -- in letin-GlobalFibered (multibox' t') s'
-      -- -- in _ , letin-GlobalFibered t' s'
-    transl-Term-◯ Γ Γp (letmod `[]` (`＠` i ⨾ ν) t s) = {!!}
-      -- let t' = split-path t
+    transl-Term-◯ Γ Γp (letmod (`＠` U) ν t s) =
+      let t' = transl-Term-◯ _ (isGood:splits Γp) (splits-path t)
+          t'' = cong-GlobalFibered (lemma:transl,restr {μ = ν}) t'
+          s' = transl-Term-◯ _ (stepVar Γp) s
+      in letin-GlobalFibered (multibox' t'') s'
+    transl-Term-◯ Γ Γp (letmod `[]` (`＠` i ⨾ ν) t s) =
+      let -- t' = split-path t
 
-      --     t'' = transl-Term-▲ _ (stepRes Γp) t'
+          t'' = transl-Term-▲ _ (isGood:splits Γp) (splits-path t)
+          t''' = cong-GlobalFibered (lemma:transl,restr {μ = ν}) t''
 
-      --     s' = transl-Term-◯ _ (stepVar Γp) s
-      -- in letin-GlobalFibered (multibox' t'') s'
+          s' = transl-Term-◯ _ (stepVar Γp) s
+      in letin-GlobalFibered (multibox' t''') s'
 
     transl-Term-◯ Γ Γp (letmod' μ t t₁) = {!μ!}
     -- transl-Term-◯ Γ Γp (trans .([ incl [] ∣ incl (incl (id' ⌟[ recv _ ]⌞ id' ⌟) ∷ []) ]) br t) =
@@ -839,13 +881,6 @@ module Translation (n : ℕ) where
           s' = transl-Term-◯ _ Γp s
       in app-GlobalFibered t' s'
 
+
 {-
-
-
-  {-
-{-
-
--}
--}
--}
 -}
