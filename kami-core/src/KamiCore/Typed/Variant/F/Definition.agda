@@ -127,13 +127,53 @@ open import Agora.TypeTheory.Notation
 instance
   isTypeTheory:MTTꟳ : isTypeTheory (MTTꟳ 𝑖)
   isTypeTheory:MTTꟳ = record
-    { Ctx = Definition-MTTꟳ.Ctx
+    { ⊢Ctx = Definition-MTTꟳ.Ctx
     ; ⊢Type = Definition-MTTꟳ.⊢Type
     ; _⊢_ = λ {{a}} -> λ {m : 𝓂} -> Definition-MTTꟳ._⊢_ {m = m}
     }
 
+-- instance
+--   isSimpleTypeTheory:MTTꟳ : isSimpleTypeTheory (MTTꟳ 𝑖)
+--   isSimpleTypeTheory:MTTꟳ = record
+--     { Param = λ P -> 𝓂 {{P}}
+--     ; Ctx = λ {T} p -> Definition-MTTꟳ.Ctx {{T}} p
+--     ; Type = λ {T} p -> Definition-MTTꟳ.⊢Type {{T}} p
+--     ; Term = λ {T} {p} Γ X -> Definition-MTTꟳ._⊢_ {{T}} Γ X
+--     }
+
+-- module _ {𝒯 : MTTꟳ 𝑖} where
+--   instance
+--     isSimpleTypeTheory:𝓂 : isSimpleTypeTheory (𝓂 {{𝒯}})
+--     isSimpleTypeTheory:𝓂 = record
+--       { Ctx = Definition-MTTꟳ.Ctx {{𝒯}}
+--       ; Type = Definition-MTTꟳ.⊢Type {{𝒯}}
+--       ; Term = λ Γ X -> Definition-MTTꟳ._⊢_ {{𝒯}} Γ X
+--       }
+
+module _ (𝒯 : MTTꟳ 𝑖) (a : 𝓂 {{𝒯}}) where
+  λMTTꟳ : SimpleTypeTheory
+  λMTTꟳ = record
+    { Ctx = Definition-MTTꟳ.Ctx {{𝒯}} a
+    ; Type = Definition-MTTꟳ.⊢Type {{𝒯}} a
+    ; Term = λ Γ X -> Definition-MTTꟳ._⊢_ {{𝒯}} Γ X
+    }
+
+instance
+  isSTTFamily:MTTꟳ : isParametrizedSTT (MTTꟳ 𝑖)
+  isSTTFamily:MTTꟳ = record
+    { Param = λ 𝒯 -> 𝓂 {{𝒯}}
+    ; _at_ = λMTTꟳ
+    }
+
+module _ {𝒯 : MTTꟳ 𝑖} where
+  testt1 : ∀{m : Param 𝒯} -> (Γ : Ctx m of 𝒯) -> Ctx m of 𝒯
+  testt1 = {!!}
 
 
+-- module _ {{𝒯 : MTTꟳ 𝑖}} {a b : ℕ} where
+--   -- testt1 : ∀{m : Param 𝒯} -> (Γ : Ctx m of 𝒯) -> Ctx m of 𝒯
+--   testt1 : ∀{m : Param 𝒯} -> (Γ : Ctx {{isSimpleTypeTheory:MTTꟳ}} m) -> Ctx m of 𝒯
+--   testt1 = {!!}
 
 
 module _ {{mtt : MTTꟳ 𝑖}} {a b : ℕ} where
