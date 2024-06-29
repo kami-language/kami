@@ -33,8 +33,11 @@ record ChorMTT : 𝒰₀ where
 
 open ChorMTT public
 
+macro Chor𝔐TT = #structureOn ChorMTT
 
-module Definition-ChorMTT (n : ℕ) where
+module Chor𝔐TT/Definition (This : Chor𝔐TT) where
+
+  private n = This .roles
 
 
 -- (P : Preorder 𝑖) {{_ : hasDecidableEquality ⟨ P ⟩}} {{_ : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)}} where
@@ -79,7 +82,7 @@ module Definition-ChorMTT (n : ℕ) where
 
   -- Instantiating MTT with the 2category generated from the modesystem
   -- open import KamiCore.Typed.Variant.F.Definition3
-  open Definition-MTT {{MTT-Chor}}
+  open 𝔐TT/Definition {{MTT-Chor}}
     renaming (ModeHom to ModeHom' ; _⊢_ to _⊢'_ ; Ctx to Ctx-MTT)
 
   instance
@@ -94,6 +97,7 @@ module Definition-ChorMTT (n : ℕ) where
     is2Category:ModeHom : is2Category ′(Mode SN-ModeSystem)′
     is2Category:ModeHom = is2Category:𝓂 {{MTT-Chor}}
 
+  Param-Chor𝔐TT = Mode SN-ModeSystem
 
   private variable
     a a₀ b c d : Mode SN-ModeSystem
@@ -148,13 +152,13 @@ module Definition-ChorMTT (n : ℕ) where
 
 
 
+instance
+  hasParamSTT:ChorMTT : hasParamSTT ChorMTT
+  hasParamSTT:ChorMTT = record
+    { Param = Chor𝔐TT/Definition.Param-Chor𝔐TT
+    ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
+    }
 
--- instance
---   hasParamSTT:ChorMTT : hasParamSTT ChorMTT
---   hasParamSTT:ChorMTT = record { Param = λ _ -> ⊤-𝒰 {ℓ₀} ; _at_ = λ n _ -> Definition-ChorMTT.Chor𝔐TT (roles n) }
-
--- macro
---   Chor𝔐TT = #structureOn ChorMTT
 
 
 

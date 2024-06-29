@@ -23,30 +23,29 @@ open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Basics hiding (_⋆_)
 
-open import KamiCore.Language.MTT.Definition
+open import KamiCore.Language.MinMTT.Definition
+open import KamiCore.Language.ChorMTT.Definition
 
 
 
-F₁ : Chor𝔐TT -> MTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)
-F₁ record { roles = roles } = record
-  { 𝓂 = ⊤-𝒰 {ℓ₀}
-  ; isCategory:𝓂 = {!!}
-  ; is2Category:𝓂 = {!!}
-  }
+F₂ : Chor𝔐TT -> MinMTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)
+F₂ record { roles = roles } = record { ModeTheory = ⊤-𝒰 {ℓ₀} since {!!}  ; isSmall = {!!} ; split = {!!} }
 
 
 instance
-  isReduction:compile-Chor𝔐TT : isReduction (Chor𝔐TT) (𝔐TT) F₁ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) F₁
-  isReduction:compile-Chor𝔐TT = record
-    { ⟦_⟧-Param = λ _ -> tt
-    ; reduce = {!!}
+  isReduction:F₂ : isReduction (Chor𝔐TT) (Min𝔐TT _) F₂ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) F₂
+  isReduction:F₂ = record
+    { param = λ _ -> {!!}
+    ; runAt = {!!}
     }
+
+macro 𝔉₂ = #structureOn F₂
 
 mytest : hasParamSTT ChorMTT
 mytest = it
 
-module _ (C : Chor𝔐TT) (D : MTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) where
-  -- testaa : ∀{a : Param (F₁ C)} -> Ctx (_at_ {𝑗 = (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ )} {{it}} (F₁ C) {!!}) -> 𝒰₀ -- Ctx (_at_ {{hasParamSTT:ChorMTT}} C (⟦_⟧-Param isReduction:compile-Chor𝔐TT a))
+module _ (C : Chor𝔐TT) (D : MinMTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) where
+  -- testaa : ∀{a : Param (F₂ C)} -> Ctx (_at_ {𝑗 = (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ )} {{it}} (F₂ C) {!!}) -> 𝒰₀ -- Ctx (_at_ {{hasParamSTT:ChorMTT}} C (⟦_⟧-Param isReduction:F₂ a))
 
-  testaa : ∀{a : Param (F₁ C)} -> (b : Param D) -> Ctx (F₁ C at a) -> Ctx (C at (⟦_⟧-Param isReduction:compile-Chor𝔐TT {A = C} a))
-  testaa {a = a} b Γ = ⟪ reduce isReduction:compile-Chor𝔐TT {A = C} ∣ Γ Ctx⟫
+  testaa : ∀{a : Param (F₂ C)} -> (b : Param D) -> Ctx a of 𝔉₂ C -> Ctx (par 𝔉₂ a) of C -- (C at (param a))
+  testaa {a = a} b Γ = ⟪ run 𝔉₂ to C ∣ Γ Ctx⟫

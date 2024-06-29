@@ -31,8 +31,12 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   ModeHom : (a b : 𝓂) -> 𝒰 _
   ModeHom a b = a ⟶ b
 
-  private variable
+  module Variables/Mode where variable
     k l m n o p m₀ n₀ m₁ n₁ l₀ l₁ : 𝓂 {{Param}}
+
+  open Variables/Mode
+
+  module Variables/Hom where variable
     μ : Hom {{of 𝓂'}} m n
     μ₀ : Hom {{of 𝓂'}} m n
     μ₁ : Hom {{of 𝓂'}} m n
@@ -45,6 +49,8 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
     η₁ : Hom {{of 𝓂'}} m n
     ω  : Hom {{of 𝓂'}} m n
 
+  open Variables/Hom
+
   data ⊢Type : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
     ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
     Unit : ⊢Type m
@@ -55,10 +61,12 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
 
   infix 30 ⟨_∣_⟩ ⟮_∣_⟯⇒_
 
-  private variable
+  module Variables/Type where variable
     A : ⊢Type m
     B : ⊢Type n
     C : ⊢Type k
+
+  open Variables/Type
 
   data Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
     ε : Ctx m
@@ -105,10 +113,12 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
     _⨾_ : E ⇛ F -> F ⇛ G -> E ⇛ G
 
 
-  private variable
+  module Variables/Ctx where variable
     Γ : Ctx m
     Δ : Ctx n
     Ε : Ctx o
+
+  open Variables/Ctx
 
   data _⊢Var⟮_∣_⇒_⟯ : (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯

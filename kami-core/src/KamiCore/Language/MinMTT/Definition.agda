@@ -19,9 +19,16 @@ open import Agora.TypeTheory.Notation
 
 open import KamiCore.Language.MTT.Definition
 
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+
 
 record MinMTT (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
-  field modeTheory : 2Category 𝑖
+  field ModeTheory : 2Category 𝑖
+  field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰₀
+  field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> a ⟶ b) a b
+
+  -- TODO: We need extra information here
+  -- about how to split the arrows into singletons
 
 open MinMTT public
 
@@ -32,18 +39,16 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   private
     Super : 𝔐TT 𝑖
-    Super = record { 𝓂 = ⟨ modeTheory This ⟩ }
+    Super = record { 𝓂 = ⟨ This .ModeTheory ⟩ }
 
     open 𝔐TT/Definition {{Super}} hiding (_⊢_)
-
-    variable
-      m n o : Param {{hasParamSTT:MTT}} Super
-      μ η : ModeHom m n
-      Γ : CtxOf {{hasParamSTT:MTT}} Super m
-      A B C : TypeOf {{hasParamSTT:MTT}} Super m
+    open Variables/Mode
+    open Variables/Hom
+    open Variables/Type
+    open Variables/Ctx
 
 
-  data _⊢_ : ∀{a : Param Super} -> Ctx a of Super -> Type a of Super -> 𝒰 𝑖 where
+  data _⊢_ : ∀{m : Param Super} -> Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
     var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
 
     tt : Γ ⊢ Unit
@@ -76,6 +81,18 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
     _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
     rec-Lst : {Γ : Ctx m of Super} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
+  module _ (m : Param Super) where
+    λMinMTT : STT _
+    λMinMTT = record
+      { Ctx = Ctx m of Super
+      ; Type = Type m of Super
+      ; Term = λ Γ A -> Γ ⊢ A
+      }
 
-
+instance
+  hasParamSTT:MinMTT : hasParamSTT (Min𝔐TT 𝑖)
+  hasParamSTT:MinMTT = record
+    { Param = λ This -> ⟨ This .ModeTheory ⟩
+    ; _at_ = λ This m -> Min𝔐TT/Definition.λMinMTT This m
+    }
 
