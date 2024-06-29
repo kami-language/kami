@@ -15,7 +15,8 @@ open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
-open import Agora.TypeTheory.Notation
+open import Agora.TypeTheory.STT.Definition
+open import Agora.TypeTheory.ParamSTT.Definition
 
 open import KamiCore.Language.MTT.Definition
 

@@ -23,7 +23,8 @@ open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Basics hiding (_⋆_)
 
 
-open import Agora.TypeTheory.Notation
+open import Agora.TypeTheory.STT.Definition
+open import Agora.TypeTheory.ParamSTT.Definition
 
 open import KamiCore.Language.MTT.Definition
 

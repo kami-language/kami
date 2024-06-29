@@ -15,7 +15,8 @@ open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
-open import Agora.TypeTheory.Notation
+open import Agora.TypeTheory.STT.Definition
+open import Agora.TypeTheory.ParamSTT.Definition
 
 
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
@@ -26,6 +27,9 @@ open import KamiCore.Language.MinMTT.Definition
 
 F₁ : Min𝔐TT 𝑖 -> 𝔐TT _
 F₁ This = record { 𝓂 = ⟨ This .ModeTheory ⟩ }
+
+module _ {𝑖} where
+  macro 𝔉₁ = #structureOn (F₁ {𝑖 = 𝑖})
 
 module _ (This : Min𝔐TT 𝑖) where
   private
@@ -58,11 +62,12 @@ module _ (This : Min𝔐TT 𝑖) where
 
 
 
-isReduction:F₁ : isReduction (Min𝔐TT 𝑖) (𝔐TT _) F₁
-isReduction:F₁ = record
-  { param = par-𝔉₁
-  ; runAt = run-𝔉₁
-  }
+instance
+  isReduction:F₁ : isParamSTTHom (Min𝔐TT 𝑖) (𝔐TT _) F₁
+  isReduction:F₁ = record
+    { param = par-𝔉₁
+    ; runAt = run-𝔉₁
+    }
 
 
 

@@ -213,7 +213,8 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   pattern refl-Factors δ = factors _ _ refl-≡ δ
 
 
-open import Agora.TypeTheory.Notation
+open import Agora.TypeTheory.STT.Definition
+open import Agora.TypeTheory.ParamSTT.Definition
 
 ----------------------------------------------------------
 -- The parametrized type theory

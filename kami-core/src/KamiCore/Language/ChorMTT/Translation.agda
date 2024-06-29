@@ -12,7 +12,8 @@ open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
-open import Agora.TypeTheory.Notation
+open import Agora.TypeTheory.STT.Definition
+open import Agora.TypeTheory.ParamSTT.Definition
 
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
@@ -33,7 +34,7 @@ F₂ record { roles = roles } = record { ModeTheory = ⊤-𝒰 {ℓ₀} since {!
 
 
 instance
-  isReduction:F₂ : isReduction (Chor𝔐TT) (Min𝔐TT _) F₂ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) F₂
+  isReduction:F₂ : isParamSTTHom (Chor𝔐TT) (Min𝔐TT _) F₂ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) F₂
   isReduction:F₂ = record
     { param = λ _ -> {!!}
     ; runAt = {!!}
