@@ -78,7 +78,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
 
   module [𝔐TT/Definition::Ctx] where
     data ⊢Ctx {a : 𝓂} : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-      ε : ⊢Ctx m
+      ε : ⊢Ctx {a} a
       _∙⟮_∣_⟯ : ⊢Ctx {a} n -> ⊢Type m -> m ⟶ n -> ⊢Ctx {a} n
       _∙!_ : ⊢Ctx {a} n -> m ⟶ n -> ⊢Ctx m
 

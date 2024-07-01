@@ -108,7 +108,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
 
     data isCtx₂ : Ctx (◯ , a) of Super -> 𝒰 𝑗 where
-      ε : isCtx₂ {a = a} ε
+      ε : isCtx₂ ε
       stepVar : {Γ : Ctx (◯ , ◯) of Super} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
       stepRes : ∀(x : Edge (of SN-ModeSystem .graph) b a) -> {Γ : Ctx (◯ , a) of Super} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
 
@@ -119,36 +119,40 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
   --------------------------------------------------------------------
   -- Terms
-  data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
 
-  data _⊢_ : Ctx (◯ , a) of Super -> Type (◯ , a) of Super -> 𝒰 𝑗 where
-    var : {Γ : Ctx (◯ , a) of Super} -> ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
-    tt : Γ ⊢ Unit
 
-    -- modalities
-    mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-    letmod : ∀(μ : BaseModeHom-SN a b) -> (ν : b ⟶ c)
-          -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-          -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
-          -> Γ ⊢ B
+  module [Chor𝔐TT/Definition::Term] where
+    data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
+    data _⊢_ : Ctx (◯ , a) of Super -> Type (◯ , a) of Super -> 𝒰 𝑗 where
+      var : {Γ : Ctx (◯ , a) of Super} -> ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+      tt : Γ ⊢ Unit
 
-    letmod' : ∀(μ : BaseModeHom-SN a b)
-          -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-          -> Γ ∙⟮ A ∣ μ ⨾ id' ⟯ ⊢ B
-          -> Γ ⊢ B
+      -- modalities
+      mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+      letmod : ∀(μ : BaseModeHom-SN a b) -> (ν : b ⟶ c)
+            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+            -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
+            -> Γ ⊢ B
 
-    -- explicit transformations
-    trans : ∀ {μ ν : a ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      letmod' : ∀(μ : BaseModeHom-SN a b)
+            -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+            -> Γ ∙⟮ A ∣ μ ⨾ id' ⟯ ⊢ B
+            -> Γ ⊢ B
 
-    -- transformations monad
-    pure : Γ ⊢ A -> Γ ⊢ Tr A
-    seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ B -> Γ ⊢ Tr B
+      -- explicit transformations
+      trans : ∀ {μ ν : a ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
-    -- functions
-    lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ id' ⟯⇒ B
+      -- transformations monad
+      pure : Γ ⊢ A -> Γ ⊢ Tr A
+      seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ B -> Γ ⊢ Tr B
 
-    -- app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ A -> Γ ⊢ B
-    app : Γ ⊢ ⟮ A ∣ id' ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
+      -- functions
+      lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ id' ⟯⇒ B
+
+      -- app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ A -> Γ ⊢ B
+      app : Γ ⊢ ⟮ A ∣ id' ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
+
+  open [Chor𝔐TT/Definition::Term]
 
 
   -- Our simple type theory

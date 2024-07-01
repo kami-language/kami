@@ -28,6 +28,7 @@ open import KamiCore.Language.ChorMTT.Definition
 
 record ChorProc 𝑗 : 𝒰 (𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
+  field allProcs : 𝒫ᶠⁱⁿ Proc
 
 open ChorProc public
 
@@ -46,7 +47,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     ; isProp:≤-Roles = it
     }
 
-  open Chor𝔐TT/Definition Super hiding (_⊢_)
+  open Chor𝔐TT/Definition Super
   open [Chor𝔐TT/Definition::Param]
 
   private Mode = Param Super
@@ -55,7 +56,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     data ⊢Type : Mode -> 𝒰 𝑗
 
     data ⊢Type where
-      ◻ : ⊢Type ◯ -> ⊢Type ▲
+      ◻ : ∀{U} -> ⊢Type ◯ -> ⊢Type (▲ U)
       -- [_∣_]◅_ : ⊢Type ◯ -> (𝒫ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> ⊢Type ▲
       -- _∥_ : ⊢Type ▲ -> ⊢Type ▲ -> ⊢Type ▲
       NN : ∀{m} -> ⊢Type m
@@ -64,9 +65,11 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       _⇒_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       _××_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       Tr : ∀{m} -> ⊢Type m -> ⊢Type m
-      _＠_ : ⊢Type ▲ -> (l : 𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ◯
+      located : (l : 𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type (▲ l) -> ⊢Type ◯
 
-    infix 30 _＠_
+    syntax located l A = A ＠ l
+
+    infix 30 located
 
   open [Chor𝔓roc/Definition::Type]
 
@@ -80,8 +83,10 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
   open [Chor𝔓roc/Definition::Ctx]
 
   module [Chor𝔓roc/Definition::Term] where
+    record _⊢_GlobalFibered[_] (Γ : ⊢Ctx) (X : ⊢Type ◯) (ps : 𝒫ᶠⁱⁿ (Proc This)) : 𝒰 (𝑗) where
+
     _⊢_ : ⊢Ctx -> ⊢Type ◯ -> 𝒰 𝑗
-    _⊢_ = {!!}
+    _⊢_ Γ X = Γ ⊢ X GlobalFibered[ allProcs This ]
 
   open [Chor𝔓roc/Definition::Term]
 

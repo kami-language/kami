@@ -36,10 +36,14 @@ F₃ This = Chor𝔓roc/Definition.Super This
 module _ (This : Chor𝔓roc 𝑗) where
   open Chor𝔓roc/Definition This
   open [Chor𝔓roc/Definition::Type]
+  open [Chor𝔓roc/Definition::Ctx]
+  open [Chor𝔓roc/Definition::Term]
 
   open Chor𝔐TT/Definition Super
   open [Chor𝔐TT/Definition::Param]
   open [Chor𝔐TT/Definition::Type] hiding (⊢Type)
+  open [Chor𝔐TT/Definition::Ctx] renaming (⊢Ctx to 𝔐TT⊢Ctx)
+  open [Chor𝔐TT/Definition::Term] renaming (_⊢_ to _𝔐TT⊢_)
 
   par-𝔉₃ : Param Super -> Param This
   par-𝔉₃ _ = tt
@@ -67,24 +71,74 @@ module _ (This : Chor𝔓roc 𝑗) where
   ⦋ Either x x₁ ⦌-Type = {!!}
   ⦋ Lst x ⦌-Type = {!!}
 
+  ⟪𝔉₃∣_Type⟫ : {a : Param Super} -> Type a of Super -> Type tt of This
+  ⟪𝔉₃∣_Type⟫ {a = ▲ x} X = ⦋ X ⦌-Type ＠ x
+  ⟪𝔉₃∣_Type⟫ {a = ◯} X = ⦋ X ⦌-Type
+
 
   -- End Types
   --------------------------------------------------------------------
 
+  --------------------------------------------------------------------
+  -- Contexts
+
+  TargetCtx : Param Super -> 𝒰 _
+  TargetCtx (▲ _) = ⊢Ctx × ⟨ P ⟩
+  TargetCtx ◯ = ⊢Ctx
+
+  addRestr : (μ : a ⟶ b) -> TargetCtx b -> TargetCtx a
+  addRestr id' Γ = Γ
+  addRestr (`＠` U ⨾ μ) Γ = addRestr μ Γ , U
+  addRestr (`[]` ⨾ μ) Γ = let Γ' , U = addRestr μ Γ in Γ' ,[ U ]
+
+  transl-Ctx : (Γ : 𝔐TT⊢Ctx {◯} a) -> isCtx₂ Γ -> TargetCtx a
+  transl-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
+  transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr μ (transl-Ctx Γ Γp)
+  transl-Ctx ε Γp = ε
+
+  forget : TargetCtx a -> ⊢Ctx
+  forget {a = ◯} Γ = Γ
+  forget {a = ▲ x} Γ = fst Γ
+
+  ⟪𝔉₃∣_Ctx⟫ : Ctx a of Super -> Ctx tt of This
+  ⟪𝔉₃∣_Ctx⟫ (Γ , Γp) = forget (transl-Ctx Γ Γp)
+
+  -- End Contexts
+  --------------------------------------------------------------------
+
+  --------------------------------------------------------------------
+  -- Terms
+  transl-Term-▲ : ∀{ps i} -> (Γ : 𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
+            -> ∀{A} -> Γ ∙! (`＠` i ⨾ id') 𝔐TT⊢ A
+            -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
+  transl-Term-▲ = {!!}
+
+  transl-Term-◯ : ∀{ps} -> (Γ : 𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
+            -> ∀{A} -> Γ 𝔐TT⊢ A
+            -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
+  transl-Term-◯ = {!!}
+
+  ⟪𝔉₃∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
+               -> Γ ⊢ X at a of Super
+               -> ⟪𝔉₃∣ Γ Ctx⟫ ⊢ ⟪𝔉₃∣ X Type⟫ at tt of This
+  ⟪𝔉₃∣_Term⟫ {a = ▲ U} {Γ = (Γ ∙! (`＠` U ⨾ id')) , stepRes (`＠` U) Γp} {X} t = transl-Term-▲ Γ Γp t
+  ⟪𝔉₃∣_Term⟫ {a = ◯} {Γ = Γ , Γp} {X} t = transl-Term-◯ Γ Γp t
+
+  -- End Terms
+  --------------------------------------------------------------------
+
   module _ {a : Param Super} where
 
-    ⟪𝔉₃∣_Type⟫ : Type a of Super -> Type tt of This
-    ⟪𝔉₃∣_Type⟫ X = {!⦋ X ⦌-Type!}
+    -- ⟪𝔉₃∣_Type⟫ : Type a of Super -> Type tt of This
+    -- ⟪𝔉₃∣_Type⟫ X = {!⦋ X ⦌-Type!}
 
 
-    ⟪𝔉₃∣_Ctx⟫ : Ctx a of Super -> Ctx tt of This
-    ⟪𝔉₃∣_Ctx⟫ = {!!}
 
   run-𝔉₃ : ∀{a : Param Super} -> (pa : SubParam Super a) -> Hom-STT (Super at a) (This at tt)
   run-𝔉₃ pa = record
     { ⟪_∣_Ctx⟫ = ⟪𝔉₃∣_Ctx⟫
-    ; ⟪_∣_Type⟫ = {!!}
-    ; ⟪_∣_Term⟫ = {!!}
+    ; ⟪_∣_Type⟫ = ⟪𝔉₃∣_Type⟫
+    ; ⟪_∣_Term⟫ = ⟪𝔉₃∣_Term⟫
     }
 
 
