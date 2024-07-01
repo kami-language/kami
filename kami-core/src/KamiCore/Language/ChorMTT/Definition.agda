@@ -3,83 +3,81 @@
 
 module KamiCore.Language.ChorMTT.Definition where
 
+open import Data.List using (drop)
+
 open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
-open import KamiTheory.Order.StrictOrder.Base
-open import KamiTheory.Data.UniqueSortedList.Definition
-open import KamiTheory.Data.List.Definition
-open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
-open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
-open import Data.List using (drop)
-
-
-open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
-
-open import KamiTheory.Order.StrictOrder.Base
-open import KamiTheory.Basics hiding (_⋆_)
-
-
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
 
+open import KamiTheory.Basics hiding (_⋆_)
+open import KamiTheory.Order.StrictOrder.Base
+open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.List.Definition
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
+open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
+import KamiTheory.Main.Generic.ModeSystem.2Graph.Example2 as 2GraphExample
+import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition as 2CellDefinition
+import KamiTheory.Main.Generic.ModeSystem.2Cell.Rewriting as 2CellRewriting
+import KamiTheory.Main.Generic.ModeSystem.2Cell.Linear as 2CellLinear
+
 open import KamiCore.Language.MTT.Definition
+open import KamiCore.Language.MinMTT.Definition
 
 
-record ChorMTT : 𝒰₀ where
-  field roles : ℕ
+
+
+
+
+
+record ChorMTT 𝑗 : 𝒰 (𝑗 ⁺) where
+  field Roles : Preorder 𝑗
+  field {{hasDecidableEquality:Roles}} : hasDecidableEquality ⟨ Roles ⟩
+  field {{isProp:≤-Roles}} : ∀{a b : ⟨ Roles ⟩} -> isProp (a ≤ b)
 
 open ChorMTT public
 
-macro Chor𝔐TT = #structureOn ChorMTT
+module _ 𝑗 where
+  macro Chor𝔐TT = #structureOn (ChorMTT 𝑗)
 
-module Chor𝔐TT/Definition (This : Chor𝔐TT) where
+module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
-  private n = This .roles
-
-
--- (P : Preorder 𝑖) {{_ : hasDecidableEquality ⟨ P ⟩}} {{_ : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)}} where
+  private n = This .Roles
 
   P : Preorder _
-  P = 𝒫ᶠⁱⁿ (𝔽 n)
+  P = This .Roles
 
-  postulate instance
-    hasDecidableEquality:P : hasDecidableEquality ⟨ P ⟩
-    -- hasDecidableEquality:P = {!!}
-
-  postulate instance
-    isProp:≤ : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)
-    -- isProp:≤ = {!!}
-
+  module [Chor𝔐TT/Definition::Param] where
   -- Getting the mode system
-  import KamiTheory.Main.Generic.ModeSystem.2Graph.Example2 as 2GraphExample
-  -- import KamiTheory.Main.Generic.ModeSystem.2Cell.Example as 2CellExample
-  import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition as 2CellDefinition
-  import KamiTheory.Main.Generic.ModeSystem.2Cell.Rewriting as 2CellRewriting
-  import KamiTheory.Main.Generic.ModeSystem.2Cell.Linear as 2CellLinear
-  open 2CellDefinition.2CellDefinition hiding (id)
-  open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example2
-  open SendNarrow-ModeSystem P {{it}} {{it}}
-  open 2GraphExample.SendNarrow-2Graph P
-  open 2CellLinear.2CellLinear SN
-  open 2CellRewriting.2CellRewriting SN
-  -- open 2CellExample.SendNarrow-2Cells P {{it}} {{it}}
+    open 2CellDefinition.2CellDefinition hiding (id) public
+    open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example2 public
+    open SendNarrow-ModeSystem P {{it}} {{it}} public
+    open 2GraphExample.SendNarrow-2Graph P public
+    open 2CellLinear.2CellLinear SN public
+    open 2CellRewriting.2CellRewriting SN public
+
+    open ModeSystemAs2Category SN-ModeSystem public
+
+    ⊢Param = Mode SN-ModeSystem
+
+  open [Chor𝔐TT/Definition::Param]
 
 
 
-  open import KamiCore.Language.MinMTT.Definition
 
-  open ModeSystemAs2Category SN-ModeSystem
 
-  Super : Min𝔐TT _
-  Super = record
-    { ModeTheory = ′ Mode SN-ModeSystem ′
-    ; isSmall = {!!}
-    ; split = {!!}
-    }
+  private
+    Super : Min𝔐TT _
+    Super = record
+      { ModeTheory = ′ Mode SN-ModeSystem ′
+      ; isSmall = {!!}
+      ; split = {!!}
+      }
 
 
   -- Instantiating MTT with the 2category generated from the modesystem
@@ -91,7 +89,6 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
   -- Import the required definitions from 𝔐TT itself
   open 𝔐TT/Definition [Min𝔐TT/Definition::Private].Super
 
-  ⊢Param = Mode SN-ModeSystem
 
   private variable
     a a₀ b c d : Mode SN-ModeSystem
@@ -104,7 +101,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
 
   data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
 
-  data _⊢_ : Ctx a of Super -> Type a of Super -> 𝒰₀ where
+  data _⊢_ : Ctx a of Super -> Type a of Super -> 𝒰 𝑗 where
     var : ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
     tt : Γ ⊢ Unit
 
@@ -137,7 +134,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
   -- Our simple type theory
 
   module _ (a : ⊢Param) where
-    λChorMTT : STT (ℓ₀ , ℓ₀ , ℓ₀)
+    λChorMTT : STT _
     λChorMTT = record
       { Ctx = Ctx a of Super
       ; Type = Type a of Super
@@ -147,9 +144,9 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
 
 
 instance
-  hasParamSTT:ChorMTT : hasParamSTT ChorMTT
+  hasParamSTT:ChorMTT : hasParamSTT (ChorMTT 𝑗)
   hasParamSTT:ChorMTT = record
-    { Param = Chor𝔐TT/Definition.⊢Param
+    { Param = Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Param].⊢Param
     ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
     }
 

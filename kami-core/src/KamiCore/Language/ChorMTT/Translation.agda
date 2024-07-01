@@ -29,19 +29,22 @@ open import KamiCore.Language.ChorMTT.Definition
 
 
 
-F₂ : Chor𝔐TT -> MinMTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)
-F₂ record { roles = roles } = record { ModeTheory = ⊤-𝒰 {ℓ₀} since {!!}  ; isSmall = {!!} ; split = {!!} }
+F₂ : Chor𝔐TT 𝑗 -> Min𝔐TT _
+F₂ This = Chor𝔐TT/Definition.Super This
 
+module _ (This : Chor𝔐TT 𝑗) where
+  open Chor𝔐TT/Definition This
 
 instance
-  isReduction:F₂ : isParamSTTHom (Chor𝔐TT) (Min𝔐TT _) F₂ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)) F₂
+  isReduction:F₂ : isParamSTTHom (Chor𝔐TT 𝑗) (Min𝔐TT _) F₂
   isReduction:F₂ = record
     { param = λ _ -> {!!}
     ; runAt = {!!}
     }
 
-macro 𝔉₂ = #structureOn F₂
+module _ 𝑗 where macro 𝔉₂ = #structureOn (F₂ {𝑗 = 𝑗})
 
+{-
 mytest : hasParamSTT ChorMTT
 mytest = it
 
@@ -50,3 +53,5 @@ module _ (C : Chor𝔐TT) (D : MinMTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ�
 
   testaa : ∀{a : Param (F₂ C)} -> (b : Param D) -> Ctx a of 𝔉₂ C -> Ctx (par 𝔉₂ a) of C -- (C at (param a))
   testaa {a = a} b Γ = ⟪ run 𝔉₂ to C ∣ Γ Ctx⟫
+
+-}
