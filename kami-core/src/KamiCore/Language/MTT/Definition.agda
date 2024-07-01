@@ -75,13 +75,14 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   open Variables/Type
 
   module [𝔐TT/Definition::Ctx] where
-    data ⊢Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+    data ⊢Ctx {a : 𝓂} : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
       ε : ⊢Ctx m
-      _∙⟮_∣_⟯ : ⊢Ctx n -> ⊢Type m -> m ⟶ n -> ⊢Ctx n
-      _∙!_ : ⊢Ctx n -> m ⟶ n -> ⊢Ctx m
+      _∙⟮_∣_⟯ : ⊢Ctx {a} n -> ⊢Type m -> m ⟶ n -> ⊢Ctx {a} n
+      _∙!_ : ⊢Ctx {a} n -> m ⟶ n -> ⊢Ctx m
 
     infix 32 _∙⟮_∣_⟯
     infixl 30 _∙!_
+
 
     data CtxExt : (m ⟶ n) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
       ε : CtxExt {m} {m} id
@@ -90,7 +91,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   open [𝔐TT/Definition::Ctx]
 
-  ft : CtxExt {m = m} μ -> ⊢Ctx m
+  ft : CtxExt {m = m} {n = n} μ -> ⊢Ctx {n} m
   ft ε = ε
   ft (Γ ∙⟮ x ∣ μ ⟯) = ft Γ ∙⟮ x ∣ μ ⟯
   ft (Γ ∙! ω) = ft Γ ∙! ω
@@ -98,7 +99,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   private variable
     E F G : CtxExt μ
 
-  _⋆_ : ⊢Ctx k -> CtxExt {m} {k} η -> ⊢Ctx m
+  _⋆_ : ⊢Ctx {o} k -> CtxExt {m} {k} η -> ⊢Ctx {o} m
   Γ ⋆ ε = Γ
   Γ ⋆ (E ∙⟮ x ∣ μ ⟯) = (Γ ⋆ E) ∙⟮ x ∣ μ ⟯
   Γ ⋆ (E ∙! ω) = (Γ ⋆ E) ∙! ω
@@ -124,15 +125,15 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   open Variables/Ctx
 
-  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
-    zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
-    suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
+  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
+    zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
+    suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
   -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
   -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the
   -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
-  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
@@ -140,14 +141,14 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
   -- between arrows.
-  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
     field snd : η ⟹ target
 
   module [𝔐TT/Definition::Term] where
-    data _⊢_ {m} : ⊢Ctx m -> ⊢Type m -> 𝒰 𝑖 where
+    data _⊢_ {m} : ⊢Ctx {k} m -> ⊢Type m -> 𝒰 𝑖 where
       var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
       tt : Γ ⊢ Unit
 
@@ -181,10 +182,10 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   open [𝔐TT/Definition::Term]
 
-  data _⟼_ : ⊢Ctx m -> ⊢Ctx m -> 𝒰 𝑖 where
+  data _⟼_ : ⊢Ctx {k} m -> ⊢Ctx {k} m -> 𝒰 𝑖 where
     id-Ctx : Γ ⟼ Γ
-    _∙‼_ : ∀ Γ -> {μ ν : m ⟶ n} -> μ ⟹ ν -> Γ ∙! ν ⟼ Γ ∙! μ
-    _∙!_ : ∀ {Γ Δ : ⊢Ctx m} -> Γ ⟼ Δ -> ∀ (μ : n ⟶ m) -> Γ ∙! μ ⟼ Δ ∙! μ
+    _∙‼_ : ∀ (Γ : ⊢Ctx {k} n) -> {μ ν : m ⟶ n} -> μ ⟹ ν -> Γ ∙! ν ⟼ Γ ∙! μ
+    _∙!_ : ∀ {Γ Δ : ⊢Ctx {k} m} -> Γ ⟼ Δ -> ∀ (μ : n ⟶ m) -> Γ ∙! μ ⟼ Δ ∙! μ
     _∙⟮_⟯ : Γ ⟼ Δ -> Γ ∙! μ ⊢ A -> Γ ⟼ Δ ∙⟮ A ∣ μ ⟯
     lift : Γ ⟼ Δ -> Γ ∙⟮ A ∣ μ ⟯ ⟼ Δ ∙⟮ A ∣ μ ⟯
     -- 𝑝 : Γ ∙⟮ A ∣ μ ⟯ ⟼ Γ
@@ -198,11 +199,11 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   -- we have to add the `lift` constructor above. Previously, lift could be constructed
   -- from 𝑝, composition and ∙⟮_⟯. But now it cannot, because composition lives here
   -- instead of in `⟼`.
-  data _⟼*_ : ⊢Ctx m -> ⊢Ctx m -> 𝒰 𝑖 where
+  data _⟼*_ : ⊢Ctx {k} m -> ⊢Ctx {k} m -> 𝒰 𝑖 where
     [] : Γ ⟼* Γ
     _⨾_ : Γ ⟼* Δ -> Δ ⟼ Ε -> Γ ⟼* Ε
 
-  record Factors (Γ : ⊢Ctx m) (Γ' : ⊢Ctx n) {η : m ⟶ n} (E : CtxExt η) : 𝒰 𝑖 where
+  record Factors (Γ : ⊢Ctx {k} m) (Γ' : ⊢Ctx n) {η : m ⟶ n} (E : CtxExt η) : 𝒰 𝑖 where
     constructor factors
     field factor-restr : m ⟶ n
     field factor-Ext : CtxExt factor-restr
@@ -218,14 +219,14 @@ open import Agora.TypeTheory.ParamSTT.Definition
 
 ----------------------------------------------------------
 -- The parametrized type theory
-module _ (This : MTT 𝑖) (a : ⟨ This .ModeTheory ⟩) where
+module _ (This : MTT 𝑖) (x a : ⟨ This .ModeTheory ⟩) where
   open 𝔐TT/Definition This
   open [𝔐TT/Definition::Term]
   open [𝔐TT/Definition::Type]
   open [𝔐TT/Definition::Ctx]
   λMTT : STT _
   λMTT = record
-    { Ctx = ⊢Ctx a
+    { Ctx = ⊢Ctx {x} a
     ; Type = ⊢Type a
     ; Term = λ Γ X -> _⊢_ Γ X
     }
@@ -233,8 +234,8 @@ module _ (This : MTT 𝑖) (a : ⟨ This .ModeTheory ⟩) where
 instance
   hasParamSTT:MTT : hasParamSTT (MTT 𝑖)
   hasParamSTT:MTT = record
-    { Param = λ 𝒯 -> ⟨ 𝒯 .ModeTheory ⟩
-    ; _at_ = λMTT
+    { Param = λ 𝒯 -> ⟨ 𝒯 .ModeTheory ⟩ ×-𝒰 ⟨ 𝒯 .ModeTheory ⟩
+    ; _at_ = λ 𝒯 (x , a) -> λMTT 𝒯 x a
     }
 
 module _ 𝑖 where macro
@@ -242,6 +243,7 @@ module _ 𝑖 where macro
 
 
 
+{-
 
 {-
 
@@ -497,4 +499,5 @@ module _ 𝑖 where macro
 -}
 
 
+-}
 
