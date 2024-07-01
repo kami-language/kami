@@ -52,8 +52,11 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   module [Min𝔐TT/Definition::Type] where
     open [𝔐TT/Definition::Type] public
-
   open [Min𝔐TT/Definition::Type]
+
+  module [Min𝔐TT/Definition::Ctx] where
+    open [𝔐TT/Definition::Ctx] public
+  open [Min𝔐TT/Definition::Ctx]
 
 
   module [Min𝔐TT/Definition::Term] where

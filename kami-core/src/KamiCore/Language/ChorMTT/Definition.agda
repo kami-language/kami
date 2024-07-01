@@ -47,12 +47,10 @@ module _ 𝑗 where
 
 module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
-  private n = This .Roles
-
-  P : Preorder _
-  P = This .Roles
-
   module [Chor𝔐TT/Definition::Param] where
+    P : Preorder _
+    P = This .Roles
+
   -- Getting the mode system
     open 2CellDefinition.2CellDefinition hiding (id) public
     open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example2 public
@@ -69,7 +67,6 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
 
-
   module [Chor𝔐TT/Definition::Private] where
     Super : Min𝔐TT _
     Super = record
@@ -80,14 +77,14 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
   open [Chor𝔐TT/Definition::Private]
 
 
-  -- Instantiating MTT with the 2category generated from the modesystem
-  -- open import KamiCore.Typed.Variant.F.Definition3
   open Min𝔐TT/Definition Super
   open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
   open [Min𝔐TT/Definition::Type]
 
+
   -- Import the required definitions from 𝔐TT itself
   open 𝔐TT/Definition [Min𝔐TT/Definition::Private].Super
+  open [𝔐TT/Definition::Ctx]
 
 
   private variable

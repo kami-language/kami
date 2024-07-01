@@ -74,18 +74,21 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   open Variables/Type
 
-  data ⊢Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-    ε : ⊢Ctx m
-    _∙⟮_∣_⟯ : ⊢Ctx n -> ⊢Type m -> m ⟶ n -> ⊢Ctx n
-    _∙!_ : ⊢Ctx n -> m ⟶ n -> ⊢Ctx m
+  module [𝔐TT/Definition::Ctx] where
+    data ⊢Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+      ε : ⊢Ctx m
+      _∙⟮_∣_⟯ : ⊢Ctx n -> ⊢Type m -> m ⟶ n -> ⊢Ctx n
+      _∙!_ : ⊢Ctx n -> m ⟶ n -> ⊢Ctx m
 
-  infix 32 _∙⟮_∣_⟯
-  infixl 30 _∙!_
+    infix 32 _∙⟮_∣_⟯
+    infixl 30 _∙!_
 
-  data CtxExt : (m ⟶ n) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-    ε : CtxExt {m} {m} id
-    _∙⟮_∣_⟯ : CtxExt {n} {k} η -> ⊢Type m -> (μ : m ⟶ n) -> CtxExt η
-    _∙!_ : CtxExt {n} {k} η -> (ω : m ⟶ n) -> CtxExt (ω ◆ η)
+    data CtxExt : (m ⟶ n) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+      ε : CtxExt {m} {m} id
+      _∙⟮_∣_⟯ : CtxExt {n} {k} η -> ⊢Type m -> (μ : m ⟶ n) -> CtxExt η
+      _∙!_ : CtxExt {n} {k} η -> (ω : m ⟶ n) -> CtxExt (ω ◆ η)
+
+  open [𝔐TT/Definition::Ctx]
 
   ft : CtxExt {m = m} μ -> ⊢Ctx m
   ft ε = ε
@@ -101,11 +104,6 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   Γ ⋆ (E ∙! ω) = (Γ ⋆ E) ∙! ω
 
   infixl 22 _⋆_
-
-  -- data _⇛_ : (E : CtxExt {m} {n} μ) -> (F : CtxExt {m} {n} ν) -> 𝒰 𝑖 where
-  --   id-⇛ : E ⇛ E
-  --   _∙‼_ : {μ ν : m ⟶ n} -> E ⇛ F -> (ν ⟹ μ) -> E ∙! μ ⇛ F ∙! ν
-  --   _∙⟮_∣_⟯ : E ⇛ F -> (A : ⊢Type k) -> ∀ μ -> E ∙⟮ A ∣ μ ⟯ ⇛ F ∙⟮ A ∣ μ ⟯
 
 
   data _⇛_ : (E : CtxExt {m} {n} μ) -> (F : CtxExt {m} {n} ν) -> 𝒰 𝑖 where
@@ -231,6 +229,7 @@ module _ (This : MTT 𝑖) (a : ⟨ This .ModeTheory ⟩) where
   open 𝔐TT/Definition This
   open [𝔐TT/Definition::Term]
   open [𝔐TT/Definition::Type]
+  open [𝔐TT/Definition::Ctx]
   λMTT : STT _
   λMTT = record
     { Ctx = ⊢Ctx a
