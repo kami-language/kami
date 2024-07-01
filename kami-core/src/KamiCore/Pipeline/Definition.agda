@@ -15,6 +15,10 @@ open import KamiCore.Language.ChorMTT.Definition
 open import KamiCore.Language.ChorMTT.Translation
 
 
+-- The inference & typechecking pipeline
+
+
+
 -- The whole compilation pipeline
 𝔉 : ParamSTTHom Chor𝔐TT (𝔐TT _)
 𝔉 = 𝔉₂ ◆-ParamSTT 𝔉₁

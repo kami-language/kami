@@ -15,24 +15,27 @@ open import Data.Vec hiding ([_] ; map)
 
 
 record MTT (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
-  field 𝓂 : 𝒰 (𝑖 ⌄ 0)
-  field {{isCategory:𝓂}} : isCategory {𝑖 ⌄ 1 ⋯ 2} 𝓂
-  field {{is2Category:𝓂}} : is2Category {𝑖 ⌄ 3 ⋯ 4} ′ 𝓂 ′
+  field ModeTheory : 2Category 𝑖
+  -- field 𝓂 : 𝒰 (𝑖 ⌄ 0)
+  -- field {{isCategory:𝓂}} : isCategory {𝑖 ⌄ 1 ⋯ 2} 𝓂
+  -- field {{is2Category:𝓂}} : is2Category {𝑖 ⌄ 3 ⋯ 4} ′ 𝓂 ′
 
-open MTT {{...}} public
+open MTT public
 
 
 
-module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
+module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   private
     𝓂' : Category _
-    𝓂' = ′ 𝓂 ′
+    𝓂' = ↳ (This .ModeTheory)
 
-  ModeHom : (a b : 𝓂) -> 𝒰 _
-  ModeHom a b = a ⟶ b
+    𝓂 = ⟨ This .ModeTheory ⟩
+
+    ModeHom : (a b : 𝓂) -> 𝒰 _
+    ModeHom a b = a ⟶ b
 
   module Variables/Mode where variable
-    k l m n o p m₀ n₀ m₁ n₁ l₀ l₁ : 𝓂 {{Param}}
+    k l m n o p m₀ n₀ m₁ n₁ l₀ l₁ : ⟨ This .ModeTheory ⟩
 
   open Variables/Mode
 
@@ -51,15 +54,18 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
 
   open Variables/Hom
 
-  data ⊢Type : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-    ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
-    Unit : ⊢Type m
-    Tr : ⊢Type m -> ⊢Type m
-    Either : ⊢Type m -> ⊢Type m -> ⊢Type m
-    Lst : ⊢Type m -> ⊢Type m
-    ⟮_∣_⟯⇒_ : ⊢Type m -> m ⟶ n -> ⊢Type n -> ⊢Type n
+  module [𝔐TT/Definition::Type] where
+    data ⊢Type : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+      ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
+      Unit : ⊢Type m
+      Tr : ⊢Type m -> ⊢Type m
+      Either : ⊢Type m -> ⊢Type m -> ⊢Type m
+      Lst : ⊢Type m -> ⊢Type m
+      ⟮_∣_⟯⇒_ : ⊢Type m -> m ⟶ n -> ⊢Type n -> ⊢Type n
 
-  infix 30 ⟨_∣_⟩ ⟮_∣_⟯⇒_
+    infix 30 ⟨_∣_⟩ ⟮_∣_⟯⇒_
+
+  open [𝔐TT/Definition::Type]
 
   module Variables/Type where variable
     A : ⊢Type m
@@ -68,10 +74,10 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
 
   open Variables/Type
 
-  data Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-    ε : Ctx m
-    _∙⟮_∣_⟯ : Ctx n -> ⊢Type m -> m ⟶ n -> Ctx n
-    _∙!_ : Ctx n -> m ⟶ n -> Ctx m
+  data ⊢Ctx : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+    ε : ⊢Ctx m
+    _∙⟮_∣_⟯ : ⊢Ctx n -> ⊢Type m -> m ⟶ n -> ⊢Ctx n
+    _∙!_ : ⊢Ctx n -> m ⟶ n -> ⊢Ctx m
 
   infix 32 _∙⟮_∣_⟯
   infixl 30 _∙!_
@@ -81,7 +87,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
     _∙⟮_∣_⟯ : CtxExt {n} {k} η -> ⊢Type m -> (μ : m ⟶ n) -> CtxExt η
     _∙!_ : CtxExt {n} {k} η -> (ω : m ⟶ n) -> CtxExt (ω ◆ η)
 
-  ft : CtxExt {m = m} μ -> Ctx m
+  ft : CtxExt {m = m} μ -> ⊢Ctx m
   ft ε = ε
   ft (Γ ∙⟮ x ∣ μ ⟯) = ft Γ ∙⟮ x ∣ μ ⟯
   ft (Γ ∙! ω) = ft Γ ∙! ω
@@ -89,7 +95,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   private variable
     E F G : CtxExt μ
 
-  _⋆_ : Ctx k -> CtxExt {m} {k} η -> Ctx m
+  _⋆_ : ⊢Ctx k -> CtxExt {m} {k} η -> ⊢Ctx m
   Γ ⋆ ε = Γ
   Γ ⋆ (E ∙⟮ x ∣ μ ⟯) = (Γ ⋆ E) ∙⟮ x ∣ μ ⟯
   Γ ⋆ (E ∙! ω) = (Γ ⋆ E) ∙! ω
@@ -114,20 +120,20 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
 
 
   module Variables/Ctx where variable
-    Γ : Ctx m
-    Δ : Ctx n
-    Ε : Ctx o
+    Γ : ⊢Ctx m
+    Δ : ⊢Ctx n
+    Ε : ⊢Ctx o
 
   open Variables/Ctx
 
-  data _⊢Var⟮_∣_⇒_⟯ : (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
+  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
     suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
   -- Currently the above type is in its previous form because otherwise some bit of
   -- inference fails and i don't want to update stuff :p
-  delete-me : ∀ {Γ : Ctx k} {A : ⊢Type m} {μ : m ⟶ l} {η : o ⟶ l} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯  -> k ≡ o
+  delete-me : ∀ {Γ : ⊢Ctx k} {A : ⊢Type m} {μ : m ⟶ l} {η : o ⟶ l} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯  -> k ≡ o
   delete-me zero = refl-≡
   delete-me (suc! v) = refl-≡
   delete-me (suc v) = delete-me v
@@ -135,7 +141,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
   -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the 
   -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
-  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
@@ -143,48 +149,51 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
 
   -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
   -- between arrows.
-  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
     field snd : η ⟹ target
 
-  data _⊢_ {m} : Ctx m -> ⊢Type m -> 𝒰 𝑖 where
-    var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
-    tt : Γ ⊢ Unit
+  module [𝔐TT/Definition::Term] where
+    data _⊢_ {m} : ⊢Ctx m -> ⊢Type m -> 𝒰 𝑖 where
+      var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+      tt : Γ ⊢ Unit
 
-    -- modalities
-    mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
-    letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
-           -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
-           -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
-           -> Γ ⊢ B
+      -- modalities
+      mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+      letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
+            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
+            -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
+            -> Γ ⊢ B
 
-    -- explicit transformations
-    trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      -- explicit transformations
+      trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
-    -- transformations monad
-    pure : Γ ⊢ A -> Γ ⊢ Tr A
-    seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
+      -- transformations monad
+      pure : Γ ⊢ A -> Γ ⊢ Tr A
+      seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
-    -- functions
-    lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
-    app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+      -- functions
+      lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
+      app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
 
-    -- sum types
-    left : Γ ⊢ A -> Γ ⊢ Either A B
-    right : Γ ⊢ B -> Γ ⊢ Either A B
-    either : Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      -- sum types
+      left : Γ ⊢ A -> Γ ⊢ Either A B
+      right : Γ ⊢ B -> Γ ⊢ Either A B
+      either : Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
-    -- list types
-    [] : Γ ⊢ Lst A
-    _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
-    rec-Lst : Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      -- list types
+      [] : Γ ⊢ Lst A
+      _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
+      rec-Lst : Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
-  data _⟼_ : Ctx m -> Ctx m -> 𝒰 𝑖 where
+  open [𝔐TT/Definition::Term]
+
+  data _⟼_ : ⊢Ctx m -> ⊢Ctx m -> 𝒰 𝑖 where
     id-Ctx : Γ ⟼ Γ
     _∙‼_ : ∀ Γ -> {μ ν : m ⟶ n} -> μ ⟹ ν -> Γ ∙! ν ⟼ Γ ∙! μ
-    _∙!_ : ∀ {Γ Δ : Ctx m} -> Γ ⟼ Δ -> ∀ (μ : n ⟶ m) -> Γ ∙! μ ⟼ Δ ∙! μ
+    _∙!_ : ∀ {Γ Δ : ⊢Ctx m} -> Γ ⟼ Δ -> ∀ (μ : n ⟶ m) -> Γ ∙! μ ⟼ Δ ∙! μ
     _∙⟮_⟯ : Γ ⟼ Δ -> Γ ∙! μ ⊢ A -> Γ ⟼ Δ ∙⟮ A ∣ μ ⟯
     lift : Γ ⟼ Δ -> Γ ∙⟮ A ∣ μ ⟯ ⟼ Δ ∙⟮ A ∣ μ ⟯
     -- 𝑝 : Γ ∙⟮ A ∣ μ ⟯ ⟼ Γ
@@ -198,18 +207,18 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} {{Param : MTT 𝑖}} where
   -- we have to add the `lift` constructor above. Previously, lift could be constructed
   -- from 𝑝, composition and ∙⟮_⟯. But now it cannot, because composition lives here
   -- instead of in `⟼`.
-  data _⟼*_ : Ctx m -> Ctx m -> 𝒰 𝑖 where
+  data _⟼*_ : ⊢Ctx m -> ⊢Ctx m -> 𝒰 𝑖 where
     [] : Γ ⟼* Γ
     _⨾_ : Γ ⟼* Δ -> Δ ⟼ Ε -> Γ ⟼* Ε
 
-  record Factors (Γ : Ctx m) (Γ' : Ctx n) {η : m ⟶ n} (E : CtxExt η) : 𝒰 𝑖 where
+  record Factors (Γ : ⊢Ctx m) (Γ' : ⊢Ctx n) {η : m ⟶ n} (E : CtxExt η) : 𝒰 𝑖 where
     constructor factors
     field factor-restr : m ⟶ n
     field factor-Ext : CtxExt factor-restr
     field ext : Γ' ⋆ factor-Ext ≡ Γ
     field sub : factor-Ext ⇛ E
 
-  -- easily constructing and deconstructing proves of `Factors`
+  -- easily constructing and deconstructing proofs of `Factors`
   pattern refl-Factors δ = factors _ _ refl-≡ δ
 
 
@@ -218,31 +227,27 @@ open import Agora.TypeTheory.ParamSTT.Definition
 
 ----------------------------------------------------------
 -- The parametrized type theory
-module _ (𝒯 : MTT 𝑖) (a : 𝓂 {{𝒯}}) where
+module _ (This : MTT 𝑖) (a : ⟨ This .ModeTheory ⟩) where
+  open 𝔐TT/Definition This
+  open [𝔐TT/Definition::Term]
+  open [𝔐TT/Definition::Type]
   λMTT : STT _
   λMTT = record
-    { Ctx = 𝔐TT/Definition.Ctx {{𝒯}} a
-    ; Type = 𝔐TT/Definition.⊢Type {{𝒯}} a
-    ; Term = λ Γ X -> 𝔐TT/Definition._⊢_ {{𝒯}} Γ X
+    { Ctx = ⊢Ctx a
+    ; Type = ⊢Type a
+    ; Term = λ Γ X -> _⊢_ Γ X
     }
 
 instance
   hasParamSTT:MTT : hasParamSTT (MTT 𝑖)
   hasParamSTT:MTT = record
-    { Param = λ 𝒯 -> 𝓂 {{𝒯}}
+    { Param = λ 𝒯 -> ⟨ 𝒯 .ModeTheory ⟩
     ; _at_ = λMTT
     }
-
-{-# OVERLAPS hasParamSTT:MTT #-}
 
 module _ 𝑖 where macro
   𝔐TT = #structureOn (MTT 𝑖)
 
--- 𝔐TT : ParamSTT _ -- (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀)
--- 𝔐TT = MTT (ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀ , ℓ₀) since hasParamSTT:MTT
-
--- 𝔐TT : ∀ 𝑖 -> ParamSTT _
--- 𝔐TT 𝑖 = MTT 𝑖 since hasParamSTT:MTT
 
 
 
@@ -273,7 +278,7 @@ module _ 𝑖 where macro
              -> {η : l₀ ⟶ l₁}
              -> {ν₀ : ModeHom m₀ n} {ν₁ : ModeHom l₀ n}
              -> (E : CtxExt {l₀} {l₁} η)
-             -> {Γ : Ctx _}
+             -> {Γ : ⊢Ctx _}
              -> ((Γ ∙! μ₀) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯
              -> (((Γ ∙! μ₁) ⋆ E) ⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯)
                 +-𝒰 (∑ λ (ϕ : k ⟶ n) -> Γ ⊢Var⟮ A ∣ ν₀ ⇒ ϕ ⟯ ×-𝒰 η ◆ μ₀ ◆ ϕ ∼ ν₁)
@@ -401,10 +406,10 @@ module _ 𝑖 where macro
   map-comp⁻¹-∙! : ∀{μ : n ⟶ o} {ω : m ⟶ n} -> Γ ∙! (ω ◆ μ) ⊢ A -> Γ ∙! μ ∙! ω ⊢ A
   map-comp⁻¹-∙! {Γ = Γ} = map-cong {Γ = Γ} comp⁻¹-∙! ε
 
-  map-unit-∙! : ∀{Γ : Ctx k} -> Γ ∙! id ⊢ A -> Γ ⊢ A
+  map-unit-∙! : ∀{Γ : ⊢Ctx k} -> Γ ∙! id ⊢ A -> Γ ⊢ A
   map-unit-∙! {Γ = Γ} = map-cong {Γ = Γ} unit-∙! ε
 
-  map-unit⁻¹-∙! :  ∀{Γ : Ctx k} -> Γ ⊢ A -> Γ ∙! id ⊢ A
+  map-unit⁻¹-∙! :  ∀{Γ : ⊢Ctx k} -> Γ ⊢ A -> Γ ∙! id ⊢ A
   map-unit⁻¹-∙! {Γ = Γ} = map-cong {Γ = Γ} unit⁻¹-∙! ε
 
 

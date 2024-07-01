@@ -70,47 +70,41 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
 
 
 
-  open import KamiCore.Language.MTT.Definition
+  open import KamiCore.Language.MinMTT.Definition
 
-  instance
-    MTT-Chor : 𝔐TT _
-    MTT-Chor = record
-      { 𝓂 = Mode SN-ModeSystem
-      ; isCategory:𝓂 = isCategory:byModeSystem SN-ModeSystem
-      ; is2Category:𝓂 = is2Category:byModeSystem SN-ModeSystem
-      }
+  open ModeSystemAs2Category SN-ModeSystem
+
+  Super : Min𝔐TT _
+  Super = record
+    { ModeTheory = ′ Mode SN-ModeSystem ′
+    ; isSmall = {!!}
+    ; split = {!!}
+    }
 
 
   -- Instantiating MTT with the 2category generated from the modesystem
   -- open import KamiCore.Typed.Variant.F.Definition3
-  open 𝔐TT/Definition {{MTT-Chor}}
-    renaming (ModeHom to ModeHom' ; _⊢_ to _⊢'_ ; Ctx to Ctx-MTT)
+  open Min𝔐TT/Definition Super
+  open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
+  open [Min𝔐TT/Definition::Type]
 
-  instance
-    isCategoryData:ModeHom : isCategoryData (Mode SN-ModeSystem) ModeHom'
-    isCategoryData:ModeHom = HomData {{isCategory:𝓂 {{MTT-Chor}}}}
+  -- Import the required definitions from 𝔐TT itself
+  open 𝔐TT/Definition [Min𝔐TT/Definition::Private].Super
 
-  instance
-    isCategory:ModeHom : isCategory (Mode SN-ModeSystem)
-    isCategory:ModeHom = record { Hom = ModeHom' }
-
-  instance
-    is2Category:ModeHom : is2Category ′(Mode SN-ModeSystem)′
-    is2Category:ModeHom = is2Category:𝓂 {{MTT-Chor}}
-
-  Param-Chor𝔐TT = Mode SN-ModeSystem
+  ⊢Param = Mode SN-ModeSystem
 
   private variable
     a a₀ b c d : Mode SN-ModeSystem
-    μ ν η ω : ModeHom' a b
+    μ ν η ω : ModeHom SN-ModeSystem a b
+
 
   private variable
-    Γ : Ctx-MTT a
-    A B : ⊢Type a
+    Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super a)
+    A B : Type (_at_ {{hasParamSTT:MinMTT}} Super a)
 
-  data isBroadcast : ∀{a b} -> {μ ν : ModeHom' a b} -> μ ⟹ ν -> 𝒰₀ where
+  data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
 
-  data _⊢_ : Ctx a of MTT-Chor -> Type a of MTT-Chor -> 𝒰₀ where
+  data _⊢_ : Ctx a of Super -> Type a of Super -> 𝒰₀ where
     var : ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
     tt : Γ ⊢ Unit
 
@@ -142,24 +136,22 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT) where
 
   -- Our simple type theory
 
-  module _ (a : 𝓂) where
+  module _ (a : ⊢Param) where
     λChorMTT : STT (ℓ₀ , ℓ₀ , ℓ₀)
     λChorMTT = record
-      { Ctx = Ctx a of MTT-Chor
-      ; Type = Type a of MTT-Chor
+      { Ctx = Ctx a of Super
+      ; Type = Type a of Super
       ; Term = λ Γ A -> Γ ⊢ A
       }
-
 
 
 
 instance
   hasParamSTT:ChorMTT : hasParamSTT ChorMTT
   hasParamSTT:ChorMTT = record
-    { Param = Chor𝔐TT/Definition.Param-Chor𝔐TT
+    { Param = Chor𝔐TT/Definition.⊢Param
     ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
     }
-
 
 
 

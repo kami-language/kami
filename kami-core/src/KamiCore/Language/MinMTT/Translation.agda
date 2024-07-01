@@ -26,7 +26,7 @@ open import KamiCore.Language.MinMTT.Definition
 
 
 F₁ : Min𝔐TT 𝑖 -> 𝔐TT _
-F₁ This = record { 𝓂 = ⟨ This .ModeTheory ⟩ }
+F₁ This = record { ModeTheory = This .ModeTheory }
 
 module _ {𝑖} where
   macro 𝔉₁ = #structureOn (F₁ {𝑖 = 𝑖})
@@ -34,7 +34,7 @@ module _ {𝑖} where
 module _ (This : Min𝔐TT 𝑖) where
   private
     Super = F₁ This
-    open 𝔐TT/Definition {{Super}}
+    open 𝔐TT/Definition Super
 
   par-𝔉₁ : Param Super -> Param This
   par-𝔉₁ x = x

@@ -38,49 +38,59 @@ module _ 𝑖 where macro
 
 module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
-  private
+  module [Min𝔐TT/Definition::Private] where
     Super : 𝔐TT 𝑖
-    Super = record { 𝓂 = ⟨ This .ModeTheory ⟩ }
+    Super = record { ModeTheory = This .ModeTheory }
 
-    open 𝔐TT/Definition {{Super}} hiding (_⊢_)
-    open Variables/Mode
-    open Variables/Hom
-    open Variables/Type
-    open Variables/Ctx
+  open [Min𝔐TT/Definition::Private]
+
+  open 𝔐TT/Definition Super
+  open Variables/Mode
+  open Variables/Hom
+  open Variables/Type
+  open Variables/Ctx
+
+  module [Min𝔐TT/Definition::Type] where
+    open [𝔐TT/Definition::Type] public
+
+  open [Min𝔐TT/Definition::Type]
 
 
-  data _⊢_ : ∀{m : Param Super} -> Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
-    var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+  module [Min𝔐TT/Definition::Term] where
+    data _⊢_ : ∀{m : Param Super} -> Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
+      var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
 
-    tt : Γ ⊢ Unit
+      tt : Γ ⊢ Unit
 
-    -- modalities
-    mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
-    letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
-          -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
-          -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
-          -> Γ ⊢ B
+      -- modalities
+      mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+      letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
+            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
+            -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
+            -> Γ ⊢ B
 
-    -- explicit transformations
-    trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      -- explicit transformations
+      trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
-    -- transformations monad
-    pure : Γ ⊢ A -> Γ ⊢ Tr A
-    seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
+      -- transformations monad
+      pure : Γ ⊢ A -> Γ ⊢ Tr A
+      seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
-    -- functions
-    lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
-    app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+      -- functions
+      lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
+      app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
 
-    -- sum types
-    left : Γ ⊢ A -> Γ ⊢ Either A B
-    right : Γ ⊢ B -> Γ ⊢ Either A B
-    either : {Γ : Ctx m of Super} -> Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      -- sum types
+      left : Γ ⊢ A -> Γ ⊢ Either A B
+      right : Γ ⊢ B -> Γ ⊢ Either A B
+      either : {Γ : Ctx m of Super} -> Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
-    -- list types
-    [] : Γ ⊢ Lst A
-    _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
-    rec-Lst : {Γ : Ctx m of Super} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      -- list types
+      [] : Γ ⊢ Lst A
+      _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
+      rec-Lst : {Γ : Ctx m of Super} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
+
+  open [Min𝔐TT/Definition::Term]
 
   module _ (m : Param Super) where
     λMinMTT : STT _
