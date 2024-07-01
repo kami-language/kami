@@ -14,8 +14,10 @@ open import Agora.Category.Std.Morphism.Iso
 open import Data.Vec hiding ([_] ; map)
 
 
-record MTT (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
-  field ModeTheory : 2Category 𝑖
+record MTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
+  field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
+  field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
+
   -- field 𝓂 : 𝒰 (𝑖 ⌄ 0)
   -- field {{isCategory:𝓂}} : isCategory {𝑖 ⌄ 1 ⋯ 2} 𝓂
   -- field {{is2Category:𝓂}} : is2Category {𝑖 ⌄ 3 ⋯ 4} ′ 𝓂 ′
@@ -24,7 +26,7 @@ open MTT public
 
 
 
-module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
+module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
   private
     𝓂' : Category _
     𝓂' = ↳ (This .ModeTheory)
@@ -107,7 +109,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
   infixl 22 _⋆_
 
 
-  data _⇛_ : (E : CtxExt {m} {n} μ) -> (F : CtxExt {m} {n} ν) -> 𝒰 𝑖 where
+  data _⇛_ : (E : CtxExt {m} {n} μ) -> (F : CtxExt {m} {n} ν) -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1 ⊔ 𝑖 ⌄ 2 ⊔ 𝑖 ⌄ 3) where
     id-⇛ : E ⇛ E
     _∙‼_ : {μ ν : m ⟶ n} -> E ⇛ F -> (ν ⟹ μ) -> E ∙! μ ⇛ F ∙! ν
     comp⁻¹-∙! : {μ₀ : m ⟶ n} {μ₁ : l ⟶ m} -> E ∙! μ₀ ∙! μ₁ ⇛ E ∙! (μ₁ ◆ μ₀)
@@ -235,6 +237,7 @@ instance
   hasParamSTT:MTT : hasParamSTT (MTT 𝑖)
   hasParamSTT:MTT = record
     { Param = λ 𝒯 -> ⟨ 𝒯 .ModeTheory ⟩ ×-𝒰 ⟨ 𝒯 .ModeTheory ⟩
+    ; SubParam = λ 𝒯 (x , a) -> isTargetMode 𝒯 x
     ; _at_ = λ 𝒯 (x , a) -> λMTT 𝒯 x a
     }
 

@@ -26,7 +26,10 @@ open import KamiCore.Language.MinMTT.Definition
 
 
 F₁ : Min𝔐TT 𝑖 -> 𝔐TT _
-F₁ This = record { ModeTheory = This .ModeTheory }
+F₁ This = record
+  { ModeTheory = This .ModeTheory
+  ; isTargetMode = This .isTargetMode
+  }
 
 module _ {𝑖} where
   macro 𝔉₁ = #structureOn (F₁ {𝑖 = 𝑖})
@@ -55,8 +58,10 @@ module _ (This : Min𝔐TT 𝑖) where
 
 
 
-  run-𝔉₁ : {a : Param Super} -> Hom-STT (Super at a) (This at a)
-  run-𝔉₁ = record
+  run-𝔉₁ : {a : Param Super}
+           -> (pa : SubParam Super a)
+           -> Hom-STT (Super at a) (This at a)
+  run-𝔉₁ pa = record
     { ⟪_∣_Ctx⟫ = ⟪𝔉₁∣_Ctx⟫
     ; ⟪_∣_Type⟫ = {!!}
     ; ⟪_∣_Term⟫ = {!!}

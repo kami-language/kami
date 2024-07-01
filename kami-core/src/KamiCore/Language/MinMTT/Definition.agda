@@ -23,10 +23,11 @@ open import KamiCore.Language.MTT.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 
 
-record MinMTT (𝑖 : 𝔏 ^ 5) : 𝒰 (𝑖 ⁺) where
-  field ModeTheory : 2Category 𝑖
+record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
+  field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
   field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰₀
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> a ⟶ b) a b
+  field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
 
   -- TODO: We need extra information here
   -- about how to split the arrows into singletons
@@ -40,7 +41,11 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   module [Min𝔐TT/Definition::Private] where
     Super : 𝔐TT 𝑖
-    Super = record { ModeTheory = This .ModeTheory }
+    Super = record
+      { ModeTheory = This .ModeTheory
+      ; isTargetMode = This .isTargetMode
+      }
+
 
   open [Min𝔐TT/Definition::Private]
 
@@ -60,24 +65,25 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
 
   module [Min𝔐TT/Definition::Term] where
-    data _⊢_ : ∀{m : Param Super} -> Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
+    data _⊢_ {m : Param Super} : Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
       var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
 
       tt : Γ ⊢ Unit
 
+{-
       -- modalities
       mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
-      letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
+      letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ snd m)
             -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
             -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
             -> Γ ⊢ B
 
       -- explicit transformations
-      trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : n ⟶ snd m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
-      seq : ∀{A : ⊢Type m} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
+      seq : ∀{A : ⊢Type (snd m)} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
       -- functions
       lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
@@ -93,6 +99,8 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
       rec-Lst : {Γ : Ctx m of Super} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
+-}
+
   open [Min𝔐TT/Definition::Term]
 
   module _ (m : Param Super) where
@@ -106,7 +114,8 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 instance
   hasParamSTT:MinMTT : hasParamSTT (Min𝔐TT 𝑖)
   hasParamSTT:MinMTT = record
-    { Param = λ This -> ⟨ This .ModeTheory ⟩
+    { Param = λ This -> ⟨ This .ModeTheory ⟩ ×-𝒰 ⟨ This .ModeTheory ⟩
+    ; SubParam = λ 𝒯 (x , a) -> isTargetMode 𝒯 x
     ; _at_ = λ This m -> Min𝔐TT/Definition.λMinMTT This m
     }
 

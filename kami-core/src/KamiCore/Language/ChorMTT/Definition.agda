@@ -63,6 +63,10 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
     ⊢Param = Mode SN-ModeSystem
 
+    variable
+      a a₀ b c d : Mode SN-ModeSystem
+      μ ν η ω : ModeHom SN-ModeSystem a b
+
   open [Chor𝔐TT/Definition::Param]
 
 
@@ -73,33 +77,52 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       { ModeTheory = ′ Mode SN-ModeSystem ′
       ; isSmall = {!!}
       ; split = {!!}
+      ; isTargetMode = λ a -> a ≡ ◯
       }
   open [Chor𝔐TT/Definition::Private]
 
 
   open Min𝔐TT/Definition Super
   open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
-  open [Min𝔐TT/Definition::Type]
 
 
   -- Import the required definitions from 𝔐TT itself
   open 𝔐TT/Definition [Min𝔐TT/Definition::Private].Super
-  open [𝔐TT/Definition::Ctx]
+
+  --------------------------------------------------------------------
+  -- Types
+  module [Chor𝔐TT/Definition::Type] where
+    open [Min𝔐TT/Definition::Type] public
+
+    variable
+      A B : Type (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
+  open [Chor𝔐TT/Definition::Type]
 
 
-  private variable
-    a a₀ b c d : Mode SN-ModeSystem
-    μ ν η ω : ModeHom SN-ModeSystem a b
+  --------------------------------------------------------------------
+  -- Contexts
+  module [Chor𝔐TT/Definition::Ctx] where
+    open [𝔐TT/Definition::Ctx] public
+
+    variable
+      Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
+
+    data isCtx₂ : Ctx (◯ , a) of Super -> 𝒰 𝑗 where
+      ε : isCtx₂ {a = a} ε
+      stepVar : {Γ : Ctx (◯ , ◯) of Super} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
+      stepRes : ∀(x : Edge (of SN-ModeSystem .graph) b a) -> {Γ : Ctx (◯ , a) of Super} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
+
+  open [Chor𝔐TT/Definition::Ctx]
 
 
-  private variable
-    Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super a)
-    A B : Type (_at_ {{hasParamSTT:MinMTT}} Super a)
 
+
+  --------------------------------------------------------------------
+  -- Terms
   data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
 
-  data _⊢_ : Ctx a of Super -> Type a of Super -> 𝒰 𝑗 where
-    var : ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+  data _⊢_ : Ctx (◯ , a) of Super -> Type (◯ , a) of Super -> 𝒰 𝑗 where
+    var : {Γ : Ctx (◯ , a) of Super} -> ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
     tt : Γ ⊢ Unit
 
     -- modalities
@@ -133,17 +156,17 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
   module _ (a : ⊢Param) where
     λChorMTT : STT _
     λChorMTT = record
-      { Ctx = Ctx a of Super
-      ; Type = Type a of Super
-      ; Term = λ Γ A -> Γ ⊢ A
+      { Ctx = ∑ λ (Γ : Ctx (◯ , a) of Super) -> isCtx₂ Γ
+      ; Type = Type (◯ , a) of Super
+      ; Term = λ Γ A -> fst Γ ⊢ A
       }
-
 
 
 instance
   hasParamSTT:ChorMTT : hasParamSTT (ChorMTT 𝑗)
   hasParamSTT:ChorMTT = record
     { Param = Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Param].⊢Param
+    ; SubParam = λ This a -> ⊤-𝒰 {ℓ₀}
     ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
     }
 

@@ -93,10 +93,12 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     ; Term = λ Γ A -> Γ ⊢ A
     }
 
+
 instance
   hasParamSTT:ChorProc : hasParamSTT (ChorProc 𝑗)
   hasParamSTT:ChorProc = record
     { Param = λ _ -> ⊤-𝒰 {ℓ₀}
+    ; SubParam = λ _ _ -> ⊤-𝒰 {ℓ₀}
     ; _at_ = λ This _ -> Chor𝔓roc/Definition.λChorProc This
     }
 
