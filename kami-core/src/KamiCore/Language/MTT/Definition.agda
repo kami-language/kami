@@ -124,22 +124,15 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   open Variables/Ctx
 
-  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
+  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
     zero : ∀{Γ} {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
     suc! : ∀{Γ} {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
     suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
-  -- Currently the above type is in its previous form because otherwise some bit of
-  -- inference fails and i don't want to update stuff :p
-  delete-me : ∀ {Γ : ⊢Ctx k} {A : ⊢Type m} {μ : m ⟶ l} {η : o ⟶ l} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯  -> k ≡ o
-  delete-me zero = refl-≡
-  delete-me (suc! v) = refl-≡
-  delete-me (suc v) = delete-me v
-
   -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
-  -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the 
+  -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the
   -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
-  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
@@ -147,7 +140,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 5} (This : MTT 𝑖) where
 
   -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
   -- between arrows.
-  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx k) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
     constructor varOver
     field target : o ⟶ l
     field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
