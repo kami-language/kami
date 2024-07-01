@@ -46,7 +46,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     ; isProp:≤-Roles = it
     }
 
-  open Chor𝔐TT/Definition Super
+  open Chor𝔐TT/Definition Super hiding (_⊢_)
   open [Chor𝔐TT/Definition::Param]
 
   private Mode = Param Super
@@ -78,3 +78,25 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       _,_ : ⊢Ctx -> ⊢Type ◯ -> ⊢Ctx
 
   open [Chor𝔓roc/Definition::Ctx]
+
+  module [Chor𝔓roc/Definition::Term] where
+    _⊢_ : ⊢Ctx -> ⊢Type ◯ -> 𝒰 𝑗
+    _⊢_ = {!!}
+
+  open [Chor𝔓roc/Definition::Term]
+
+
+  λChorProc : STT _
+  λChorProc = record
+    { Ctx = ⊢Ctx
+    ; Type = ⊢Type ◯
+    ; Term = λ Γ A -> Γ ⊢ A
+    }
+
+instance
+  hasParamSTT:ChorProc : hasParamSTT (ChorProc 𝑗)
+  hasParamSTT:ChorProc = record
+    { Param = λ _ -> ⊤-𝒰 {ℓ₀}
+    ; _at_ = λ This _ -> Chor𝔓roc/Definition.λChorProc This
+    }
+
