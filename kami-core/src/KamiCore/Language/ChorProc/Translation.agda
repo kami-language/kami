@@ -38,6 +38,8 @@ module _ (This : Chor𝔓roc 𝑗) where
   par-𝔉₃ : Param Super -> Param This
   par-𝔉₃ _ = tt
 
+  run-𝔉₃ : ∀{a : Param Super} -> Hom-STT (Super at a) (This at tt)
+  run-𝔉₃ = {!!}
 
 
 
@@ -45,9 +47,9 @@ instance
   isReduction:F₃ : isParamSTTHom (Chor𝔓roc 𝑗) (Chor𝔐TT _) F₃
   isReduction:F₃ = record
     { param = par-𝔉₃
-    ; runAt = {!!}
+    ; runAt = run-𝔉₃
     }
 
-module _ 𝑗 where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
+module _ {𝑗} where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
 
 

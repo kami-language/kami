@@ -13,6 +13,8 @@ open import KamiCore.Language.MinMTT.Definition
 open import KamiCore.Language.MinMTT.Translation
 open import KamiCore.Language.ChorMTT.Definition
 open import KamiCore.Language.ChorMTT.Translation
+open import KamiCore.Language.ChorProc.Definition
+open import KamiCore.Language.ChorProc.Translation
 
 
 -- The inference & typechecking pipeline
@@ -20,8 +22,8 @@ open import KamiCore.Language.ChorMTT.Translation
 
 
 -- The whole compilation pipeline
-𝔉 : ParamSTTHom Chor𝔐TT (𝔐TT _)
-𝔉 = 𝔉₂ ◆-ParamSTT 𝔉₁
+𝔉 : ParamSTTHom (Chor𝔓roc 𝑗) (𝔐TT _)
+𝔉 = 𝔉₃ ◆-ParamSTT (𝔉₂ ◆-ParamSTT 𝔉₁)
 
 
 

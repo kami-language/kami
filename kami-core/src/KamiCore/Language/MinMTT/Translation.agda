@@ -36,6 +36,8 @@ module _ (This : Min𝔐TT 𝑖) where
     Super = F₁ This
     open 𝔐TT/Definition Super
 
+  open [𝔐TT/Definition::Type]
+
   par-𝔉₁ : Param Super -> Param This
   par-𝔉₁ x = x
 

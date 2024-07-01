@@ -70,14 +70,14 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
 
-
-  private
+  module [Chor𝔐TT/Definition::Private] where
     Super : Min𝔐TT _
     Super = record
       { ModeTheory = ′ Mode SN-ModeSystem ′
       ; isSmall = {!!}
       ; split = {!!}
       }
+  open [Chor𝔐TT/Definition::Private]
 
 
   -- Instantiating MTT with the 2category generated from the modesystem

@@ -30,7 +30,7 @@ open import KamiCore.Language.ChorMTT.Definition
 
 
 F₂ : Chor𝔐TT 𝑗 -> Min𝔐TT _
-F₂ This = Chor𝔐TT/Definition.Super This
+F₂ This = Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Private].Super This
 
 module _ (This : Chor𝔐TT 𝑗) where
   open Chor𝔐TT/Definition This
@@ -42,7 +42,7 @@ instance
     ; runAt = {!!}
     }
 
-module _ 𝑗 where macro 𝔉₂ = #structureOn (F₂ {𝑗 = 𝑗})
+module _ {𝑗} where macro 𝔉₂ = #structureOn (F₂ {𝑗 = 𝑗})
 
 {-
 mytest : hasParamSTT ChorMTT
