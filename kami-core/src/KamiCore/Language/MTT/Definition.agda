@@ -129,29 +129,30 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
 
   open Variables/Ctx
 
-  data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
-    zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
-    suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
-    suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
-
-  -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
-  -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the
-  -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
-  record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
-    constructor varOver
-    field target : o ⟶ l
-    field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
-    field snd : η ∼ target
-
-  -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
-  -- between arrows.
-  record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
-    constructor varOver
-    field target : o ⟶ l
-    field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
-    field snd : η ⟹ target
 
   module [𝔐TT/Definition::Term] where
+    data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
+      zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
+      suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
+      suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
+
+    -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
+    -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the
+    -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
+    record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+      constructor varOver
+      field target : o ⟶ l
+      field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
+      field snd : η ∼ target
+
+    -- Sometimes we don't want to get a setoid-equality between arrows, but only an arrow
+    -- between arrows.
+    record _⊢Var⟮_∣_⇒⇒_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+      constructor varOver
+      field target : o ⟶ l
+      field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
+      field snd : η ⟹ target
+
     data _⊢_ {m} : ⊢Ctx {k} m -> ⊢Type m -> 𝒰 𝑖 where
       var : ∀{μ : _ ⟶ o}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯

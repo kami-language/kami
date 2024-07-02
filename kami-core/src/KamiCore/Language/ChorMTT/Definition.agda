@@ -110,7 +110,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       ; isSmall = {!!}
       ; split = {!!}
       ; isTargetMode = λ a -> a ≡ ◯
-      ; Classification = 𝒫ᶠⁱⁿ (⊤-𝒰 {ℓ₀} since {!it!})
+      ; Classification = 𝒫ᶠⁱⁿ 𝟙
       ; isClassified:Transformation = isClassified:PolySR
       }
   open [Chor𝔐TT/Definition::Private]
