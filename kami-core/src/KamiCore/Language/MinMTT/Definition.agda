@@ -91,13 +91,21 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
     data ⊢Ctx {a : 𝓂} : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
       ε : ⊢Ctx {a} a
       _∙⟮_∣_⟯ : ⊢Ctx {a} n -> ⊢Type m -> m ⟶ n -> ⊢Ctx {a} n
-      _∙!_ : ⊢Ctx {a} n -> m ⟶ n -> ⊢Ctx m
+      _∙!_ : ⊢Ctx {a} n -> m ⟶ₛ n -> ⊢Ctx m
 
     infix 32 _∙⟮_∣_⟯
-    infixl 30 _∙!_
+    infixl 30 _∙!_ _∙!*_
 
     variable
       Γ Δ : ⊢Ctx {m} n
+
+    Mod-Ctx : (μs : Path _⟶ₛ_ m n) -> (Γ : ⊢Ctx {k} n) -> ⊢Ctx {k} m
+    Mod-Ctx id' Γ = Γ
+    Mod-Ctx (μ ⨾ μs) Γ = Mod-Ctx μs Γ ∙! μ
+
+    _∙!*_ : (Γ : ⊢Ctx {k} n) -> (μs : Path _⟶ₛ_ m n) -> ⊢Ctx {k} m
+    _∙!*_ Γ μs = Mod-Ctx μs Γ
+
 
   open [Min𝔐TT/Definition::Ctx]
 
@@ -106,7 +114,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
     data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
       zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
-      suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ ω ◆ η ⟯
+      suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ₛ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ fst ω ◆ η ⟯
       suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
 
@@ -120,10 +128,10 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       tt : Γ ⊢ Unit
 
       -- modalities
-      mod : ∀ μ -> Γ ∙! fst μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+      mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
 
       letmod : ∀{μ : o ⟶ₛ n} -> (ν : n ⟶ snd m)
-            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⟩
+            -> Γ ∙!* (split This ν) ⊢ ⟨ A ∣ μ ⟩
             -> Γ ∙⟮ A ∣ fst μ ◆ ν ⟯ ⊢ B
             -> Γ ⊢ B
 
@@ -172,4 +180,3 @@ instance
     ; SubParam = λ 𝒯 (x , a) -> isTargetMode 𝒯 x
     ; _at_ = λ This m -> Min𝔐TT/Definition.λMinMTT This m
     }
-

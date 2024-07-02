@@ -14,6 +14,8 @@ open import Agora.Category.Std.Category.Structured.Classified.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+
 open import Data.Vec hiding ([_] ; map)
 
 
@@ -92,6 +94,10 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
       ε : CtxExt {m} {m} id
       _∙⟮_∣_⟯ : CtxExt {n} {k} η -> ⊢Type m -> (μ : m ⟶ n) -> CtxExt η
       _∙!_ : CtxExt {n} {k} η -> (ω : m ⟶ n) -> CtxExt (ω ◆ η)
+
+    Mod-Ctx : (μs : Path _⟶ᵘ_ m n) -> (Γ : ⊢Ctx {k} n) -> ⊢Ctx {k} m
+    Mod-Ctx id' Γ = Γ
+    Mod-Ctx (μ ⨾ μs) Γ = Mod-Ctx μs Γ ∙! μ
 
   open [𝔐TT/Definition::Ctx]
 
@@ -179,7 +185,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
 
       -- functions
       lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
-      app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+      app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ A -> Γ ⊢ B
 
       -- unit type
       tt : Γ ⊢ Unit

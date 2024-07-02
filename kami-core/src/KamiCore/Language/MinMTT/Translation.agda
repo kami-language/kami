@@ -70,14 +70,10 @@ module _ (This : Min𝔐TT 𝑖) where
   --------------------------------------------------------------------
   -- Contexts
 
-  Mod-Ctx : (μs : Path _⟶ₛ_ m n) -> (Γ : ⊢Ctx {k} n) -> ⊢Ctx {k} m
-  Mod-Ctx id' Γ = Γ
-  Mod-Ctx (μ ⨾ μs) Γ = Mod-Ctx μs Γ ∙! fst μ
-
   ⟪𝔉₁∣_Ctx⟫ : {a : Param Super} -> Ctx a of Super -> Ctx a of This
   ⟪𝔉₁∣ ε Ctx⟫ = ε
   ⟪𝔉₁∣ Γ ∙⟮ X ∣ μ ⟯ Ctx⟫ = ⟪𝔉₁∣ Γ Ctx⟫ ∙⟮ ⟪𝔉₁∣ X Type⟫ ∣ μ ⟯
-  ⟪𝔉₁∣ Γ ∙! μ Ctx⟫ = Mod-Ctx (split This μ) ⟪𝔉₁∣ Γ Ctx⟫
+  ⟪𝔉₁∣ Γ ∙! μ Ctx⟫ = ⟪𝔉₁∣ Γ Ctx⟫ ∙!* (split This μ)
 
   -- End Contexts
   --------------------------------------------------------------------
@@ -86,10 +82,21 @@ module _ (This : Min𝔐TT 𝑖) where
   --------------------------------------------------------------------
   -- Terms
   Mod-Term : (μs : Path _⟶ₛ_ m n) -> {X : ⊢Type m}
-             -> (t : Mod-Ctx μs Γ ⊢ X)
+             -> (t : Γ ∙!* μs ⊢ X)
              -> Γ ⊢ Mod-Type μs X
   Mod-Term id' t = t
   Mod-Term (μ ⨾ μs) t = Mod-Term μs (mod μ t)
+
+  Letmod-Term : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
+        -> Γ ∙!* (split This ν) ⊢ Mod-Type (split This μ) A
+        -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
+        -> Γ ⊢ B
+  Letmod-Term = {!!}
+
+  -- Mod'-Term : (μ : m ⟶ n) -> {X : ⊢Type m}
+  --            -> (t : Γ ∙! μ ⊢ X)
+  --            -> Γ ⊢ Mod-Type (split This μ) X
+  -- Mod'-Term μ t = {!!}
 
   -- Split-Ctx : Γ ∙! μ
 
@@ -97,20 +104,20 @@ module _ (This : Min𝔐TT 𝑖) where
                -> Γ ⊢ X at a of Super
                -> ⟪𝔉₁∣ Γ Ctx⟫ ⊢ ⟪𝔉₁∣ X Type⟫ at a of This
   ⟪𝔉₁∣ var x α x₁ Term⟫ = {!!}
-  ⟪𝔉₁∣ mod μ t Term⟫ = {!Mod-Term (split This μ) t!}
-  ⟪𝔉₁∣ letmod ν t t₁ Term⟫ = {!!}
+  ⟪𝔉₁∣ mod μ t Term⟫ = Mod-Term (split This μ) ⟪𝔉₁∣ t Term⟫
+  ⟪𝔉₁∣ letmod ν t s Term⟫ = Letmod-Term ν ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ s Term⟫
   ⟪𝔉₁∣ trans α x t Term⟫ = {!!}
-  ⟪𝔉₁∣ pure t Term⟫ = {!!}
-  ⟪𝔉₁∣ seq t t₁ Term⟫ = {!!}
-  ⟪𝔉₁∣ lam t Term⟫ = {!!}
-  ⟪𝔉₁∣ app t t₁ Term⟫ = {!!}
-  ⟪𝔉₁∣ tt Term⟫ = {!!}
-  ⟪𝔉₁∣ left t Term⟫ = {!!}
-  ⟪𝔉₁∣ right t Term⟫ = {!!}
-  ⟪𝔉₁∣ either t t₁ t₂ Term⟫ = {!!}
-  ⟪𝔉₁∣ [] Term⟫ = {!!}
-  ⟪𝔉₁∣ t ∷ t₁ Term⟫ = {!!}
-  ⟪𝔉₁∣ rec-Lst t t₁ t₂ Term⟫ = {!!}
+  ⟪𝔉₁∣ pure t Term⟫ = pure ⟪𝔉₁∣ t Term⟫
+  ⟪𝔉₁∣ seq t t₁ Term⟫ = seq ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫
+  ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod-Term id {!!} {!!})
+  ⟪𝔉₁∣ app {μ = μ} t t₁ Term⟫ = app ⟪𝔉₁∣ t Term⟫ (Mod-Term (split This μ) ⟪𝔉₁∣ t₁ Term⟫)
+  ⟪𝔉₁∣ tt Term⟫ = tt
+  ⟪𝔉₁∣ left t Term⟫ = left ⟪𝔉₁∣ t Term⟫
+  ⟪𝔉₁∣ right t Term⟫ = right ⟪𝔉₁∣ t Term⟫
+  ⟪𝔉₁∣ either t t₁ t₂ Term⟫ = either ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫ ⟪𝔉₁∣ t₂ Term⟫
+  ⟪𝔉₁∣ [] Term⟫ = []
+  ⟪𝔉₁∣ t ∷ t₁ Term⟫ = ⟪𝔉₁∣ t Term⟫ ∷ ⟪𝔉₁∣ t₁ Term⟫
+  ⟪𝔉₁∣ rec-Lst t t₁ t₂ Term⟫ = rec-Lst ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫ ⟪𝔉₁∣ t₂ Term⟫
 
   -- End Terms
   --------------------------------------------------------------------
