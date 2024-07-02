@@ -5,7 +5,7 @@ module KamiCore.Language.ChorMTT.Definition where
 
 open import Data.List using (drop)
 
-open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; _⊔_ ; ls)
+open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; ls)
 open import Agora.Data.Product.Definition
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
@@ -64,6 +64,9 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
     ⊢Param = Mode PolySR-ModeSystem
 
+    ⊢ModeHom : (a b : Mode PolySR-ModeSystem) -> 𝒰 _
+    ⊢ModeHom a b = a ⟶ᵘ b
+
     variable
       a a₀ b c d : Mode PolySR-ModeSystem
       μ ν η ω : ModeHom PolySR-ModeSystem a b
@@ -73,19 +76,19 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     -- Arrow classification
     -----------------------------------------
     classify-Single : {a b : Mode PolySR-ModeSystem}
-                      -> {μ ν : a ⟶ b}
+                      -> {μ ν : ⊢ModeHom a b}
                       -> SingleFace' vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
     classify-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) = ⊥
     classify-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ idᵣ₁) top₁ bot) = ⦗ tt ⦘
 
     classify-Linear : {a b : Mode PolySR-ModeSystem}
-                      -> {μ ν : a ⟶ b}
+                      -> {μ ν : ⊢ModeHom a b}
                       -> Linear2Cell vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
     classify-Linear [] = ⊥
     classify-Linear (x ∷ xs) = classify-Single x ∨ classify-Linear xs
 
     classify : {a b : Mode PolySR-ModeSystem}
-               -> {μ ν : a ⟶ b}
+               -> {μ ν : ⊢ModeHom a b}
                -> (α : μ ⟹ ν)
                -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
     classify [ incl α₀ ∣ incl α₁ ] = classify-Linear (linearize α₁)
@@ -100,6 +103,13 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
           ; preserve-id = {!!}
           }
 
+    data isSmall-Min𝔐TT : (⊢ModeHom a b) -> 𝒰 (𝑗 ⌄ 0) where
+      incl : ∀(x : BaseModeHom-PolySR a b) -> isSmall-Min𝔐TT (x ⨾ id')
+
+    split-Min𝔐TT : (⊢ModeHom a b) -> Path (λ a b -> ∑ λ (ϕ : ⊢ModeHom a b) -> isSmall-Min𝔐TT ϕ) a b
+    split-Min𝔐TT id' = id'
+    split-Min𝔐TT (μ ⨾ μs) = ((μ ⨾ id') , incl μ) ⨾ split-Min𝔐TT μs
+
   open [Chor𝔐TT/Definition::Param]
 
 
@@ -107,8 +117,8 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     Super : Min𝔐TT _
     Super = record
       { ModeTheory = ′ Mode PolySR-ModeSystem ′
-      ; isSmall = {!!}
-      ; split = {!!}
+      ; isSmall = isSmall-Min𝔐TT
+      ; split = split-Min𝔐TT
       ; isTargetMode = λ a -> a ≡ ◯
       ; Classification = 𝒫ᶠⁱⁿ 𝟙
       ; isClassified:Transformation = isClassified:PolySR
@@ -118,6 +128,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
   open Min𝔐TT/Definition Super
   open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
+  open [Min𝔐TT/Definition::Private] using (_⟶ₛ_)
 
 
   -- Import the required definitions from 𝔐TT itself
@@ -128,23 +139,23 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
   module [Chor𝔐TT/Definition::Type] where
     open [Min𝔐TT/Definition::Type] public
 
-    variable
-      A B : Type (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
+    -- variable
+    --   A B : Type (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
   open [Chor𝔐TT/Definition::Type]
 
 
   --------------------------------------------------------------------
   -- Contexts
+  open [Min𝔐TT/Definition::Ctx]
   module [Chor𝔐TT/Definition::Ctx] where
-    open [𝔐TT/Definition::Ctx] public
 
-    variable
-      Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
+    -- variable
+    --   Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
 
-    data isCtx₂ : Ctx (◯ , a) of Super -> 𝒰 𝑗 where
+    data isCtx₂ : ⊢Ctx {◯} a -> 𝒰 𝑗 where
       ε : isCtx₂ ε
-      stepVar : {Γ : Ctx (◯ , ◯) of Super} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
-      stepRes : ∀(x : Edge (of PolySR-ModeSystem .graph) b a) -> {Γ : Ctx (◯ , a) of Super} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
+      stepVar : {Γ : ⊢Ctx {◯} ◯} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : ⊢ModeHom a ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
+      stepRes : ∀(x : Edge (of PolySR-ModeSystem .graph) b a) -> {Γ : ⊢Ctx {◯} a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! ((x ⨾ id) , incl x))
 
   open [Chor𝔐TT/Definition::Ctx]
 
@@ -156,30 +167,47 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   module [Chor𝔐TT/Definition::Term] where
-    data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : a ⟶ b} -> μ ⟹ ν -> 𝒰₀ where
-    data _⊢_ : Ctx (◯ , a) of Super -> Type (◯ , a) of Super -> 𝒰 𝑗 where
-      var : {Γ : Ctx (◯ , a) of Super} -> ∀{μ : _ ⟶ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+    data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰₀ where
+    data _⊢_ {a} : ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
+      var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
       tt : Γ ⊢ Unit
 
       -- modalities
-      mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-      letmod : ∀(μ : BaseModeHom-PolySR a b) -> (ν : b ⟶ c)
-            -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-            -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
+      mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+
+      letmod : ∀{μ : c ⟶ₛ b} -> (ν : ⊢ModeHom b a)
+            -> Γ ∙!* (split-Min𝔐TT ν) ⊢ ⟨ A ∣ μ ⟩
+            -> Γ ∙⟮ A ∣ fst μ ◆ ν ⟯ ⊢ B
             -> Γ ⊢ B
 
+      -- letmod : ∀(μ : BaseModeHom-PolySR a b) -> (ν : b ⟶ c)
+      --       -> Γ ∙!* (split This ν) ⊢ ⟨ A ∣ μ ⟩
+      --       -> Γ ∙⟮ A ∣ fst μ ◆ ν ⟯ ⊢ B
+      --       -> Γ ⊢ B
+            -- -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
+            -- -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
+            -- -> Γ ⊢ B
+
       -- explicit transformations
-      trans : ∀ {μ ν : a ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      -- trans : ∀ {μ ν : ⊢ModeHom a b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
-      seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ B -> Γ ⊢ Tr B
+      seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
       -- functions
-      lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ id' ⟯⇒ B
+      lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ A ⇒ B
+      app : Γ ⊢ A ⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
-      -- app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ A -> Γ ⊢ B
-      app : Γ ⊢ ⟮ A ∣ id' ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
+      -- sum types
+      left : Γ ⊢ A -> Γ ⊢ Either A B
+      right : Γ ⊢ B -> Γ ⊢ Either A B
+      either : Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+
+      -- list types
+      [] : Γ ⊢ Lst A
+      _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
+      rec-Lst : Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
   open [Chor𝔐TT/Definition::Term]
 
@@ -202,7 +230,6 @@ instance
     ; SubParam = λ This a -> ⊤-𝒰 {ℓ₀}
     ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
     }
-
 
 
 

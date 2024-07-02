@@ -64,10 +64,10 @@ module _ (This : Chor𝔓roc 𝑗) where
   F-Type-map {μ = `[]` ⨾ μ} = F-Type-map {μ = μ}
 
   ⦋_⦌-Type : Type a of Super -> ⊢Type a
-  ⦋ ⟨ X ∣ μ ⟩ ⦌-Type = F-Type μ ⦋ X ⦌-Type
+  ⦋ ⟨ X ∣ μ ⟩ ⦌-Type = F-Type (fst μ) ⦋ X ⦌-Type
   ⦋ Unit ⦌-Type = Unit
   ⦋ Tr X ⦌-Type = Tr ⦋ X ⦌-Type
-  ⦋ ⟮ X ∣ μ ⟯⇒ Y ⦌-Type = F-Type μ ⦋ X ⦌-Type ⇒ ⦋ Y ⦌-Type
+  ⦋ X ⇒ Y ⦌-Type = ⦋ X ⦌-Type ⇒ ⦋ Y ⦌-Type
   ⦋ Either x x₁ ⦌-Type = {!!}
   ⦋ Lst x ⦌-Type = {!!}
 
@@ -93,7 +93,7 @@ module _ (This : Chor𝔓roc 𝑗) where
 
   transl-Ctx : (Γ : 𝔐TT⊢Ctx {◯} a) -> isCtx₂ Γ -> TargetCtx a
   transl-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
-  transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr μ (transl-Ctx Γ Γp)
+  transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr (fst μ) (transl-Ctx Γ Γp)
   transl-Ctx ε Γp = ε
 
   forget : TargetCtx a -> ⊢Ctx

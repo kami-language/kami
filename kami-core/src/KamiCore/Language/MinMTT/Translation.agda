@@ -93,12 +93,6 @@ module _ (This : Min𝔐TT 𝑖) where
         -> Γ ⊢ B
   Letmod-Term = {!!}
 
-  -- Mod'-Term : (μ : m ⟶ n) -> {X : ⊢Type m}
-  --            -> (t : Γ ∙! μ ⊢ X)
-  --            -> Γ ⊢ Mod-Type (split This μ) X
-  -- Mod'-Term μ t = {!!}
-
-  -- Split-Ctx : Γ ∙! μ
 
   ⟪𝔉₁∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
                -> Γ ⊢ X at a of Super

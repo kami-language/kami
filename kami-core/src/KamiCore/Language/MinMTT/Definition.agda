@@ -26,11 +26,11 @@ open import KamiCore.Language.MTT.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 
 
-record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
+record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
-  field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰₀
+  field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1)
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> ∑ λ (ϕ : a ⟶ b) -> isSmall ϕ) a b
-  field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
+  field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰' (𝑖 ⌄ 5)
   field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
 
@@ -55,7 +55,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
     𝓂 = ⟨ This .ModeTheory ⟩
 
-    _⟶ₛ_ : (a b : ⟨ This .ModeTheory ⟩) -> 𝒰 _
+    _⟶ₛ_ : (a b : ⟨ This .ModeTheory ⟩) -> 𝒰' _
     _⟶ₛ_ a b = ∑ λ (ϕ : a ⟶ b) -> isSmall This ϕ
 
 
@@ -71,7 +71,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
     -- open [𝔐TT/Definition::Type] public
 
-    data ⊢Type : ⟨ This .ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+    data ⊢Type : ⟨ This .ModeTheory ⟩ -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
       ⟨_∣_⟩ : ⊢Type m -> m ⟶ₛ n -> ⊢Type n
       Unit : ⊢Type m
       Tr : ⊢Type m -> ⊢Type m
@@ -88,7 +88,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   module [Min𝔐TT/Definition::Ctx] where
 
-    data ⊢Ctx {a : 𝓂} : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+    data ⊢Ctx {a : 𝓂} : 𝓂 -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
       ε : ⊢Ctx {a} a
       _∙⟮_∣_⟯ : ⊢Ctx {a} n -> ⊢Type m -> m ⟶ n -> ⊢Ctx {a} n
       _∙!_ : ⊢Ctx {a} n -> m ⟶ₛ n -> ⊢Ctx m
@@ -112,13 +112,13 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   module [Min𝔐TT/Definition::Term] where
 
-    data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰 𝑖 where
+    data _⊢Var⟮_∣_⇒_⟯ : (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) → 𝒰' (merge 𝑖) where
       zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
       suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ₛ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ fst ω ◆ η ⟯
       suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
 
 
-    data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰 𝑖 where
+    data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰' (merge 𝑖) where
       var : ∀{μ : _ ⟶ o}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
