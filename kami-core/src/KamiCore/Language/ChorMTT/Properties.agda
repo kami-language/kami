@@ -14,7 +14,38 @@ open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import Data.List using (drop)
 
+open import KamiCore.Language.ChorMTT.Definition
+
+
+module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
+  -- open Chor𝔐TT/Definition This
+  open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Private] This
+  open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Param] This
+  open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Ctx] This
+  open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Term] This
+  open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Type] This
+
+
+  ----------------------------------------------------------
+  -- Working with the context
+  --
+  -- Various proofs which let us transfer terms from
+  -- some context to a similar one.
+  ----------------------------------------------------------
+  --
+  com-restr-single : ∀{x : BaseModeHom-PolySR a b} -> ∀{xp} -> {A : ⊢Type c}
+                    -> {B : ⊢Type a}
+                    -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
+                    -> Γ ∙⟮ A ∣ μ ◆ (x ⨾ id') ⟯ ∙! ((x ⨾ id') , xp) ⊢ B
+  com-restr-single = {!!}
+
+  com⁻¹-restr-single : ∀{x : BaseModeHom-PolySR a b} -> ∀{xp} -> {A : ⊢Type c}
+                    -> {B : ⊢Type a}
+                    -> Γ ∙⟮ A ∣ μ ◆ (x ⨾ id') ⟯ ∙! ((x ⨾ id') , xp) ⊢ B
+                    -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
+  com⁻¹-restr-single = {!!}
 
 

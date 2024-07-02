@@ -26,6 +26,7 @@ open import KamiTheory.Basics hiding (_⋆_)
 
 open import KamiCore.Language.MinMTT.Definition
 open import KamiCore.Language.ChorMTT.Definition
+open import KamiCore.Language.ChorMTT.Properties
 
 
 
@@ -41,7 +42,7 @@ module _ (This : Chor𝔐TT 𝑗) where
 
   -- open Min𝔐TT/Definition Super
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Private] Super using (𝓂)
-  open Min𝔐TT/Definition.[Min𝔐TT/Definition::Ctx] Super -- renaming (⊢Ctx to Min𝔐TT⊢Ctx)
+  -- open Min𝔐TT/Definition.[Min𝔐TT/Definition::Ctx] Super renaming (⊢Ctx to Min𝔐TT⊢Ctx)
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Type] Super
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Term] Super renaming (_⊢_ to _Min𝔐TT⊢_)
 
@@ -91,18 +92,6 @@ module _ (This : Chor𝔐TT 𝑗) where
 
   --------------------------------------------------------------------
   -- Terms
-
-  com-restr-single : ∀{x : BaseModeHom-PolySR a b} -> ∀{xp} -> {A : ⊢Type c}
-                    -> {B : ⊢Type a}
-                    -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
-                    -> Γ ∙⟮ A ∣ μ ◆ (x ⨾ id') ⟯ ∙! ((x ⨾ id') , xp) ⊢ B
-  com-restr-single = {!!}
-
-  com⁻¹-restr-single : ∀{x : BaseModeHom-PolySR a b} -> ∀{xp} -> {A : ⊢Type c}
-                    -> {B : ⊢Type a}
-                    -> Γ ∙⟮ A ∣ μ ◆ (x ⨾ id') ⟯ ∙! ((x ⨾ id') , xp) ⊢ B
-                    -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
-  com⁻¹-restr-single = {!!}
 
   transl-Term-▲ : ∀{U} -> {Γ : ⊢Ctx {◯} (▲ U)} -> {X : ⊢Type (▲ U)}
                -> Γ ⊢ X at (◯ , ▲ U) of Super

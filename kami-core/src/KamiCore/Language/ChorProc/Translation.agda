@@ -24,7 +24,9 @@ open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (Mod
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
 
 open import KamiCore.Language.ChorMTT.Definition
+open import KamiCore.Language.ChorMTT.Properties
 open import KamiCore.Language.ChorProc.Definition
+open import KamiCore.Language.ChorProc.Properties
 
 
 
@@ -35,35 +37,47 @@ F₃ This = Chor𝔓roc/Definition.Super This
 
 module _ (This : Chor𝔓roc 𝑗) where
   open Chor𝔓roc/Definition This
+  open [Chor𝔓roc/Definition::Param]
   open [Chor𝔓roc/Definition::Type]
   open [Chor𝔓roc/Definition::Ctx]
   open [Chor𝔓roc/Definition::Term]
+  open Chor𝔓roc/Properties This
 
   open Chor𝔐TT/Definition Super
-  open [Chor𝔐TT/Definition::Param]
   open [Chor𝔐TT/Definition::Type] hiding (⊢Type)
-  open [Chor𝔐TT/Definition::Ctx] renaming (⊢Ctx to 𝔐TT⊢Ctx)
-  open [Chor𝔐TT/Definition::Term] renaming (_⊢_ to _𝔐TT⊢_)
+  open [Chor𝔐TT/Definition::Ctx] renaming (⊢Ctx to Chor𝔐TT⊢Ctx)
+  open [Chor𝔐TT/Definition::Term] renaming (_⊢_ to _Chor𝔐TT⊢_)
+  open Chor𝔐TT/Properties Super
+
+
+  -- TODO: currently these definitions
+  -- have to be stated in multiple places,
+  -- because otherwise the inference doesn't work.
+  -- Merge in a single place.
+  private
+    pattern []ₛ = (`[]` ⨾ id' , incl `[]`)
+    pattern ＠ₛ U  = (`＠` U ⨾ id' , incl (`＠` _))
 
   par-𝔉₃ : Param Super -> Param This
   par-𝔉₃ _ = tt
 
 
 
+
   --------------------------------------------------------------------
   -- Types
 
-  F-Type : (a ⟶ b) -> ⊢Type a -> ⊢Type b
+  F-Type : (a ⟶ b) -> ⊢Type ⟦ a ⟧-Mode -> ⊢Type ⟦ b ⟧-Mode
   F-Type id' x = x
   F-Type (`＠` U ⨾ μ) x = F-Type μ (x ＠ U)
   F-Type (`[]` ⨾ μ) x = F-Type μ (◻ x)
 
-  F-Type-map : ∀{X} {μ : a ⟶ b} {ν : b ⟶ c} -> F-Type (μ ◆ ν) X ≡ F-Type ν (F-Type μ X)
+  F-Type-map : ∀{X : ⊢Type ⟦ a ⟧-Mode} {μ : a ⟶ b} {ν : b ⟶ c} -> F-Type (μ ◆ ν) X ≡ F-Type ν (F-Type μ X)
   F-Type-map {μ = id'} = refl-≡
   F-Type-map {μ = `＠` U ⨾ μ} = F-Type-map {μ = μ}
   F-Type-map {μ = `[]` ⨾ μ} = F-Type-map {μ = μ}
 
-  ⦋_⦌-Type : Type a of Super -> ⊢Type a
+  ⦋_⦌-Type : Type a of Super -> ⊢Type ⟦ a ⟧-Mode
   ⦋ ⟨ X ∣ μ ⟩ ⦌-Type = F-Type (fst μ) ⦋ X ⦌-Type
   ⦋ Unit ⦌-Type = Unit
   ⦋ Tr X ⦌-Type = Tr ⦋ X ⦌-Type
@@ -91,7 +105,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   addRestr (`＠` U ⨾ μ) Γ = addRestr μ Γ , U
   addRestr (`[]` ⨾ μ) Γ = let Γ' , U = addRestr μ Γ in Γ' ,[ U ]
 
-  transl-Ctx : (Γ : 𝔐TT⊢Ctx {◯} a) -> isCtx₂ Γ -> TargetCtx a
+  transl-Ctx : (Γ : Chor𝔐TT⊢Ctx {◯} a) -> isCtx₂ Γ -> TargetCtx a
   transl-Ctx (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) = transl-Ctx Γ Γp , F-Type μ ⦋ x ⦌-Type
   transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr (fst μ) (transl-Ctx Γ Γp)
   transl-Ctx ε Γp = ε
@@ -108,20 +122,38 @@ module _ (This : Chor𝔓roc 𝑗) where
 
   --------------------------------------------------------------------
   -- Terms
-  transl-Term-▲ : ∀{ps i} -> (Γ : 𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
-            -> ∀{A} -> Γ ∙! (`＠` i ⨾ id') 𝔐TT⊢ A
+  transl-Term-▲ : ∀{ps} {i : ⟨ P ⟩} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
+            -> ∀{A} -> Γ ∙! (＠ₛ i) Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
-  transl-Term-▲ = {!!}
+  transl-Term-▲ Γ Γp (var x α) = {!!}
+  transl-Term-▲ Γ Γp tt = {!!}
+  transl-Term-▲ Γ Γp (mod μ t) = {!!}
+  transl-Term-▲ Γ Γp (letmod ν t t₁) = {!!}
+  transl-Term-▲ Γ Γp (pure t) = {!!}
+  transl-Term-▲ Γ Γp (seq t t₁) = {!!}
+  transl-Term-▲ Γ Γp (lam t) =
+      let t' = com-restr-single t
+          rest' = transl-Term-▲ _ (stepVar Γp) t'
+      in commute-＠-Exp _ (lam-GlobalFibered rest')
+  transl-Term-▲ Γ Γp (app t t₁) = {!!}
+  transl-Term-▲ Γ Γp (left t) = {!!}
+  transl-Term-▲ Γ Γp (right t) = {!!}
+  transl-Term-▲ Γ Γp (either t t₁ t₂) = {!!}
+  transl-Term-▲ Γ Γp [] = {!!}
+  transl-Term-▲ Γ Γp (t ∷ t₁) = {!!}
+  transl-Term-▲ Γ Γp (rec-Lst t t₁ t₂) = {!!}
 
-  transl-Term-◯ : ∀{ps} -> (Γ : 𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
-            -> ∀{A} -> Γ 𝔐TT⊢ A
+  transl-Term-◯ : ∀{ps} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
+            -> ∀{A} -> Γ Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
   transl-Term-◯ = {!!}
 
+
+{-
   ⟪𝔉₃∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
                -> Γ ⊢ X at a of Super
                -> ⟪𝔉₃∣ Γ Ctx⟫ ⊢ ⟪𝔉₃∣ X Type⟫ at tt of This
-  ⟪𝔉₃∣_Term⟫ {a = ▲ U} {Γ = (Γ ∙! (`＠` U ⨾ id')) , stepRes (`＠` U) Γp} {X} t = transl-Term-▲ Γ Γp t
+  ⟪𝔉₃∣_Term⟫ {a = ▲ U} {Γ = (Γ ∙! ＠ₛ U) , stepRes (`＠` U) Γp} {X} t = transl-Term-▲ Γ Γp t
   ⟪𝔉₃∣_Term⟫ {a = ◯} {Γ = Γ , Γp} {X} t = transl-Term-◯ Γ Γp t
 
   -- End Terms
@@ -138,6 +170,8 @@ module _ (This : Chor𝔓roc 𝑗) where
     }
 
 
+-}
+
 {-
 instance
   isReduction:F₃ : isParamSTTHom (Chor𝔓roc 𝑗) (Chor𝔐TT _) F₃
@@ -149,3 +183,5 @@ instance
 module _ {𝑗} where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
 -}
 
+{-
+-}

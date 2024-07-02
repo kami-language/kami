@@ -71,7 +71,6 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       a a₀ b c d : Mode PolySR-ModeSystem
       μ ν η ω : ModeHom PolySR-ModeSystem a b
 
-
     -----------------------------------------
     -- Arrow classification
     -----------------------------------------
@@ -146,8 +145,8 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
   --------------------------------------------------------------------
   -- Contexts
-  open [Min𝔐TT/Definition::Ctx]
   module [Chor𝔐TT/Definition::Ctx] where
+    open [Min𝔐TT/Definition::Ctx] public
 
     -- variable
     --   Γ : Ctx (_at_ {{hasParamSTT:MinMTT}} Super (◯ , b))
@@ -156,6 +155,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       ε : isCtx₂ ε
       stepVar : {Γ : ⊢Ctx {◯} ◯} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : ⊢ModeHom a ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
       stepRes : ∀(x : Edge (of PolySR-ModeSystem .graph) b a) -> {Γ : ⊢Ctx {◯} a} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! ((x ⨾ id) , incl x))
+
 
   open [Chor𝔐TT/Definition::Ctx]
 
