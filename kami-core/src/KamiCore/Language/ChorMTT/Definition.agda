@@ -11,6 +11,7 @@ open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
+open import Agora.Category.Std.Category.Structured.Classified.Definition
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
 
@@ -21,7 +22,7 @@ open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
-import KamiTheory.Main.Generic.ModeSystem.2Graph.Example2 as 2GraphExample
+import KamiTheory.Main.Generic.ModeSystem.2Graph.Example3 as 2GraphExample
 import KamiTheory.Main.Generic.ModeSystem.2Cell.Definition as 2CellDefinition
 import KamiTheory.Main.Generic.ModeSystem.2Cell.Rewriting as 2CellRewriting
 import KamiTheory.Main.Generic.ModeSystem.2Cell.Linear as 2CellLinear
@@ -53,31 +54,64 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
   -- Getting the mode system
     open 2CellDefinition.2CellDefinition hiding (id) public
-    open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example2 public
-    open SendNarrow-ModeSystem P {{it}} {{it}} public
-    open 2GraphExample.SendNarrow-2Graph P public
-    open 2CellLinear.2CellLinear SN public
-    open 2CellRewriting.2CellRewriting SN public
+    open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example3 public
+    open PolySendReceive-ModeSystem P {{it}} {{it}} public
+    open 2GraphExample.PolySendReceive-2Graph P public
+    open 2CellLinear.2CellLinear PolySR public
+    open 2CellRewriting.2CellRewriting PolySR public
 
-    open ModeSystemAs2Category SN-ModeSystem public
+    open ModeSystemAs2Category PolySR-ModeSystem public
 
-    ⊢Param = Mode SN-ModeSystem
+    ⊢Param = Mode PolySR-ModeSystem
 
     variable
-      a a₀ b c d : Mode SN-ModeSystem
-      μ ν η ω : ModeHom SN-ModeSystem a b
+      a a₀ b c d : Mode PolySR-ModeSystem
+      μ ν η ω : ModeHom PolySR-ModeSystem a b
+
+
+    -----------------------------------------
+    -- Arrow classification
+    -----------------------------------------
+    classify-Single : {a b : Mode PolySR-ModeSystem}
+                      -> {μ ν : a ⟶ b}
+                      -> SingleFace' vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
+    classify-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) = ⊥
+    classify-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ idᵣ₁) top₁ bot) = ⦗ tt ⦘
+
+    classify-Linear : {a b : Mode PolySR-ModeSystem}
+                      -> {μ ν : a ⟶ b}
+                      -> Linear2Cell vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
+    classify-Linear [] = ⊥
+    classify-Linear (x ∷ xs) = classify-Single x ∨ classify-Linear xs
+
+    classify : {a b : Mode PolySR-ModeSystem}
+               -> {μ ν : a ⟶ b}
+               -> (α : μ ⟹ ν)
+               -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
+    classify [ incl α₀ ∣ incl α₁ ] = classify-Linear (linearize α₁)
+
+    module _ {a b : Mode PolySR-ModeSystem} where
+
+      instance
+        isClassified:PolySR : isClassified (𝒫ᶠⁱⁿ (𝟙 {ℓ₀})) (HomCategory a b)
+        isClassified:PolySR = record
+          { class = classify
+          ; preserve-◆ = {!!}
+          ; preserve-id = {!!}
+          }
 
   open [Chor𝔐TT/Definition::Param]
-
 
 
   module [Chor𝔐TT/Definition::Private] where
     Super : Min𝔐TT _
     Super = record
-      { ModeTheory = ′ Mode SN-ModeSystem ′
+      { ModeTheory = ′ Mode PolySR-ModeSystem ′
       ; isSmall = {!!}
       ; split = {!!}
       ; isTargetMode = λ a -> a ≡ ◯
+      ; Classification = 𝒫ᶠⁱⁿ (⊤-𝒰 {ℓ₀} since {!it!})
+      ; isClassified:Transformation = isClassified:PolySR
       }
   open [Chor𝔐TT/Definition::Private]
 
@@ -110,7 +144,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     data isCtx₂ : Ctx (◯ , a) of Super -> 𝒰 𝑗 where
       ε : isCtx₂ ε
       stepVar : {Γ : Ctx (◯ , ◯) of Super} -> isCtx₂ Γ -> {A : ⊢Type a} -> {μ : a ⟶ ◯} -> isCtx₂ (Γ ∙⟮ A ∣ μ ⟯)
-      stepRes : ∀(x : Edge (of SN-ModeSystem .graph) b a) -> {Γ : Ctx (◯ , a) of Super} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
+      stepRes : ∀(x : Edge (of PolySR-ModeSystem .graph) b a) -> {Γ : Ctx (◯ , a) of Super} -> isCtx₂ Γ -> isCtx₂ (Γ ∙! (x ⨾ id))
 
   open [Chor𝔐TT/Definition::Ctx]
 
@@ -129,14 +163,9 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
       -- modalities
       mod : ∀ μ -> Γ ∙! (μ ⨾ id') ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-      letmod : ∀(μ : BaseModeHom-SN a b) -> (ν : b ⟶ c)
+      letmod : ∀(μ : BaseModeHom-PolySR a b) -> (ν : b ⟶ c)
             -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
             -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
-            -> Γ ⊢ B
-
-      letmod' : ∀(μ : BaseModeHom-SN a b)
-            -> Γ ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-            -> Γ ∙⟮ A ∣ μ ⨾ id' ⟯ ⊢ B
             -> Γ ⊢ B
 
       -- explicit transformations

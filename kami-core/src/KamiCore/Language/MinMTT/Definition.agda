@@ -15,8 +15,11 @@ open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
+open import Agora.Category.Std.Category.Structured.Classified.Definition
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
+open import Agora.Order.Preorder
+open import Agora.Order.Lattice
 
 open import KamiCore.Language.MTT.Definition
 
@@ -28,6 +31,8 @@ record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
   field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰₀
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> a ⟶ b) a b
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
+  field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
+  field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
 
   -- TODO: We need extra information here
   -- about how to split the arrows into singletons
@@ -66,11 +71,14 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
   module [Min𝔐TT/Definition::Term] where
     data _⊢_ {m : Param Super} : Ctx m of Super -> Type m of Super -> 𝒰 𝑖 where
-      var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+      var : ∀{μ : _ ⟶ o}
+            -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
+            -> (α : μ ⟹ η)
+            -> class α ∼ ⊥
+            -> Γ ⊢ A
 
       tt : Γ ⊢ Unit
 
-{-
       -- modalities
       mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
       letmod : ∀{μ : o ⟶ n} -> (ν : n ⟶ snd m)
@@ -79,7 +87,10 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
             -> Γ ⊢ B
 
       -- explicit transformations
-      trans : ∀ {μ ν : n ⟶ snd m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : n ⟶ snd m}
+              -> (α : μ ⟹ ν)
+              -> (¬ class α ∼ ⊥)
+              -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
@@ -99,7 +110,6 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
       rec-Lst : {Γ : Ctx m of Super} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
--}
 
   open [Min𝔐TT/Definition::Term]
 

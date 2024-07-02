@@ -10,6 +10,9 @@ open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Functor.Definition
 open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
+open import Agora.Category.Std.Category.Structured.Classified.Definition
+open import Agora.Order.Preorder
+open import Agora.Order.Lattice
 
 open import Data.Vec hiding ([_] ; map)
 
@@ -17,10 +20,9 @@ open import Data.Vec hiding ([_] ; map)
 record MTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
+  field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
+  field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
 
-  -- field 𝓂 : 𝒰 (𝑖 ⌄ 0)
-  -- field {{isCategory:𝓂}} : isCategory {𝑖 ⌄ 1 ⋯ 2} 𝓂
-  -- field {{is2Category:𝓂}} : is2Category {𝑖 ⌄ 3 ⋯ 4} ′ 𝓂 ′
 
 open MTT public
 
@@ -151,8 +153,11 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
 
   module [𝔐TT/Definition::Term] where
     data _⊢_ {m} : ⊢Ctx {k} m -> ⊢Type m -> 𝒰 𝑖 where
-      var : ∀{μ : _ ⟶ o} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
-      tt : Γ ⊢ Unit
+      var : ∀{μ : _ ⟶ o}
+            -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
+            -> (α : μ ⟹ η)
+            -> class α ∼ ⊥
+            -> Γ ⊢ A
 
       -- modalities
       mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
@@ -162,7 +167,10 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
             -> Γ ⊢ B
 
       -- explicit transformations
-      trans : ∀ {μ ν : n ⟶ m} -> μ ⟹ ν -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : n ⟶ m}
+              -> (α : μ ⟹ ν)
+              -> (¬ class α ∼ ⊥)
+              -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
@@ -171,6 +179,9 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
       -- functions
       lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
       app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
+
+      -- unit type
+      tt : Γ ⊢ Unit
 
       -- sum types
       left : Γ ⊢ A -> Γ ⊢ Either A B

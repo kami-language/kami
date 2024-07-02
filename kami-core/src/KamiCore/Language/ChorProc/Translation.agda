@@ -129,10 +129,6 @@ module _ (This : Chor𝔓roc 𝑗) where
 
   module _ {a : Param Super} where
 
-    -- ⟪𝔉₃∣_Type⟫ : Type a of Super -> Type tt of This
-    -- ⟪𝔉₃∣_Type⟫ X = {!⦋ X ⦌-Type!}
-
-
 
   run-𝔉₃ : ∀{a : Param Super} -> (pa : SubParam Super a) -> Hom-STT (Super at a) (This at tt)
   run-𝔉₃ pa = record
