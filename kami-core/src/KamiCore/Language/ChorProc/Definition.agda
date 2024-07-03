@@ -103,7 +103,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       ◻ : ⊢Type ◯ -> ⊢Type ▲
       -- [_∣_]◅_ : ⊢Type ◯ -> (𝒫ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> ⊢Type ▲
       -- _∥_ : ⊢Type ▲ -> ⊢Type ▲ -> ⊢Type ▲
-      NN : ∀{m} -> ⊢Type m
+      -- NN : ∀{m} -> ⊢Type m
       Unit : ∀{m} -> ⊢Type m
       Either : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       Lst : ∀{m} -> ⊢Type m -> ⊢Type m
@@ -123,8 +123,8 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
 
     mutual
       data π_∣_↦_Type : ⊢Type ◯ -> ((𝒫ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
-        proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
-        proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
+        proj-＠ : ∀{ps pps qs A B} -> (¬ ps ∼ ⊥) -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
+        proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) +-𝒰 (ps ∼ ⊥) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
         _⇒_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ⇒ Y) ∣ p , ps ↦ (A ⇒ B) Type
         _××_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ×× Y) ∣ p , ps ↦ (A ×× B) Type
         Either : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (Either X Y) ∣ p , ps ↦ Either A B Type
@@ -136,6 +136,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
         done : ∀{A} -> ω A ∣ [] ↦ A Type
         proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ A Type
         Unit : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
+
 
   open [Chor𝔓roc/Definition::Type]
 
@@ -150,10 +151,16 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       Γ Δ : ⊢Ctx
 
     data _∣_↦_Ctx : ⊢Ctx -> (l : List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
-      ε : ∀{p} -> ε ∣ ⦗ p ⦘ ∷ [] ↦ ε Ctx
+      done : Γ ∣ [] ↦ Γ Ctx
+      ε : ∀{p ps} -> ε ∣ p ∷ ps ↦ ε Ctx
       _,_ : ∀{p ps A} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
       stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
 
+
+    data isLocal : (l : (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
+      ε : ∀{l} -> isLocal l ε
+      _,_ : ∀{Γ l} -> isLocal l Γ -> ∀ A -> isLocal l (Γ , A ＠ l )
+      stepRes : ∀{Γ k l} -> isLocal l Γ -> isLocal k (Γ ,[ l ])
 
   open [Chor𝔓roc/Definition::Ctx]
 

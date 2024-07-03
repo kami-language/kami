@@ -57,10 +57,14 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
       _⇒_ : LType -> LType -> LType
       ◻ : ⊢Type -> LType
       Unit : LType
+      NN : LType
       _××_ : LType -> LType -> LType
+      Either : LType -> LType -> LType
+      Lst : LType -> LType
+      Tr : LType -> LType
 
     variable
-      A B : LType
+      A B C : LType
       X : ⊢Type
 
   open [Std𝔓roc/Definition::Type]
@@ -87,11 +91,44 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
 
     data _⊢_Locally : LCtx -> LType -> 𝒰₀ where
       var : Γ ⊢Var A Locally -> Γ ⊢ A Locally
-      lam : Γ , A ⊢ B Locally -> Γ ⊢ A ⇒ B Locally
-      box : (∀ n -> Γ ⊢ X n Locally) -> Γ ⊢ ◻ X Locally
+
+      -- sending and receiving
+      recv : 𝔽 n -> Γ ⊢ Tr A Locally
+      send : ∀{i} -> Γ ⊢ ◻ X Locally -> Γ ⊢ Tr (X i) Locally
+
+      -- Tr monad
+      pure : Γ ⊢ A Locally -> Γ ⊢ Tr A Locally
+      seq : Γ ⊢ Tr A Locally
+          -> Γ , A ⊢ Tr B Locally
+          -> Γ ⊢ Tr B Locally
+
+      -- tuples/modalities
       proj : Γ ⊢ ◻ X Locally -> ∀ n -> Γ ⊢ X n Locally
+      box : (∀ n -> Γ ⊢ X n Locally) -> Γ ⊢ ◻ X Locally
+
+      -- functions
+      lam : Γ , A ⊢ B Locally -> Γ ⊢ A ⇒ B Locally
+      app : Γ ⊢ A ⇒ B Locally -> Γ ⊢ A Locally -> Γ ⊢ B Locally
+
+      -- products
       _,_ : Γ ⊢ A Locally -> Γ ⊢ B Locally -> Γ ⊢ A ×× B Locally
       tt : Γ ⊢ Unit Locally
+
+      -- coproducts
+      left : Γ ⊢ A Locally -> Γ ⊢ Either A B Locally
+      right : Γ ⊢ B Locally -> Γ ⊢ Either A B Locally
+      either : Γ ⊢ Either A B Locally
+               -> Γ , A ⊢ C Locally
+               -> Γ , B ⊢ C Locally
+               -> Γ ⊢ C Locally
+
+      -- lists
+      [] : Γ ⊢ Lst A Locally
+      _∷_ : Γ ⊢ A Locally -> Γ ⊢ Lst A Locally -> Γ ⊢ Lst A Locally
+      rec-Lst : Γ ⊢ Lst A Locally
+                -> Γ ⊢ C Locally
+                -> (Γ , A) , C ⊢ C Locally
+                -> Γ ⊢ C Locally
 
     _⊢_ : ⊢Ctx -> ⊢Type -> 𝒰₀
     _⊢_ Γ X = ∀ n -> Γ n ⊢ X n Locally
