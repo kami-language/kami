@@ -80,8 +80,12 @@ module _ (This : Chor𝔓roc 𝑗) where
   ⟪𝔉₃∣_Type⟫ {a = ▲ x} X = ⦋ X ⦌-Type ＠ x
   ⟪𝔉₃∣_Type⟫ {a = ◯} X = ⦋ X ⦌-Type
 
-
   -- End Types
+  --------------------------------------------------------------------
+
+  --------------------------------------------------------------------
+  -- Types commutation proofs
+  -- End Types commutation proofs
   --------------------------------------------------------------------
 
   --------------------------------------------------------------------
@@ -99,7 +103,21 @@ module _ (This : Chor𝔓roc 𝑗) where
   --------------------------------------------------------------------
 
   --------------------------------------------------------------------
+  -- Context commutation proofs
+
+
+  commute-transl,addRestr : ∀{Γ Γp Γp'} -> transl-Ctx
+     (Γ ∙! ＠ₛ U ∙!* split-Min𝔐TT ν) Γp'
+     ≡ addRestr ν (transl-Ctx Γ Γp , U)
+  commute-transl,addRestr = {!!}
+
+  -- End Context commutation proofs
+  --------------------------------------------------------------------
+
+
+  --------------------------------------------------------------------
   -- Terms
+  {-# TERMINATING #-}
   transl-Term-▲ : ∀{ps} {i : ⟨ P ⟩} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ ∙! (＠ₛ i) Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
@@ -114,7 +132,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   transl-Term-▲ Γ Γp (mod []ₛ t) =
     let ts' = transl-Term-◯ _ (stepRes _ (stepRes _ Γp)) t
     in box-GlobalFibered ts'
-  transl-Term-▲ Γ Γp (letmod-＠ {A = A} (＠ₛ U) ν t s) =
+  transl-Term-▲ Γ Γp (letmod-＠ {U = i} {A = A} (＠ₛ U) ν t s) = {!!}
     -- let t' = transl-Term-◯ _ (isGood:splits (stepRes _ Γp)) (splits-path t)
     --     t'' = cong-GlobalFibered (lemma:transl,restr {μ = ν}) t'
     --     s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
@@ -122,40 +140,35 @@ module _ (This : Chor𝔓roc 𝑗) where
     -- let t' = transl-Term-◯ _ ? (splits-path t)
     --     t'' = cong-GlobalFibered ? t'
     --     s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-    let t' : transl-Ctx (Γ ∙! ＠ₛ _ ∙!* split-Min𝔐TT ν) {!!} ⊢ ⦋ A ⦌-Type ＠ U GlobalFibered[ _ ]
-        t' = transl-Term-◯ _ {!stepRes _ (stepRes _ Γp)!} t
+
+{-
+    let t' : transl-Ctx (Γ ∙! ＠ₛ _ ∙!* split-Min𝔐TT ν) _ ⊢ ⦋ A ⦌-Type ＠ U GlobalFibered[ _ ]
+        t' = transl-Term-◯ _ (stepsRes _ (stepRes _ Γp)) t
 
         s' = transl-Term-▲ _ ((stepVar Γp)) s
 
-        t'' : addRestr ν (transl-Ctx Γ {!!} , _) ⊢ ⦋ A ⦌-Type ＠ U GlobalFibered[ _ ]
-        t'' = cong-GlobalFibered {!!} t'
+        t'' : addRestr ν (transl-Ctx Γ Γp , i) ⊢ ⦋ A ⦌-Type ＠ U GlobalFibered[ _ ]
+        t'' = cong-GlobalFibered commute-transl,addRestr t'
 
-        -- t''' : transl-Ctx Γ {!!} ⊢ F-Type ν (⦋ A ⦌-Type ＠ U) ＠ _ GlobalFibered[ _ ]
-        -- t''' = multibox' t''
+        s'' = cong-GlobalFibered (cong-Ctx,Var (eval-F-type-right {ν = ν} {X = ⦋ A ⦌-Type ＠ U})) s'
 
-        -- s' = transl-Term-▲ _ (stepVar Γp) (com-restr-single (id-annotate s))
-
-        s'' = cong-GlobalFibered {!!} s'
-
-        res : (transl-Ctx Γ {!!}) ⊢ _ GlobalFibered[ _ ] -- F-Type ν (⦋ A ⦌-Type ＠ U) ＠ _ GlobalFibered[ _ ]
+        res : (transl-Ctx Γ Γp) ⊢ _ GlobalFibered[ _ ]
         res = letin-GlobalFibered (multibox t'') s''
 
     in res
+    -}
   transl-Term-▲ Γ Γp (letmod-＠ []ₛ id' t s) = {!!}
-  transl-Term-▲ Γ Γp (letmod-＠ []ₛ (`＠` U ⨾ ν) t s) = {!!}
-  --   -- let t' = split-path t
+  transl-Term-▲ Γ Γp (letmod-＠ {U = i} {A = A} []ₛ (`＠` U ⨾ ν) t s) =
+    let
+        t'' = transl-Term-▲ _ ((stepsRes _ (stepRes _ Γp))) t
 
-  --   --     t'' = transl-Term-▲ _ (stepRes (stepRes Γp)) t'
-  --   --     s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
+        t''' : addRestr (ν) (transl-Ctx Γ Γp , i) ⊢ (◻ ⦋ A ⦌-Type) ＠ U GlobalFibered[ _ ]
+        t''' = cong-GlobalFibered commute-transl,addRestr t''
+        s' = transl-Term-▲ _ ((stepVar Γp)) s
+        s'' = cong-GlobalFibered (cong-Ctx,Var ((eval-F-type-right {ν = ν} {X = ◻ ⦋ A ⦌-Type ＠ U}))) s'
 
-  --   -- in letin-GlobalFibered (multibox t'') s'
-  --   let -- t' = split-path t
+    in letin-GlobalFibered (multibox t''') s''
 
-  --       t'' = transl-Term-▲ _ ((isGood:splits {μs = ν} (stepRes _ Γp))) (splits-path t) -- (isGood:splits {μs = (`＠` U ⨾ ν)} (stepRes _ Γp))
-  --       t''' = cong-GlobalFibered ((lemma:transl,restr {μ = ν})) t''
-  --       s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
-
-  --   in letin-GlobalFibered (multibox t''') s'
   transl-Term-▲ Γ Γp (pure t) = {!!}
   transl-Term-▲ Γ Γp (seq t t₁) = {!!}
   transl-Term-▲ Γ Γp (lam t) =

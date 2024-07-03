@@ -31,6 +31,17 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Type] This
 
   open Min𝔐TT/Properties Super
+  open Min𝔐TT/Definition Super
+  open [Min𝔐TT/Definition::Private] using (_⟶ₛ_)
+
+  ----------------------------------------------------------
+  -- Ctx₂ proofs
+  ----------------------------------------------------------
+
+  -- stepsVar : ∀{μ : } -> isCtx₂ Γ -> isCtx₂ (Γ ∙!* μ)
+  stepsRes : {Γ : ⊢Ctx c} -> (μs : Path _⟶ₛ_ b c)
+             -> isCtx₂ Γ -> isCtx₂ (Γ ∙!* μs)
+  stepsRes = {!!}
 
 
   ----------------------------------------------------------
@@ -54,5 +65,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
 
   id-annotate : {μ : a ⟶ b} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ Mod-Type (split Super μ) A ∣ id' ⟯ ⊢ B
   id-annotate = {!!}
+
+
 
 

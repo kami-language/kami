@@ -70,6 +70,17 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   forget {a = ◯} Γ = Γ
   forget {a = ▲ x} Γ = fst Γ
 
+  cong-Ctx,Var : {A B : ⊢Type ◯} -> A ≡ B -> _≡_ {A = ⊢Ctx} (Γ , A) (Γ , B)
+  cong-Ctx,Var = {!!}
+
+  --------------------------------------------------------------
+  -- Proofs on Operations on Types and contexts
+  --------------------------------------------------------------
+
+  eval-F-type-right : F-Type (ν ◆' `＠` V ⨾ id') X ≡ (F-Type ν X) ＠ V
+  eval-F-type-right = {!!}
+
+
 
   --------------------------------------------------------------
   -- Types and context projections
