@@ -278,6 +278,15 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   -------------------
   -- seq
+  seq-GlobalFibered : Γ ⊢ Tr X GlobalFibered[ ps ]
+                      -> Γ , X ⊢ Tr Y GlobalFibered[ ps ]
+                      -> Γ ⊢ Tr Y GlobalFibered[ ps ]
+  seq-GlobalFibered {X = X} {Y = Y} t s = incl λ
+    { p x (Tr Yp) Γp →
+      let Xp = π-Type-Proof X (⦗ p ⦘ , [])
+      in seq (⟨ t ⟩ p x (Tr Xp) Γp) (⟨ s ⟩ p x (Tr Yp) (Γp , Xp))
+    }
+
   seq-＠-GlobalFibered : Γ ⊢ Tr A ＠ U GlobalFibered[ ps ]
                       -> Γ , A ＠ U ⊢ Tr B ＠ U GlobalFibered[ ps ]
                       -> Γ ⊢ Tr B ＠ U GlobalFibered[ ps ]
@@ -294,6 +303,12 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     { p x (proj-＠ x₁ done) Γp → left (⟨ t ⟩ p x ((proj-＠ x₁ done)) Γp)
     ; p x (proj-＠-≠ x₁) Γp → tt}
 
+  left-GlobalFibered : Γ ⊢ X GlobalFibered[ ps ]
+                      -> Γ ⊢ Either X Y GlobalFibered[ ps ]
+  left-GlobalFibered {X = X} {Y = Y} t = incl λ
+    { p x (Either Xp Yp) Γp → left (⟨ t ⟩ p x Xp Γp)
+    }
+
   -------------------
   -- right
   right-＠-GlobalFibered : Γ ⊢ B ＠ U GlobalFibered[ ps ]
@@ -301,6 +316,12 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   right-＠-GlobalFibered t = incl λ
     { p x (proj-＠ x₁ done) Γp → right (⟨ t ⟩ p x ((proj-＠ x₁ done)) Γp)
     ; p x (proj-＠-≠ x₁) Γp → tt}
+
+  right-GlobalFibered : Γ ⊢ Y GlobalFibered[ ps ]
+                      -> Γ ⊢ Either X Y GlobalFibered[ ps ]
+  right-GlobalFibered {Y = Y} {X = X} t = incl λ
+    { p x (Either Xp Yp) Γp → right (⟨ t ⟩ p x Yp Γp)
+    }
 
   -------------------
   -- either
@@ -312,11 +333,28 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     { p x (proj-＠ x₁ done) Γp → either (⟨ t ⟩ p x (proj-＠ x₁ done) Γp) (⟨ s ⟩ p x (proj-＠ x₁ done) (Γp , (proj-＠ x₁ done))) ((⟨ u ⟩ p x (proj-＠ x₁ done) (Γp , (proj-＠ x₁ done))))
     ; p x (proj-＠-≠ x₁) Γp → tt}
 
+  either-GlobalFibered : Γ ⊢ Either X Y GlobalFibered[ ps ]
+                      -> Γ , X ⊢ Z GlobalFibered[ ps ]
+                      -> Γ , Y ⊢ Z GlobalFibered[ ps ]
+                      -> Γ ⊢ Z GlobalFibered[ ps ]
+  either-GlobalFibered {X = X} {Y = Y} t s u = incl λ
+    { p x Zp Γp →
+      let Xp = π-Type-Proof X (⦗ p ⦘ , [])
+          Yp = π-Type-Proof Y (⦗ p ⦘ , [])
+      in either (⟨ t ⟩ p x (Either Xp Yp) Γp) (⟨ s ⟩ p x Zp (Γp , Xp)) ((⟨ u ⟩ p x Zp (Γp , Yp)))
+    }
+
+
   -------------------
   -- []
   []-＠-GlobalFibered : Γ ⊢ Lst A ＠ U GlobalFibered[ ps ]
   []-＠-GlobalFibered = incl λ { p x (proj-＠ x₁ done) Γp → []
                               ; p x (proj-＠-≠ x₁) Γp → tt}
+
+  []-GlobalFibered : Γ ⊢ Lst X GlobalFibered[ ps ]
+  []-GlobalFibered {X = X} = incl λ
+    { p x (Lst Xp) Γp → []
+    }
 
   -------------------
   -- _∷_
@@ -326,6 +364,13 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   _∷_-＠-GlobalFibered t s = incl λ
     { p x (proj-＠ x₁ done) Γp → (⟨ t ⟩ p x ((proj-＠ x₁ done)) Γp) ∷ (⟨ s ⟩ p x ((proj-＠ x₁ done)) Γp)
     ; p x (proj-＠-≠ x₁) Γp → tt}
+
+  _∷_-GlobalFibered : Γ ⊢ X GlobalFibered[ ps ]
+                  -> Γ ⊢ Lst X GlobalFibered[ ps ]
+                  -> Γ ⊢ Lst X GlobalFibered[ ps ]
+  _∷_-GlobalFibered {X = X} t s = incl λ
+    { p x (Lst Xp) Γp → _∷_ (⟨ t ⟩ p x Xp Γp) (⟨ s ⟩ p x (Lst Xp) Γp)
+    }
 
 
   -------------------
@@ -338,4 +383,14 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     { p x (proj-＠ x₁ done) Γp → rec-Lst (⟨ t ⟩ p x (proj-＠ x₁ done) Γp) (⟨ s ⟩ p x (proj-＠ x₁ done) Γp) ((⟨ u ⟩ p x (proj-＠ x₁ done) ((Γp , (proj-＠ x₁ done)) , (proj-＠ x₁ done))))
     ; p x (proj-＠-≠ x₁) Γp → tt}
 
+
+  rec-Lst-GlobalFibered : Γ ⊢ Lst X GlobalFibered[ ps ]
+                      -> Γ ⊢ Z GlobalFibered[ ps ]
+                      -> (Γ , X) , Z ⊢ Z GlobalFibered[ ps ]
+                      -> Γ ⊢ Z GlobalFibered[ ps ]
+  rec-Lst-GlobalFibered {X = X} {Z = Z} t s u = incl λ
+    { p x Zp Γp →
+      let Xp = π-Type-Proof X (⦗ p ⦘ , [])
+      in rec-Lst (⟨ t ⟩ p x (Lst Xp) Γp) (⟨ s ⟩ p x Zp Γp) ((⟨ u ⟩ p x Zp ((Γp , Xp) , Zp)))
+    }
 

@@ -118,7 +118,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
 
     variable
       -- U : 𝒫ᶠⁱⁿ (Proc This)
-      X Y : ⊢Type ◯
+      X Y Z : ⊢Type ◯
       A B C : ⊢Type ▲
 
     mutual

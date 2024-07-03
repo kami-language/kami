@@ -215,7 +215,8 @@ module _ (This : Chor𝔓roc 𝑗) where
   transl-Term-◯ Γ Γp (var x α) = {!!}
   transl-Term-◯ Γ Γp tt = tt-GlobalFibered
   transl-Term-◯ Γ Γp (mod (＠ₛ U) t) = transl-Term-▲ Γ Γp t
-  transl-Term-◯ Γ Γp (letmod (＠ₛ U) ν t s) =
+  transl-Term-◯ Γ Γp (letmod (＠ₛ U) ν t s) = {!!}
+  {-
     let t' = transl-Term-◯ _ (stepsRes _ Γp) t
 
         s' = transl-Term-◯ _ ((stepVar Γp)) s
@@ -226,22 +227,48 @@ module _ (This : Chor𝔓roc 𝑗) where
         res = letin-GlobalFibered (multibox' t'') s'
 
     in res
-  transl-Term-◯ Γ Γp (letmod []ₛ (`＠` i ⨾ ν) t s) =
+  -}
+  transl-Term-◯ Γ Γp (letmod []ₛ (`＠` i ⨾ ν) t s) = {!!}
+  {-
     let
         t'' = transl-Term-▲ _ ((stepsRes _ (Γp))) t
         t''' = cong-GlobalFibered (commute-transl,addRestr-2 {ν = ν}) t''
         s' = transl-Term-◯ _ ((stepVar Γp)) s
     in letin-GlobalFibered (multibox' t''') s'
-  transl-Term-◯ Γ Γp (pure t) = {!!}
-  transl-Term-◯ Γ Γp (seq t t₁) = {!!}
-  transl-Term-◯ Γ Γp (lam t) = {!!}
-  transl-Term-◯ Γ Γp (app t t₁) = {!!}
-  transl-Term-◯ Γ Γp (left t) = {!!}
-  transl-Term-◯ Γ Γp (right t) = {!!}
-  transl-Term-◯ Γ Γp (either t t₁ t₂) = {!!}
-  transl-Term-◯ Γ Γp [] = {!!}
-  transl-Term-◯ Γ Γp (t ∷ t₁) = {!!}
-  transl-Term-◯ Γ Γp (rec-Lst t t₁ t₂) = {!!}
+  -}
+  transl-Term-◯ Γ Γp (pure t) = pure-GlobalFibered (transl-Term-◯ Γ Γp t)
+  transl-Term-◯ Γ Γp (seq t s) =
+    let t' = transl-Term-◯ Γ Γp t
+        s' = transl-Term-◯ _ (stepVar Γp) s
+    in seq-GlobalFibered t' s'
+  transl-Term-◯ Γ Γp (lam t) =
+    let t' = transl-Term-◯ _ (stepVar Γp) t
+    in lam-GlobalFibered t'
+  transl-Term-◯ Γ Γp (app t s) =
+    let t' = transl-Term-◯ Γ Γp t
+        s' = transl-Term-◯ _ Γp s
+    in app-GlobalFibered t' s'
+  transl-Term-◯ Γ Γp (left t) =
+    let t' = transl-Term-◯ Γ Γp t
+    in left-GlobalFibered t'
+  transl-Term-◯ Γ Γp (right t) =
+    let t' = transl-Term-◯ Γ Γp t
+    in right-GlobalFibered t'
+  transl-Term-◯ Γ Γp (either t s u) =
+    let t' = transl-Term-◯ Γ Γp t
+        s' = transl-Term-◯ _ (stepVar Γp) s
+        u' = transl-Term-◯ _ (stepVar Γp) u
+    in either-GlobalFibered t' s' u'
+  transl-Term-◯ Γ Γp [] = []-GlobalFibered
+  transl-Term-◯ Γ Γp (t ∷ s) =
+    let t' = transl-Term-◯ Γ Γp t
+        s' = transl-Term-◯ _ Γp s
+    in _∷_-GlobalFibered t' s'
+  transl-Term-◯ Γ Γp (rec-Lst t s u) =
+    let t' = transl-Term-◯ Γ Γp t
+        s' = transl-Term-◯ Γ Γp s
+        u' = transl-Term-◯ _ (stepVar (stepVar Γp)) u
+    in rec-Lst-GlobalFibered t' s' u'
 
 
 {-
