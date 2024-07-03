@@ -204,7 +204,10 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
-      seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
+      seq : ∀{A : ⊢Type ◯} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id' ⟯ ⊢ Tr B -> Γ ⊢ Tr B
+      seq-＠ : Γ ∙! ＠ₛ U ⊢ Tr A
+              -> Γ ∙⟮ A ∣ `＠` U ⨾ id ⟯ ∙! ＠ₛ U ⊢ Tr B
+              -> Γ ∙! ＠ₛ U ⊢ Tr B
 
       -- functions
       lam-＠ : Γ ∙⟮ A ∣ `＠` U ⨾ id' ⟯ ∙! ＠ₛ U ⊢ B -> Γ ∙! ＠ₛ U ⊢ A ⇒ B
@@ -214,12 +217,20 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       -- sum types
       left : Γ ⊢ A -> Γ ⊢ Either A B
       right : Γ ⊢ B -> Γ ⊢ Either A B
-      either : {Γ : ⊢Ctx {◯} a} -> Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      either-＠ : Γ ∙! ＠ₛ U ⊢ Either A B
+             -> Γ ∙⟮ A ∣ `＠` U ⨾ id' ⟯ ∙! ＠ₛ U ⊢ C
+             -> Γ ∙⟮ B ∣ `＠` U ⨾ id' ⟯ ∙! ＠ₛ U ⊢ C
+             -> Γ ∙! ＠ₛ U ⊢ C
+      either : {Γ : ⊢Ctx {◯} ◯} -> Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
       -- list types
       [] : Γ ⊢ Lst A
       _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
-      rec-Lst : {Γ : ⊢Ctx {◯} a} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      rec-Lst-＠ : Γ ∙! ＠ₛ U ⊢ Lst A
+                  -> Γ ∙! ＠ₛ U ⊢ C
+                  -> Γ ∙⟮ A ∣ `＠` U ⨾ id' ⟯ ∙⟮ C ∣ `＠` U ⨾ id' ⟯ ∙! ＠ₛ U ⊢ C
+                  -> Γ ∙! ＠ₛ U ⊢ C
+      rec-Lst : {Γ : ⊢Ctx {◯} ◯} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
   open [Chor𝔐TT/Definition::Term]
 

@@ -129,8 +129,7 @@ module _ (This : Chor𝔐TT 𝑗) where
   transl-Term-▲ (pure t) = pure (transl-Term-▲ t)
   transl-Term-▲ (seq t s) =
     let s' = (transl-Term-▲ s)
-        s'' = (com⁻¹-restr-single {μ = id'} s')
-    in seq (transl-Term-▲ t) s''
+    in seq-＠ (transl-Term-▲ t) s'
   transl-Term-▲ (lam t) =
     let t' = transl-Term-▲ t
     in lam-＠ t' -- (com⁻¹-restr-single {μ = id'} t')

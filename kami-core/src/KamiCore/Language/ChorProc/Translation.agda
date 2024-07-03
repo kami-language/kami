@@ -73,8 +73,8 @@ module _ (This : Chor𝔓roc 𝑗) where
   ⦋ Unit ⦌-Type = Unit
   ⦋ Tr X ⦌-Type = Tr ⦋ X ⦌-Type
   ⦋ X ⇒ Y ⦌-Type = ⦋ X ⦌-Type ⇒ ⦋ Y ⦌-Type
-  ⦋ Either x x₁ ⦌-Type = {!!}
-  ⦋ Lst x ⦌-Type = {!!}
+  ⦋ Either X Y ⦌-Type = Either ⦋ X ⦌-Type ⦋ Y ⦌-Type
+  ⦋ Lst X ⦌-Type = Lst ⦋ X ⦌-Type
 
   ⟪𝔉₃∣_Type⟫ : {a : Param Super} -> Type a of Super -> Type tt of This
   ⟪𝔉₃∣_Type⟫ {a = ▲ x} X = ⦋ X ⦌-Type ＠ x
@@ -156,7 +156,11 @@ module _ (This : Chor𝔓roc 𝑗) where
 
     in res
     -}
-  transl-Term-▲ Γ Γp (letmod-＠ []ₛ id' t s) = {!!}
+  transl-Term-▲ Γ Γp (letmod-＠ []ₛ id' t s) =
+    let
+        t'' = transl-Term-▲ _ Γp t
+        s' = transl-Term-▲ _ ((stepVar Γp)) s
+    in letin-GlobalFibered t'' s'
   transl-Term-▲ Γ Γp (letmod-＠ {U = i} {A = A} []ₛ (`＠` U ⨾ ν) t s) = {!!}
   {-
     let
@@ -169,19 +173,29 @@ module _ (This : Chor𝔓roc 𝑗) where
 
     in letin-GlobalFibered (multibox t''') s''
   -}
-  transl-Term-▲ Γ Γp (pure t) = {!!}
-  transl-Term-▲ Γ Γp (seq t t₁) = {!!}
+  transl-Term-▲ Γ Γp (pure t) = pure-＠-GlobalFibered (transl-Term-▲ Γ Γp t)
+  transl-Term-▲ Γ Γp (seq-＠ t s) =
+    let t' = transl-Term-▲ Γ Γp t
+        s' = transl-Term-▲ _ (stepVar Γp) s
+    in seq-＠-GlobalFibered t' s'
   transl-Term-▲ Γ Γp (lam-＠ t) =
       let -- t' = com-restr-single t
           rest' = transl-Term-▲ _ (stepVar Γp) t
-      in commute-＠-Exp _ (lam-GlobalFibered rest')
-  transl-Term-▲ Γ Γp (app t t₁) = {!!}
-  transl-Term-▲ Γ Γp (left t) = {!!}
-  transl-Term-▲ Γ Γp (right t) = {!!}
-  transl-Term-▲ Γ Γp (either t t₁ t₂) = {!!}
+      in commute⁻¹-＠-Exp _ (lam-GlobalFibered rest')
+  transl-Term-▲ Γ Γp (app t s) =
+    let t' = transl-Term-▲ Γ Γp t
+        s' = transl-Term-▲ Γ Γp s
+    in app-GlobalFibered (commute-＠-Exp _ t') s'
+  transl-Term-▲ Γ Γp (left t) = left-＠-GlobalFibered (transl-Term-▲ Γ Γp t)
+  transl-Term-▲ Γ Γp (right t) = right-＠-GlobalFibered (transl-Term-▲ Γ Γp t)
+  transl-Term-▲ Γ Γp (either-＠ t s u) =
+    let t' = transl-Term-▲ Γ Γp t
+        s' = transl-Term-▲ _ (stepVar Γp) s
+        u' = transl-Term-▲ _ (stepVar Γp) u
+    in either-＠-GlobalFibered t' s' u'
   transl-Term-▲ Γ Γp [] = {!!}
   transl-Term-▲ Γ Γp (t ∷ t₁) = {!!}
-  transl-Term-▲ Γ Γp (rec-Lst t t₁ t₂) = {!!}
+  transl-Term-▲ Γ Γp (rec-Lst-＠ t t₁ t₂) = {!!}
 
   transl-Term-◯ = {!!}
 

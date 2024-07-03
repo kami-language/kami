@@ -106,6 +106,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       NN : ∀{m} -> ⊢Type m
       Unit : ∀{m} -> ⊢Type m
       Either : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
+      Lst : ∀{m} -> ⊢Type m -> ⊢Type m
       _⇒_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       _××_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       Tr : ∀{m} -> ⊢Type m -> ⊢Type m
@@ -128,6 +129,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
         _××_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ×× Y) ∣ p , ps ↦ (A ×× B) Type
         Either : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (Either X Y) ∣ p , ps ↦ Either A B Type
         Tr : ∀{p ps A } -> π X ∣ p , ps ↦ A Type -> π (Tr X) ∣ p , ps ↦ Tr A Type
+        Lst : ∀{p ps A } -> π X ∣ p , ps ↦ A Type -> π (Lst X) ∣ p , ps ↦ Lst A Type
         Unit : ∀{p ps} -> π Unit ∣ p , ps ↦ Unit Type
 
       data ω_∣_↦_Type : ⊢Type ▲ -> List (𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> 𝒰 (𝑗) where
@@ -170,6 +172,8 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     data _⊢_GlobalFiber[_] : (Γ : ⊢Ctx) -> (A : ⊢Type ▲) -> ⟨ Proc This ⟩ -> 𝒰 (𝑗) where
       var : ∀{p} -> (v : Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ ∷ [] ]) -> Γ ⊢ A GlobalFiber[ p ]
 
+      -- communication
+
       recv : π X ∣ ⦗ p ⦘ , [] ↦ A Type -> Γ ⊢ Tr A GlobalFiber[ p ]
 
       send : (v : π X ∣ ⦗ p ⦘ , [] ↦ A Type)
@@ -179,13 +183,38 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
 
       extern : Γ ,[ ⦗ q ⦘ ] ⊢ A GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ]
 
+      box' : Γ ,[ ⦗ p ⦘ ] ⊢ X GlobalFibered[ ps ]
+            -> Γ ⊢ ◻ X GlobalFiber[ p ]
+
+      -- transformations
+      pure : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Tr A GlobalFiber[ p ]
+      seq : Γ ⊢ Tr A GlobalFiber[ p ]
+            -> Γ , A ＠ ⦗ p ⦘  ⊢ Tr B GlobalFiber[ p ]
+            -> Γ ⊢ Tr B GlobalFiber[ p ]
+
+      -- functions
       lam : Γ , A ＠ ⦗ p ⦘ ⊢ B GlobalFiber[ p ] -> Γ ⊢ A ⇒ B GlobalFiber[ p ]
       app : Γ ⊢ A ⇒ B GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ B GlobalFiber[ p ]
 
+      -- unit type
       tt : Γ ⊢ Unit GlobalFiber[ p ]
 
-      box' : Γ ,[ ⦗ p ⦘ ] ⊢ X GlobalFibered[ ps ]
-            -> Γ ⊢ ◻ X GlobalFiber[ p ]
+      -- sum types
+      left : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Either A B GlobalFiber[ p ]
+      right : Γ ⊢ B GlobalFiber[ p ] -> Γ ⊢ Either A B GlobalFiber[ p ]
+      either : Γ ⊢ Either A B GlobalFiber[ p ]
+        -> Γ , A ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
+        -> Γ , B ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
+        -> Γ ⊢ C GlobalFiber[ p ]
+
+      -- list types
+      [] : Γ ⊢ Lst A GlobalFiber[ p ]
+      _∷_ : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Lst A GlobalFiber[ p ] -> Γ ⊢ Lst A GlobalFiber[ p ]
+      rec-Lst : Γ ⊢ Lst A GlobalFiber[ p ]
+        -> Γ ⊢ C GlobalFiber[ p ]
+        -> (Γ , A ＠ ⦗ p ⦘) , C ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
+        -> Γ ⊢ C GlobalFiber[ p ]
+
 
 
     record _⊢_GlobalFibered[_] Γ X ps where
