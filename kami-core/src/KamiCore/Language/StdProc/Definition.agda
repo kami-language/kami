@@ -38,7 +38,10 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
     n = This .Roles
 
     Super : Chor𝔓roc _
-    Super = record { Proc = 𝔽 (This .Roles) }
+    Super = record
+      { Proc = 𝔽 (This .Roles)
+      ; allProcs = {!!}
+      }
 
   open [Std𝔓roc/Definition::Private]
 
@@ -112,5 +115,6 @@ instance
   hasParamSTT:StdProc = record
     { Param = λ This -> ⊤-𝒰 {ℓ₀}
     ; _at_ = λ This _ -> Std𝔓roc/Definition.λStdProc This
+    ; SubParam = λ _ _ -> ⊤-𝒰 {ℓ₀}
     }
 
