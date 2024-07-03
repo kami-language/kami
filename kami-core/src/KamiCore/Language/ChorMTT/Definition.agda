@@ -29,6 +29,7 @@ import KamiTheory.Main.Generic.ModeSystem.2Cell.Linear as 2CellLinear
 
 open import KamiCore.Language.MTT.Definition
 open import KamiCore.Language.MinMTT.Definition
+open import KamiCore.Language.MinMTT.Properties
 
 
 
@@ -168,12 +169,14 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
   module [Chor𝔐TT/Definition::Term] where
     open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_) public
+    open Min𝔐TT/Properties Super
 
     private
       pattern []ₛ = (`[]` ⨾ id' , incl `[]`)
       pattern ＠ₛ U  = (`＠` U ⨾ id' , incl (`＠` _))
 
     data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰₀ where
+      
     data _⊢_ : ∀{a} -> ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
       var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
       tt : Γ ⊢ Unit
@@ -191,16 +194,10 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
             -> Γ ∙⟮ A ∣ fst μ ◆ ν ◆ (`＠` U ⨾ id') ⟯ ∙! ＠ₛ U ⊢ B
             -> Γ ∙! ＠ₛ U ⊢ B
 
-      -- letmod : ∀(μ : BaseModeHom-PolySR a b) -> (ν : b ⟶ c)
-      --       -> Γ ∙!* (split This ν) ⊢ ⟨ A ∣ μ ⟩
-      --       -> Γ ∙⟮ A ∣ fst μ ◆ ν ⟯ ⊢ B
-      --       -> Γ ⊢ B
-            -- -> Γ ∙! ν ⊢ ⟨ A ∣ μ ⨾ id' ⟩
-            -- -> Γ ∙⟮ A ∣ μ ⨾ ν ⟯ ⊢ B
-            -- -> Γ ⊢ B
-
       -- explicit transformations
-      -- trans : ∀ {μ ν : ⊢ModeHom a b} -> (α : μ ⟹ ν) -> isBroadcast α -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : _ ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α
+            -> Γ ⊢ Mod-Type (split-Min𝔐TT μ) A
+            -> Γ ⊢ Tr (Mod-Type (split-Min𝔐TT ν) A)
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A

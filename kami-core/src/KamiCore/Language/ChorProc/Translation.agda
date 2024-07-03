@@ -158,10 +158,10 @@ module _ (This : Chor𝔓roc 𝑗) where
     in Z ∙-≡ sym-≡ (F2-comp (rev (transl-Mod3 μ)) _ )
 
   lift-π-single : ∀{X A p ps q} -> π X ∣ p , ps ↦ A Type -> π ◻ X ＠ q ∣ q , (p ∷ ps) ↦ A Type
-  lift-π-single X = proj-＠ refl-≤ (proj-◻ X)
+  lift-π-single X = proj-＠ {!!} refl-≤ (proj-◻ X)
 
   lift-π-impl : ∀{X A p ps r} -> π X ∣ r , [] ↦ A Type -> π F2-Type (p ∷ ps) X ∣ p , ps <> (r ∷ []) ↦ A Type
-  lift-π-impl {ps = []} Xp = proj-＠ refl-≤ (proj-◻ Xp)
+  lift-π-impl {ps = []} Xp = proj-＠ {!!} refl-≤ (proj-◻ Xp)
   lift-π-impl {ps = x ∷ ps} Xp = lift-π-single (lift-π-impl Xp)
 
   lift-π : ∀{X A ps qs r} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> π F2-Type ps X ∣ fst (postpend qs r) , drop 1 (ps <> (r ∷ [])) ↦ A Type
@@ -178,12 +178,12 @@ module _ (This : Chor𝔓roc 𝑗) where
   mkVar-▲ : ∀{Δ A B U V r ps qs} -> (ps <> (U ∷ [])) ≼' (qs <> (V ∷ [])) -> π A ＠ V ∣ r , [] ↦ B Type -> Δ , F2-Type ps (A ＠ U) ⊢Var B GlobalFiber[ cons (postpend qs r) ]
   mkVar-▲ {ps = []} {qs = []} (_ ∷ x) P = zero done P
   mkVar-▲ {ps = []} {qs = x ∷ qs} (.x ∷ x₁) P with P
-  ... | proj-＠ x₂ done = zero done ( (proj-＠ refl-≤ done))
+  ... | proj-＠ p≁⊥ x₂ done = zero done ( (proj-＠ {!!} refl-≤ done))
   ... | proj-＠-≠ x₂ = none
   mkVar-▲ {U = U} {V} {r = r} {ps = x ∷ ps} {qs = .x ∷ qs} (.x ∷ x₁) P with split-≼ ps qs x₁
-  ... | no (Q , refl-≡) = zero {!!} ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} P))))
+  ... | no (Q , refl-≡) = zero {!!} ( (proj-＠ {!!} refl-≤ (proj-◻ (lift-π-direct {ps = ps} P))))
   ... | yes Q with P
-  ... | proj-＠ x₂ done = zero {!!} ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} (proj-＠ refl-≤ done)))))
+  ... | proj-＠ p≁⊥ x₂ done = zero {!!} ( (proj-＠ {!!} refl-≤ (proj-◻ (lift-π-direct {ps = ps} (proj-＠ {!!} refl-≤ done)))))
   ... | proj-＠-≠ x₂ = none
   mkVar-▲ {U = U} {.x} {r = r} {ps = x ∷ []} {qs = []} (.x ∷ ()) P
   mkVar-▲ {U = U} {.x} {r = r} {ps = x ∷ x₂ ∷ ps} {qs = []} (.x ∷ ()) P
@@ -221,7 +221,6 @@ module _ (This : Chor𝔓roc 𝑗) where
     in suc res
 
 
-{-
   transl-Var-◯ : (Γ : Chor𝔐TT⊢Ctx ◯) -> ∀ Γp -> {X : Chor𝔐TT⊢Type ◯}
               -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
               -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 (ν ◆' η))
@@ -259,13 +258,11 @@ module _ (This : Chor𝔓roc 𝑗) where
 
     in res result'
 
--}
 
   -- End Variables
   --------------------------------------------------------------------
 
 
-{-
 
   --------------------------------------------------------------------
   -- Terms
@@ -429,6 +426,7 @@ module _ (This : Chor𝔓roc 𝑗) where
     in rec-Lst-GlobalFibered t' s' u'
 
 
+{-
 {-
   -}
   {-
