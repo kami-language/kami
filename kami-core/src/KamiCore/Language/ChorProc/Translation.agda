@@ -111,6 +111,11 @@ module _ (This : Chor𝔓roc 𝑗) where
      ≡ addRestr ν (transl-Ctx Γ Γp , U)
   commute-transl,addRestr = {!!}
 
+  commute-transl,addRestr-2 : ∀{Γ Γp Γp'} -> transl-Ctx
+     (Γ ∙!* split-Min𝔐TT ν) Γp'
+     ≡ addRestr ν (transl-Ctx Γ Γp)
+  commute-transl,addRestr-2 = {!!}
+
   -- End Context commutation proofs
   --------------------------------------------------------------------
 
@@ -120,12 +125,14 @@ module _ (This : Chor𝔓roc 𝑗) where
   transl-Term-▲ : ∀{ps} {i : ⟨ P ⟩} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ ∙! (＠ₛ i) Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
+  transl-Term-▲ = {!!}
 
   transl-Term-◯ : ∀{ps} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
 
 
+  {-
   transl-Term-▲ Γ Γp (var x α) = {!!}
   transl-Term-▲ Γ Γp tt = tt-▲-GlobalFibered
   transl-Term-▲ Γ Γp (mod []ₛ t) =
@@ -203,8 +210,38 @@ module _ (This : Chor𝔓roc 𝑗) where
         s' = transl-Term-▲ _ Γp s
         u' = transl-Term-▲ _ (stepVar (stepVar Γp)) u
     in rec-Lst-＠-GlobalFibered t' s' u'
+  -}
 
-  transl-Term-◯ = {!!}
+  transl-Term-◯ Γ Γp (var x α) = {!!}
+  transl-Term-◯ Γ Γp tt = tt-GlobalFibered
+  transl-Term-◯ Γ Γp (mod (＠ₛ U) t) = transl-Term-▲ Γ Γp t
+  transl-Term-◯ Γ Γp (letmod (＠ₛ U) ν t s) =
+    let t' = transl-Term-◯ _ (stepsRes _ Γp) t
+
+        s' = transl-Term-◯ _ ((stepVar Γp)) s
+
+        t'' = cong-GlobalFibered (commute-transl,addRestr-2 {ν = ν}) t'
+
+        res : (transl-Ctx Γ Γp) ⊢ _ GlobalFibered[ _ ]
+        res = letin-GlobalFibered (multibox' t'') s'
+
+    in res
+  transl-Term-◯ Γ Γp (letmod []ₛ (`＠` i ⨾ ν) t s) =
+    let
+        t'' = transl-Term-▲ _ ((stepsRes _ (Γp))) t
+        t''' = cong-GlobalFibered (commute-transl,addRestr-2 {ν = ν}) t''
+        s' = transl-Term-◯ _ ((stepVar Γp)) s
+    in letin-GlobalFibered (multibox' t''') s'
+  transl-Term-◯ Γ Γp (pure t) = {!!}
+  transl-Term-◯ Γ Γp (seq t t₁) = {!!}
+  transl-Term-◯ Γ Γp (lam t) = {!!}
+  transl-Term-◯ Γ Γp (app t t₁) = {!!}
+  transl-Term-◯ Γ Γp (left t) = {!!}
+  transl-Term-◯ Γ Γp (right t) = {!!}
+  transl-Term-◯ Γ Γp (either t t₁ t₂) = {!!}
+  transl-Term-◯ Γ Γp [] = {!!}
+  transl-Term-◯ Γ Γp (t ∷ t₁) = {!!}
+  transl-Term-◯ Γ Γp (rec-Lst t t₁ t₂) = {!!}
 
 
 {-

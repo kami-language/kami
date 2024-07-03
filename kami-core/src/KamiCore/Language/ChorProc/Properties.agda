@@ -206,11 +206,11 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -------------------
   -- tt
 
-  tt-◯-GlobalFibered : Γ ⊢ Unit GlobalFibered[ ps ]
-  tt-◯-GlobalFibered = incl λ { p x Unit Γp → tt}
+  tt-GlobalFibered : Γ ⊢ Unit GlobalFibered[ ps ]
+  tt-GlobalFibered = incl λ { p x Unit Γp → tt}
 
-  tt-▲-GlobalFibered : Γ ⊢ Unit ＠ U GlobalFibered[ ps ]
-  tt-▲-GlobalFibered = incl λ { p x (proj-＠ x₁ done) Γp → tt
+  tt-＠-GlobalFibered : Γ ⊢ Unit ＠ U GlobalFibered[ ps ]
+  tt-＠-GlobalFibered = incl λ { p x (proj-＠ x₁ done) Γp → tt
                               ; p x (proj-＠-≠ x₁) Γp → tt}
 
 
