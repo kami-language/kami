@@ -127,7 +127,6 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   open Min𝔐TT/Definition Super
-  open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
   open [Min𝔐TT/Definition::Private] using (_⟶ₛ_)
 
 
@@ -168,6 +167,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   module [Chor𝔐TT/Definition::Term] where
+    open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_) public
 
     private
       pattern []ₛ = (`[]` ⨾ id' , incl `[]`)

@@ -44,7 +44,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   open Chor𝔓roc/Properties This
 
   open Chor𝔐TT/Definition Super
-  open [Chor𝔐TT/Definition::Type] hiding (⊢Type)
+  open [Chor𝔐TT/Definition::Type] renaming (⊢Type to Chor𝔐TT⊢Type)
   open [Chor𝔐TT/Definition::Ctx] renaming (⊢Ctx to Chor𝔐TT⊢Ctx)
   open [Chor𝔐TT/Definition::Term] renaming (_⊢_ to _Chor𝔐TT⊢_)
   open Chor𝔐TT/Properties Super
@@ -96,6 +96,9 @@ module _ (This : Chor𝔓roc 𝑗) where
   transl-Ctx (_∙!_ Γ μ) (stepRes _ Γp) = addRestr (fst μ) (transl-Ctx Γ Γp)
   transl-Ctx ε Γp = ε
 
+  transl-Ctx' : (Γ : Chor𝔐TT⊢Ctx {◯} a) -> isCtx₂ Γ -> ⊢Ctx
+  transl-Ctx' Γ Γp = forget (transl-Ctx Γ Γp)
+
   ⟪𝔉₃∣_Ctx⟫ : Ctx a of Super -> Ctx tt of This
   ⟪𝔉₃∣_Ctx⟫ (Γ , Γp) = forget (transl-Ctx Γ Γp)
 
@@ -121,20 +124,82 @@ module _ (This : Chor𝔓roc 𝑗) where
 
 
   --------------------------------------------------------------------
+  -- Variables
+
+  cons : ∀{A : 𝒰 𝑙} -> A × List A -> List A
+  cons (a , as) = a ∷ as
+
+
+  postpend : ∀{A : 𝒰 𝑙} -> (List A) -> A -> A × List A
+  postpend [] x = x , []
+  postpend (x ∷ xs) z = x , cons (postpend xs z)
+
+  rev' : ∀{A : 𝒰 𝑙} -> List A -> List A
+  rev' [] = []
+  rev' (x ∷ xs) = cons (postpend (rev' xs) x)
+
+  transl-Mod3 : ◯ ⟶ a -> (List (𝒫ᶠⁱⁿ (Proc This)))
+  transl-Mod3 id' = []
+  transl-Mod3 (`[]` ⨾ id') = []
+  transl-Mod3 (`[]` ⨾ `＠` U ⨾ ω) = U ∷ transl-Mod3 ω
+
+  local-var-impossible : ∀{b c A} {Γ : Chor𝔐TT⊢Ctx c} -> (Γp : isCtx₂ Γ) -> {μ : b ⟶ ▲ U} {η : c ⟶ ▲ U} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> 𝟘-𝒰
+  local-var-impossible (stepRes _ Γp) (suc! v) = local-var-impossible Γp v
+  local-var-impossible (stepVar Γp) (suc v) = local-var-impossible Γp v
+
+  transl-Var-▲ : (Γ : Chor𝔐TT⊢Ctx ◯) -> ∀ Γp ->  ∀{U V} -> {A : Chor𝔐TT⊢Type (▲ U)}
+              -> Γ ⊢Var⟮ A ∣ (`＠` U ⨾ μ) ⇒ (η) ⟯
+              -> rev (transl-Mod3 (`[]` ⨾ `＠` U ⨾ μ)) ≼' rev' (transl-Mod3 (`[]` ⨾ `＠` V ⨾ (ν ◆' η)))
+              -> ∀{p Δ B}
+              -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν))) p) ↦ Δ Ctx
+              -> π ⦋ A ⦌-Type ＠ V ∣ p , [] ↦ B Type
+              -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+  transl-Var-▲ = {!!}
+
+{-
+  transl-Var-▲ {ν = ν} (Γ ∙⟮ x ∣ (`＠` U ⨾ μ) ⟯) (stepVar Γp) {A = A} {U} {V} zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp IR., x₁) Xp =
+    let
+        YY : (Δ , F2-Type (rev (transl-Mod3 (μ))) (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+        YY = mkVar-▲ {U = U} {V = V} {ps = (rev (transl-Mod3 (μ)))} {qs = (rev' (transl-Mod3 (ν)))} {!μ≼ν!} Xp
+        -- mkVar {ps = (rev (transl-Mod3 μ))} {qs = (rev' (transl-Mod3 (`[]` ⨾ ν)))} μ≼ν Xp
+
+        ZZ : (Δ , F-Type μ (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+        ZZ = {!!}
+
+    in updateVar x₁ ZZ
+  transl-Var-▲ {ν = ν} (Γ ∙! (`＠` U ⨾ id') ∙! .(`[]` ⨾ id')) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp = {!!}
+  transl-Var-▲ {ν = ν} (Γ Definition-MTTꟳ.∙⟮ x ∣ μ ⟯) (stepVar Γp) (Definition-MTTꟳ.suc v) PP (Γpp IR., x₁) Xp =
+    let res = transl-Var-▲ {ν = ν} Γ Γp v PP Γpp Xp
+    in suc res
+
+-}
+
+  -- End Variables
+  --------------------------------------------------------------------
+
+
+
+  --------------------------------------------------------------------
   -- Terms
   transl-Term-▲ : ∀{ps} {i : ⟨ P ⟩} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ ∙! (＠ₛ i) Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
-  transl-Term-▲ = {!!}
 
   transl-Term-◯ : ∀{ps} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
 
+  transl-Term-▲ Γ Γp (var {b = ▲ _} (suc! x) [ incl α₀ ∣ incl α₁ ]) = ⊥-elim (local-var-impossible Γp x)
+  transl-Term-▲ {i = i} Γ Γp (var {b = ◯} {μ = `＠` j ⨾ μ} (suc! x) [ incl α₀ ∣ incl α₁ ]) =
+      let α₀' = linearize α₀
+          α₁' = linearize α₁
 
-  {-
-  transl-Term-▲ Γ Γp (var x α) = {!!}
-  transl-Term-▲ Γ Γp tt = tt-▲-GlobalFibered
+          P : i ≤ j
+          P = {!!}
+
+      in incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x {!!} Γp₁ Xp) in var XX))
+
+  transl-Term-▲ Γ Γp tt = tt-＠-GlobalFibered
   transl-Term-▲ Γ Γp (mod []ₛ t) =
     let ts' = transl-Term-◯ _ (stepRes _ (stepRes _ Γp)) t
     in box-GlobalFibered ts'
@@ -210,7 +275,7 @@ module _ (This : Chor𝔓roc 𝑗) where
         s' = transl-Term-▲ _ Γp s
         u' = transl-Term-▲ _ (stepVar (stepVar Γp)) u
     in rec-Lst-＠-GlobalFibered t' s' u'
-  -}
+
 
   transl-Term-◯ Γ Γp (var x α) = {!!}
   transl-Term-◯ Γ Γp tt = tt-GlobalFibered
@@ -272,6 +337,10 @@ module _ (This : Chor𝔓roc 𝑗) where
 
 
 {-
+  -}
+  {-
+
+{-
   ⟪𝔉₃∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
                -> Γ ⊢ X at a of Super
                -> ⟪𝔉₃∣ Γ Ctx⟫ ⊢ ⟪𝔉₃∣ X Type⟫ at tt of This
@@ -305,5 +374,5 @@ instance
 module _ {𝑗} where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
 -}
 
-{-
 -}
+
