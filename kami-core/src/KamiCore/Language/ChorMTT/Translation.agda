@@ -137,12 +137,15 @@ module _ (This : Chor𝔐TT 𝑗) where
   transl-Term-▲ (left t) = left (transl-Term-▲ t)
   transl-Term-▲ (right t) = right (transl-Term-▲ t)
   transl-Term-▲ (either t t₁ t₂) =
-    let t₁' = com⁻¹-restr-single {μ = id'} (transl-Term-▲ t₁)
-        t₂' = com⁻¹-restr-single {μ = id'} (transl-Term-▲ t₂)
-    in either (transl-Term-▲ t) t₁' t₂'
+    let t₁' = (transl-Term-▲ t₁)
+        t₂' = (transl-Term-▲ t₂)
+    in either-＠ (transl-Term-▲ t) t₁' t₂'
   transl-Term-▲ [] = []
   transl-Term-▲ (t ∷ t₁) = (transl-Term-▲ t) ∷ (transl-Term-▲ t₁)
-  transl-Term-▲ (rec-Lst t t₁ t₂) = {!!} -- TODO: This requires `com⁻¹-restr-single` to work not only on the top variable, but also below.
+  transl-Term-▲ (rec-Lst t t₁ t₂) =
+    let t₁' = (transl-Term-▲ t₁)
+        t₂' = (transl-Term-▲ t₂)
+    in rec-Lst-＠ (transl-Term-▲ t) t₁' t₂'
 
   transl-Term-◯ (var x α x₁) = {!!}
   transl-Term-◯ tt = tt

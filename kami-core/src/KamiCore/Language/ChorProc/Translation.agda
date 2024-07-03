@@ -193,9 +193,16 @@ module _ (This : Chor𝔓roc 𝑗) where
         s' = transl-Term-▲ _ (stepVar Γp) s
         u' = transl-Term-▲ _ (stepVar Γp) u
     in either-＠-GlobalFibered t' s' u'
-  transl-Term-▲ Γ Γp [] = {!!}
-  transl-Term-▲ Γ Γp (t ∷ t₁) = {!!}
-  transl-Term-▲ Γ Γp (rec-Lst-＠ t t₁ t₂) = {!!}
+  transl-Term-▲ Γ Γp [] = []-＠-GlobalFibered
+  transl-Term-▲ Γ Γp (t ∷ s) =
+    let t' = transl-Term-▲ Γ Γp t
+        s' = transl-Term-▲ Γ Γp s
+    in t' ∷ s' -＠-GlobalFibered
+  transl-Term-▲ Γ Γp (rec-Lst-＠ t s u) =
+    let t' = transl-Term-▲ Γ Γp t
+        s' = transl-Term-▲ _ Γp s
+        u' = transl-Term-▲ _ (stepVar (stepVar Γp)) u
+    in rec-Lst-＠-GlobalFibered t' s' u'
 
   transl-Term-◯ = {!!}
 
