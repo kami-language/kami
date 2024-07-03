@@ -39,6 +39,7 @@ module _ (This : Chor𝔐TT 𝑗) where
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Param] This
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Ctx] This
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Term] This
+  open Chor𝔐TT/Properties This
 
   -- open Min𝔐TT/Definition Super
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Private] Super using (𝓂)
@@ -114,7 +115,7 @@ module _ (This : Chor𝔐TT 𝑗) where
 
         s' = transl-Term-▲ s
 
-    in letmod (ν) t'' (com⁻¹-restr-single s')
+    in letmod-＠ μ (ν) t'' s' -- (com⁻¹-restr-single s')
   transl-Term-▲ {U = U} {Γ = Γ}(letmod {n = ▲ V} {A = A} {μ = μ} ν t s) =
     let t' : fst (transl-Ctx (Γ ∙!* split-Min𝔐TT ν)) ∙! ＠ₛ V ⊢ ⟨ A ∣ μ ⟩
         t' = transl-Term-▲ t
@@ -124,7 +125,7 @@ module _ (This : Chor𝔐TT 𝑗) where
 
         s' = transl-Term-▲ s
 
-    in letmod ν t'' (com⁻¹-restr-single s')
+    in letmod-＠ μ ν t'' s' -- (com⁻¹-restr-single s')
   transl-Term-▲ (pure t) = pure (transl-Term-▲ t)
   transl-Term-▲ (seq t s) =
     let s' = (transl-Term-▲ s)
@@ -155,7 +156,7 @@ module _ (This : Chor𝔐TT 𝑗) where
 
         s' = transl-Term-◯ s
 
-    in letmod ν t'' s'
+    in letmod μ ν t'' s'
   transl-Term-◯ {Γ = Γ}(letmod {n = ▲ V} {A = A} {μ = μ} ν t s) =
     let t' : fst (transl-Ctx (Γ ∙!* split-Min𝔐TT ν)) ∙! ＠ₛ V ⊢ ⟨ A ∣ μ ⟩
         t' = transl-Term-▲ t
@@ -165,7 +166,7 @@ module _ (This : Chor𝔐TT 𝑗) where
 
         s' = transl-Term-◯ s
 
-    in letmod ν t'' s'
+    in letmod μ ν t'' s'
   transl-Term-◯ (pure t) = pure (transl-Term-◯ t)
   transl-Term-◯ (seq t t₁) = seq (transl-Term-◯ t) (transl-Term-◯ t₁)
   transl-Term-◯ (lam t) = lam (transl-Term-◯ t)

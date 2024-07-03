@@ -58,6 +58,8 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
     _⟶ₛ_ : (a b : ⟨ This .ModeTheory ⟩) -> 𝒰' _
     _⟶ₛ_ a b = ∑ λ (ϕ : a ⟶ b) -> isSmall This ϕ
 
+    ModeHom : (a b : 𝓂) -> 𝒰 _
+    ModeHom a b = a ⟶ b
 
   open [Min𝔐TT/Definition::Private]
 

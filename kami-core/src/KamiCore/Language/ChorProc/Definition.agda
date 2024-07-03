@@ -116,7 +116,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     infix 30 located
 
     variable
-      U : 𝒫ᶠⁱⁿ (Proc This)
+      -- U : 𝒫ᶠⁱⁿ (Proc This)
       X Y : ⊢Type ◯
       A B C : ⊢Type ▲
 
@@ -151,6 +151,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       ε : ∀{p} -> ε ∣ ⦗ p ⦘ ∷ [] ↦ ε Ctx
       _,_ : ∀{p ps A} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
       stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
+
 
   open [Chor𝔓roc/Definition::Ctx]
 

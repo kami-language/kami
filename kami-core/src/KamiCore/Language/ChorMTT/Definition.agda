@@ -70,6 +70,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     variable
       a a₀ b c d : Mode PolySR-ModeSystem
       μ ν η ω : ModeHom PolySR-ModeSystem a b
+      U V : ⟨ This .Roles ⟩
 
     -----------------------------------------
     -- Arrow classification
@@ -167,18 +168,28 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   module [Chor𝔐TT/Definition::Term] where
+
+    private
+      pattern []ₛ = (`[]` ⨾ id' , incl `[]`)
+      pattern ＠ₛ U  = (`＠` U ⨾ id' , incl (`＠` _))
+
     data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰₀ where
-    data _⊢_ {a} : ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
+    data _⊢_ : ∀{a} -> ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
       var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
       tt : Γ ⊢ Unit
 
       -- modalities
       mod : ∀ μ -> Γ ∙! μ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
 
-      letmod : ∀{μ : c ⟶ₛ b} -> (ν : ⊢ModeHom b a)
+      letmod : ∀(μ : c ⟶ₛ b) -> (ν : ⊢ModeHom b ◯)
             -> Γ ∙!* (split-Min𝔐TT ν) ⊢ ⟨ A ∣ μ ⟩
             -> Γ ∙⟮ A ∣ fst μ ◆ ν ⟯ ⊢ B
             -> Γ ⊢ B
+
+      letmod-＠ :  ∀(μ : c ⟶ₛ b) -> (ν : ⊢ModeHom b (▲ U))
+            -> Γ ∙! ＠ₛ U ∙!* (split-Min𝔐TT ν) ⊢ ⟨ A ∣ μ ⟩
+            -> Γ ∙⟮ A ∣ fst μ ◆ ν ◆ (`＠` U ⨾ id') ⟯ ∙! ＠ₛ U ⊢ B
+            -> Γ ∙! ＠ₛ U ⊢ B
 
       -- letmod : ∀(μ : BaseModeHom-PolySR a b) -> (ν : b ⟶ c)
       --       -> Γ ∙!* (split This ν) ⊢ ⟨ A ∣ μ ⟩
@@ -202,12 +213,12 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       -- sum types
       left : Γ ⊢ A -> Γ ⊢ Either A B
       right : Γ ⊢ B -> Γ ⊢ Either A B
-      either : Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      either : {Γ : ⊢Ctx {◯} a} -> Γ ⊢ Either A B -> Γ ∙⟮ A ∣ id ⟯ ⊢ C -> Γ ∙⟮ B ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
       -- list types
       [] : Γ ⊢ Lst A
       _∷_ : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
-      rec-Lst : Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
+      rec-Lst : {Γ : ⊢Ctx {◯} a} -> Γ ⊢ Lst A -> Γ ⊢ C -> Γ ∙⟮ A ∣ id ⟯ ∙⟮ C ∣ id ⟯ ⊢ C -> Γ ⊢ C
 
   open [Chor𝔐TT/Definition::Term]
 

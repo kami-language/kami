@@ -23,6 +23,7 @@ open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_
 
 open import KamiCore.Language.MTT.Definition
 open import KamiCore.Language.MinMTT.Definition
+open import KamiCore.Language.MinMTT.Properties
 
 
 F₁ : Min𝔐TT 𝑖 -> 𝔐TT _
@@ -37,6 +38,7 @@ module _ (This : Min𝔐TT 𝑖) where
   open [Min𝔐TT/Definition::Type]
   open [Min𝔐TT/Definition::Ctx]
   open [Min𝔐TT/Definition::Term]
+  open Min𝔐TT/Properties This
 
   open 𝔐TT/Definition Super
   open [𝔐TT/Definition::Type] renaming (⊢Type to 𝔐TT⊢Type)
@@ -51,9 +53,6 @@ module _ (This : Min𝔐TT 𝑖) where
 
   --------------------------------------------------------------------
   -- Types
-  Mod-Type : ∀{a b} -> Path _⟶ₛ_ a b -> ⊢Type a -> ⊢Type b
-  Mod-Type id' X = X
-  Mod-Type (μ ⨾ μs) X = Mod-Type μs ⟨ X ∣ μ ⟩
 
   ⟪𝔉₁∣_Type⟫ : ∀{a} -> 𝔐TT⊢Type a -> ⊢Type a
   ⟪𝔉₁∣ ⟨ X ∣ μ ⟩ Type⟫ = Mod-Type (split This μ) ⟪𝔉₁∣ X Type⟫
@@ -92,6 +91,12 @@ module _ (This : Min𝔐TT 𝑖) where
         -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
         -> Γ ⊢ B
   Letmod-Term = {!!}
+
+  -- splits-path : {m n : 𝓂} -> {μ : ModeHom m n}
+  --               -> (Γ : ⊢Ctx {k} n) -> (A : ⊢Type m)
+  --               -> Γ ∙! μ ⊢ A -> Γ ∙!* split This μ ⊢ A
+  -- splits-path {μ = id'} t = ? -- remove-id t
+  -- splits-path {μ = x ⨾ μ} t = {!splits-path !}
 
 
   ⟪𝔉₁∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}

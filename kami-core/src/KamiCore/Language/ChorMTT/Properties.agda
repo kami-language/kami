@@ -18,6 +18,8 @@ open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_
 open import Data.List using (drop)
 
 open import KamiCore.Language.ChorMTT.Definition
+open import KamiCore.Language.MinMTT.Definition
+open import KamiCore.Language.MinMTT.Properties
 
 
 module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
@@ -27,6 +29,8 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Ctx] This
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Term] This
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Type] This
+
+  open Min𝔐TT/Properties Super
 
 
   ----------------------------------------------------------
@@ -47,5 +51,8 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
                     -> Γ ∙⟮ A ∣ μ ◆ (x ⨾ id') ⟯ ∙! ((x ⨾ id') , xp) ⊢ B
                     -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
   com⁻¹-restr-single = {!!}
+
+  id-annotate : {μ : a ⟶ b} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ Mod-Type (split Super μ) A ∣ id' ⟯ ⊢ B
+  id-annotate = {!!}
 
 

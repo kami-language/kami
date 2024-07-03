@@ -803,9 +803,9 @@ module Translation (n : ℕ) where
       -- in {!!}
       in IR.incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x {!!} Γp₁ Xp) in var XX)) -- (extend-π {μ = {!μ!}} Xp)
     transl-Term-▲ Γ Γp tt = {!!}
-    transl-Term-▲ Γ Γp (mod `[]` t) = {!!}
-      -- let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
-      -- in _ , box-GlobalFibered ts'
+    transl-Term-▲ Γ Γp (mod `[]` t) =
+      let δ' , ts' = transl-Term-◯ _ (stepRes-◻ (stepRes-＠ Γp)) t
+      in _ , box-GlobalFibered ts'
     transl-Term-▲ Γ Γp (letmod' `[]` t s) =
       let t' = transl-Term-▲ _ Γp t
           s' = transl-Term-▲ _ (stepVar Γp) (shift-＠ (id-annotate s))
