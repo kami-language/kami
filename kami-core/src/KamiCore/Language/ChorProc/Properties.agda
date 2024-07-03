@@ -450,3 +450,15 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     }
 
 
+  -------------------
+  -- broadcast
+
+  broadcast-GlobalFibered : Γ ⊢ ◻ X ＠ qs GlobalFibered[ ps ]
+                            -> Γ ⊢ Tr X GlobalFibered[ ps ]
+  ⟨ broadcast-GlobalFibered {X = X} {qs = qs} t ⟩ p x (Tr Xp) Γp with p ∈? ⟨ qs ⟩
+  ... | no p∉qs = recv Xp
+  ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ {!!} (incl f) done) Γp)
+    where
+      f = λ { _ here → p∈qs}
+
+

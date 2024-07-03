@@ -168,14 +168,16 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   module [Chor𝔐TT/Definition::Term] where
-    open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_) public
+    open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
     open Min𝔐TT/Properties Super
 
     private
       pattern []ₛ = (`[]` ⨾ id' , incl `[]`)
       pattern ＠ₛ U  = (`＠` U ⨾ id' , incl (`＠` _))
 
-    data isBroadcast : ∀{a b : ⊢Param} -> {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰₀ where
+    data isBroadcast {a b : ⊢Param} : {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰 𝑗 where
+      br : ∀ U ϕ₀ ϕ₁ -> isBroadcast [ (incl []) ∣ incl (incl (ϕ₀ ⌟[ recv U ]⌞ (ϕ₁ ⌟)) ∷ []) ]
+      -- br : ∀{U} -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
       
     data _⊢_ : ∀{a} -> ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
       var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A

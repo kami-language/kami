@@ -65,6 +65,7 @@ module _ 𝑗 where macro Chor𝔓roc = #structureOn (ChorProc 𝑗)
 
 module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
   postulate instance
+    hasDecidableEquality:Proc : hasDecidableEquality ⟨(This .Proc)⟩
     hasDecidableEquality:P : hasDecidableEquality (𝒫ᶠⁱⁿ (This .Proc))
     isProp:≤-P : ∀{a b : 𝒫ᶠⁱⁿ (This .Proc)} -> isProp (a ≤ b)
 

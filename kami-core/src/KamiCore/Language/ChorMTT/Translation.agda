@@ -42,10 +42,11 @@ module _ (This : Chor𝔐TT 𝑗) where
   open Chor𝔐TT/Properties This
 
   -- open Min𝔐TT/Definition Super
-  open Min𝔐TT/Definition.[Min𝔐TT/Definition::Private] Super using (𝓂)
+  open Min𝔐TT/Definition.[Min𝔐TT/Definition::Private] Super using (𝓂 ; _⟶ₛ_)
   -- open Min𝔐TT/Definition.[Min𝔐TT/Definition::Ctx] Super renaming (⊢Ctx to Min𝔐TT⊢Ctx)
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Type] Super
-  open Min𝔐TT/Definition.[Min𝔐TT/Definition::Term] Super renaming (_⊢_ to _Min𝔐TT⊢_)
+  open Min𝔐TT/Definition.[Min𝔐TT/Definition::Term] Super
+    renaming (_⊢_ to _Min𝔐TT⊢_)
 
 
   par-𝔉₂ : Param Super -> Param This
@@ -89,6 +90,19 @@ module _ (This : Chor𝔐TT 𝑗) where
 
 
   -- End Contexts
+  --------------------------------------------------------------------
+
+  --------------------------------------------------------------------
+  -- Term helpers
+
+
+  internal-mod : {μ : a ⟶ₛ b} {Γ : ⊢Ctx {c} b}
+               -> (∀{Γ : ⊢Ctx {c} a} -> Γ Min𝔐TT⊢ A -> Γ Min𝔐TT⊢ B)
+               -> Γ Min𝔐TT⊢ ⟨ A ∣ μ ⟩
+               -> Γ Min𝔐TT⊢ ⟨ B ∣ μ ⟩
+  internal-mod T t = letmod id' t (mod _ (T (var (suc! zero) {!idT!} {!!})))
+
+  -- Term helpers
   --------------------------------------------------------------------
 
   --------------------------------------------------------------------

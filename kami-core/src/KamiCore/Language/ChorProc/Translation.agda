@@ -151,6 +151,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   F2-comp [] ys = refl-≡
   F2-comp (x ∷ xs) ys = cong-≡ (λ X -> ◻ X ＠ x) (F2-comp xs ys)
 
+{-
   F-prop : ∀{X} -> F-Type μ X ≡ F2-Type (rev (transl-Mod3 μ)) X
   F-prop {μ = id'} = refl-≡
   F-prop {μ = `[]` ⨾ `＠` U ⨾ μ} {X = X} =
@@ -193,6 +194,8 @@ module _ (This : Chor𝔓roc 𝑗) where
   updateVar P (suc v) = suc v
   updateVar P (none) = none
 
+-}
+
   local-var-impossible : ∀{b c A} {Γ : Chor𝔐TT⊢Ctx c} -> (Γp : isCtx₂ Γ) -> {μ : b ⟶ ▲ U} {η : c ⟶ ▲ U} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> 𝟘-𝒰
   local-var-impossible (stepRes _ Γp) (suc! v) = local-var-impossible Γp v
   local-var-impossible (stepVar Γp) (suc v) = local-var-impossible Γp v
@@ -205,6 +208,9 @@ module _ (This : Chor𝔓roc 𝑗) where
               -> π ⦋ A ⦌-Type ＠ V ∣ p , [] ↦ B Type
               -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
 
+  transl-Var-▲ = {!!}
+
+{-
   transl-Var-▲ {ν = ν} (Γ ∙⟮ x ∣ (`＠` U ⨾ μ) ⟯) (stepVar Γp) {U = U} {V} {A = A} zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp =
     let
         YY : (Δ , F2-Type (rev (transl-Mod3 (μ))) (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
@@ -219,7 +225,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   transl-Var-▲ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) (suc v) PP (Γpp , x₁) Xp =
     let res = transl-Var-▲ {ν = ν} Γ Γp v PP Γpp Xp
     in suc res
-
+-}
 
   transl-Var-◯ : (Γ : Chor𝔐TT⊢Ctx ◯) -> ∀ Γp -> {X : Chor𝔐TT⊢Type ◯}
               -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
@@ -228,6 +234,9 @@ module _ (This : Chor𝔓roc 𝑗) where
               -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 ν)) p) ↦ Δ Ctx
               -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
               -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+  transl-Var-◯ = {!!}
+
+{-
   transl-Var-◯ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp =
     let
         YY : (Δ , F2-Type (rev (transl-Mod3 μ)) ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
@@ -258,7 +267,7 @@ module _ (This : Chor𝔓roc 𝑗) where
 
     in res result'
 
-
+-}
   -- End Variables
   --------------------------------------------------------------------
 
@@ -330,6 +339,10 @@ module _ (This : Chor𝔓roc 𝑗) where
 
     in letin-GlobalFibered (multibox t''') s''
   -}
+
+  transl-Term-▲ Γ Γp (trans α (br U ϕ₀ ϕ₁) t) = {!!}
+    --   let t' = transl-Term-◯ _ Γp t
+    --   in broadcast-GlobalFibered t'
   transl-Term-▲ Γ Γp (pure t) = pure-＠-GlobalFibered (transl-Term-▲ Γ Γp t)
   transl-Term-▲ Γ Γp (seq-＠ t s) =
     let t' = transl-Term-▲ Γ Γp t
@@ -391,6 +404,9 @@ module _ (This : Chor𝔓roc 𝑗) where
         s' = transl-Term-◯ _ ((stepVar Γp)) s
     in letin-GlobalFibered (multibox' t''') s'
   -}
+  transl-Term-◯ Γ Γp (trans α (br U ϕ₀ ϕ₁) t) = {!!}
+    --   let t' = transl-Term-◯ _ Γp t
+    --   in broadcast-GlobalFibered t'
   transl-Term-◯ Γ Γp (pure t) = pure-GlobalFibered (transl-Term-◯ Γ Γp t)
   transl-Term-◯ Γ Γp (seq t s) =
     let t' = transl-Term-◯ Γ Γp t

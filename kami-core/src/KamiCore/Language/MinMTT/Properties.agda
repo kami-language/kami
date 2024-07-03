@@ -35,8 +35,12 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   open [Min𝔐TT/Definition::Ctx]
   open [Min𝔐TT/Definition::Term]
 
+  private variable
+    a b c : 𝓂
+
 
   Mod-Type : ∀{a b} -> Path _⟶ₛ_ a b -> ⊢Type a -> ⊢Type b
   Mod-Type id' X = X
   Mod-Type (μ ⨾ μs) X = Mod-Type μs ⟨ X ∣ μ ⟩
+
 
