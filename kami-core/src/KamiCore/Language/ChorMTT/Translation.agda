@@ -133,7 +133,7 @@ module _ (This : Chor𝔐TT 𝑗) where
     in seq (transl-Term-▲ t) s''
   transl-Term-▲ (lam t) =
     let t' = transl-Term-▲ t
-    in lam (com⁻¹-restr-single {μ = id'} t')
+    in lam-＠ t' -- (com⁻¹-restr-single {μ = id'} t')
   transl-Term-▲ (app t s) = app (transl-Term-▲ t) (transl-Term-▲ s)
   transl-Term-▲ (left t) = left (transl-Term-▲ t)
   transl-Term-▲ (right t) = right (transl-Term-▲ t)

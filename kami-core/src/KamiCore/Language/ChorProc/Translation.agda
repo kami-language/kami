@@ -117,7 +117,6 @@ module _ (This : Chor𝔓roc 𝑗) where
 
   --------------------------------------------------------------------
   -- Terms
-  {-# TERMINATING #-}
   transl-Term-▲ : ∀{ps} {i : ⟨ P ⟩} -> (Γ : Chor𝔐TT⊢Ctx {◯} ◯) -> (Γp : isCtx₂ Γ)
             -> ∀{A} -> Γ ∙! (＠ₛ i) Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ (⦋ A ⦌-Type ＠ i) GlobalFibered[ ps ]
@@ -158,7 +157,8 @@ module _ (This : Chor𝔓roc 𝑗) where
     in res
     -}
   transl-Term-▲ Γ Γp (letmod-＠ []ₛ id' t s) = {!!}
-  transl-Term-▲ Γ Γp (letmod-＠ {U = i} {A = A} []ₛ (`＠` U ⨾ ν) t s) =
+  transl-Term-▲ Γ Γp (letmod-＠ {U = i} {A = A} []ₛ (`＠` U ⨾ ν) t s) = {!!}
+  {-
     let
         t'' = transl-Term-▲ _ ((stepsRes _ (stepRes _ Γp))) t
 
@@ -168,12 +168,12 @@ module _ (This : Chor𝔓roc 𝑗) where
         s'' = cong-GlobalFibered (cong-Ctx,Var ((eval-F-type-right {ν = ν} {X = ◻ ⦋ A ⦌-Type ＠ U}))) s'
 
     in letin-GlobalFibered (multibox t''') s''
-
+  -}
   transl-Term-▲ Γ Γp (pure t) = {!!}
   transl-Term-▲ Γ Γp (seq t t₁) = {!!}
-  transl-Term-▲ Γ Γp (lam t) =
-      let t' = com-restr-single t
-          rest' = transl-Term-▲ _ (stepVar Γp) t'
+  transl-Term-▲ Γ Γp (lam-＠ t) =
+      let -- t' = com-restr-single t
+          rest' = transl-Term-▲ _ (stepVar Γp) t
       in commute-＠-Exp _ (lam-GlobalFibered rest')
   transl-Term-▲ Γ Γp (app t t₁) = {!!}
   transl-Term-▲ Γ Γp (left t) = {!!}

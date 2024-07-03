@@ -207,7 +207,8 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       seq : ∀{A : ⊢Type a} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
       -- functions
-      lam : Γ ∙⟮ A ∣ id' ⟯ ⊢ B -> Γ ⊢ A ⇒ B
+      lam-＠ : Γ ∙⟮ A ∣ `＠` U ⨾ id' ⟯ ∙! ＠ₛ U ⊢ B -> Γ ∙! ＠ₛ U ⊢ A ⇒ B
+      lam : Γ ∙⟮ A ∣ id' {m = ◯} ⟯ ⊢ B -> Γ ⊢ A ⇒ B
       app : Γ ⊢ A ⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
       -- sum types
