@@ -276,11 +276,11 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
 
   transToSublist'₁ : ∀{μ ν : ⊢ModeHom ◯ ◯}
                  -> ∀{i}
-                 -> (α : ⊢ModeTrans μ ν)
+                 -> (α : ⊢ModeTrans (`＠` i ⨾ μ) (`＠` i ⨾ ν))
                  -> classify α ≤ ⦗ pureT ⦘
                  -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' cons (postpend (rev' (transl-Mod3 ν)) i)
-  transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp =
-    transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
+  transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp = {!!}
+    -- transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
 
 
 
