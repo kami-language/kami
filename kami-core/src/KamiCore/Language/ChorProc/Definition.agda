@@ -17,6 +17,7 @@ open import Agora.TypeTheory.ParamSTT.Definition
 open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.NonEmpty
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (Mode)
@@ -56,7 +57,7 @@ module _ {A : 𝒰 𝑖} where
 
 record ChorProc 𝑗 : 𝒰 (𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
-  field allProcs : 𝒫ᶠⁱⁿ Proc
+  field allProcs : 𝒫₊ᶠⁱⁿ Proc
 
 open ChorProc public
 
@@ -66,12 +67,12 @@ module _ 𝑗 where macro Chor𝔓roc = #structureOn (ChorProc 𝑗)
 module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
   postulate instance
     hasDecidableEquality:Proc : hasDecidableEquality ⟨(This .Proc)⟩
-    hasDecidableEquality:P : hasDecidableEquality (𝒫ᶠⁱⁿ (This .Proc))
-    isProp:≤-P : ∀{a b : 𝒫ᶠⁱⁿ (This .Proc)} -> isProp (a ≤ b)
+    hasDecidableEquality:P : hasDecidableEquality (𝒫₊ᶠⁱⁿ (This .Proc))
+    isProp:≤-P : ∀{a b : 𝒫₊ᶠⁱⁿ (This .Proc)} -> isProp (a ≤ b)
 
   Super : Chor𝔐TT _
   Super = record
-    { Roles = 𝒫ᶠⁱⁿ (This .Proc)
+    { Roles = 𝒫₊ᶠⁱⁿ (This .Proc)
     ; hasDecidableEquality:Roles = it
     ; isProp:≤-Roles = it
     }
@@ -82,7 +83,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     open [Chor𝔐TT/Definition::Param] public
     variable
       p q k l : ⟨ Proc This ⟩
-      ps qs ks ls : 𝒫ᶠⁱⁿ (Proc This)
+      ps qs ks ls : 𝒫₊ᶠⁱⁿ (Proc This)
       -- is js : List ⟨ Proc L ⟩
 
     data ProcMode : 𝒰₀ where
@@ -111,21 +112,19 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       _⇒_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       _××_ : ∀{m} -> ⊢Type m -> ⊢Type m -> ⊢Type m
       Tr : ∀{m} -> ⊢Type m -> ⊢Type m
-      located : (l : 𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> ⊢Type ◯
+      _＠_ : ⊢Type ▲ -> (𝒫₊ᶠⁱⁿ (Proc This))-> ⊢Type ◯
 
-    syntax located l A = A ＠ l
-
-    infix 30 located
+    infix 30 _＠_
 
     variable
-      -- U : 𝒫ᶠⁱⁿ (Proc This)
+      -- U : 𝒫₊ᶠⁱⁿ (Proc This)
       X Y Z : ⊢Type ◯
       A B C : ⊢Type ▲
 
     mutual
-      data π_∣_↦_Type : ⊢Type ◯ -> ((𝒫ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
-        proj-＠ : ∀{ps pps qs A B} -> (¬ ps ∼ ⊥) -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
-        proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) +-𝒰 (ps ∼ ⊥) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
+      data π_∣_↦_Type : ⊢Type ◯ -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
+        proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
+        proj-＠-≠ : ∀{ps pps qs A} -> (¬ ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
         _⇒_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ⇒ Y) ∣ p , ps ↦ (A ⇒ B) Type
         _××_ : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (X ×× Y) ∣ p , ps ↦ (A ×× B) Type
         Either : ∀{p ps A B} -> π X ∣ p , ps ↦ A Type -> π Y ∣ p , ps ↦ B Type -> π (Either X Y) ∣ p , ps ↦ Either A B Type
@@ -133,7 +132,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
         Lst : ∀{p ps A } -> π X ∣ p , ps ↦ A Type -> π (Lst X) ∣ p , ps ↦ Lst A Type
         Unit : ∀{p ps} -> π Unit ∣ p , ps ↦ Unit Type
 
-      data ω_∣_↦_Type : ⊢Type ▲ -> List (𝒫ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> 𝒰 (𝑗) where
+      data ω_∣_↦_Type : ⊢Type ▲ -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> 𝒰 (𝑗) where
         done : ∀{A} -> ω A ∣ [] ↦ A Type
         proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ A Type
         Unit : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
@@ -145,20 +144,20 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
   module [Chor𝔓roc/Definition::Ctx] where
     data ⊢Ctx : 𝒰 𝑗 where
       ε : ⊢Ctx
-      _,[_] : ⊢Ctx -> 𝒫ᶠⁱⁿ (Proc This) -> ⊢Ctx
+      _,[_] : ⊢Ctx -> 𝒫₊ᶠⁱⁿ (Proc This) -> ⊢Ctx
       _,_ : ⊢Ctx -> ⊢Type ◯ -> ⊢Ctx
 
     variable
       Γ Δ : ⊢Ctx
 
-    data _∣_↦_Ctx : ⊢Ctx -> (l : List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
+    data _∣_↦_Ctx : ⊢Ctx -> (l : List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
       done : Γ ∣ [] ↦ Γ Ctx
       ε : ∀{p ps} -> ε ∣ p ∷ ps ↦ ε Ctx
       _,_ : ∀{p ps A} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
       stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
 
 
-    data isLocal : (l : (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
+    data isLocal : (l : (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
       ε : ∀{l} -> isLocal l ε
       _,_ : ∀{Γ l} -> isLocal l Γ -> ∀ A -> isLocal l (Γ , A ＠ l )
       stepRes : ∀{Γ k l} -> isLocal l Γ -> isLocal k (Γ ,[ l ])
@@ -167,41 +166,41 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
 
   module [Chor𝔓roc/Definition::Term] where
 
-    data _⊢Var_GlobalFiber[_] : (Γ : ⊢Ctx) -> (A : ⊢Type ▲) -> List (𝒫ᶠⁱⁿ (Proc This)) -> 𝒰 (𝑗) where
+    data _⊢Var_GlobalFiber[_] : (Γ : ⊢Ctx) -> (A : ⊢Type ▲) -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> 𝒰 (𝑗) where
       zero : ∀{p qs ps} -> ps ≼ qs -> π X ∣ p , ps ↦ A Type -> Γ , X ⊢Var A GlobalFiber[ p ∷ qs ]
       suc : ∀{ps} -> Γ ⊢Var A GlobalFiber[ ps ] -> Γ , X ⊢Var A GlobalFiber[ ps ]
       res : ∀{p ps} -> Γ ⊢Var A GlobalFiber[ p ∷ ps ] -> Γ ,[ p ] ⊢Var A GlobalFiber[ ps ]
       none : ∀{p ps} -> Γ , X ⊢Var Unit GlobalFiber[ p ∷ ps ]
 
 
-    record _⊢_GlobalFibered[_] (Γ : ⊢Ctx) (X : ⊢Type ◯) (ps : 𝒫ᶠⁱⁿ (Proc This)) : 𝒰 (𝑗)
+    record _⊢_GlobalFibered[_] (Γ : ⊢Ctx) (X : ⊢Type ◯) (ps : 𝒫₊ᶠⁱⁿ (Proc This)) : 𝒰 (𝑗)
 
 
     data _⊢_GlobalFiber[_] : (Γ : ⊢Ctx) -> (A : ⊢Type ▲) -> ⟨ Proc This ⟩ -> 𝒰 (𝑗) where
-      var : ∀{p} -> (v : Γ ⊢Var A GlobalFiber[ ⦗ p ⦘ ∷ [] ]) -> Γ ⊢ A GlobalFiber[ p ]
+      var : ∀{p} -> (v : Γ ⊢Var A GlobalFiber[ ⦗ p ⦘₊ ∷ [] ]) -> Γ ⊢ A GlobalFiber[ p ]
 
       -- communication
 
-      recv : π X ∣ ⦗ p ⦘ , [] ↦ A Type -> Γ ⊢ Tr A GlobalFiber[ p ]
+      recv : π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> Γ ⊢ Tr A GlobalFiber[ p ]
 
-      send : (v : π X ∣ ⦗ p ⦘ , [] ↦ A Type)
+      send : (v : π X ∣ ⦗ p ⦘₊ , [] ↦ A Type)
             -- -> unbox δ₀ ∣ p ↦ δ₁ Com
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
             -> Γ ⊢ Tr A GlobalFiber[ p ]
 
-      extern : Γ ,[ ⦗ q ⦘ ] ⊢ A GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ]
+      extern : Γ ,[ ⦗ q ⦘₊ ] ⊢ A GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ]
 
-      box' : Γ ,[ ⦗ p ⦘ ] ⊢ X GlobalFibered[ ps ]
+      box' : Γ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ ps ]
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
 
       -- transformations
       pure : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Tr A GlobalFiber[ p ]
       seq : Γ ⊢ Tr A GlobalFiber[ p ]
-            -> Γ , A ＠ ⦗ p ⦘  ⊢ Tr B GlobalFiber[ p ]
+            -> Γ , A ＠ ⦗ p ⦘₊  ⊢ Tr B GlobalFiber[ p ]
             -> Γ ⊢ Tr B GlobalFiber[ p ]
 
       -- functions
-      lam : Γ , A ＠ ⦗ p ⦘ ⊢ B GlobalFiber[ p ] -> Γ ⊢ A ⇒ B GlobalFiber[ p ]
+      lam : Γ , A ＠ ⦗ p ⦘₊ ⊢ B GlobalFiber[ p ] -> Γ ⊢ A ⇒ B GlobalFiber[ p ]
       app : Γ ⊢ A ⇒ B GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ B GlobalFiber[ p ]
 
       -- unit type
@@ -211,8 +210,8 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       left : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Either A B GlobalFiber[ p ]
       right : Γ ⊢ B GlobalFiber[ p ] -> Γ ⊢ Either A B GlobalFiber[ p ]
       either : Γ ⊢ Either A B GlobalFiber[ p ]
-        -> Γ , A ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
-        -> Γ , B ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
+        -> Γ , A ＠ ⦗ p ⦘₊ ⊢ C GlobalFiber[ p ]
+        -> Γ , B ＠ ⦗ p ⦘₊ ⊢ C GlobalFiber[ p ]
         -> Γ ⊢ C GlobalFiber[ p ]
 
       -- list types
@@ -220,15 +219,15 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       _∷_ : Γ ⊢ A GlobalFiber[ p ] -> Γ ⊢ Lst A GlobalFiber[ p ] -> Γ ⊢ Lst A GlobalFiber[ p ]
       rec-Lst : Γ ⊢ Lst A GlobalFiber[ p ]
         -> Γ ⊢ C GlobalFiber[ p ]
-        -> (Γ , A ＠ ⦗ p ⦘) , C ＠ ⦗ p ⦘ ⊢ C GlobalFiber[ p ]
+        -> (Γ , A ＠ ⦗ p ⦘₊) , C ＠ ⦗ p ⦘₊ ⊢ C GlobalFiber[ p ]
         -> Γ ⊢ C GlobalFiber[ p ]
 
 
 
     record _⊢_GlobalFibered[_] Γ X ps where
       inductive ; constructor incl
-      field ⟨_⟩ : ∀ p -> p ∈ ⟨ ps ⟩ -> ∀ {A} -> (Xp : π X ∣ ⦗ p ⦘ , [] ↦ A Type)
-                  -> ∀ {Δ} -> (Γp : Γ ∣ ⦗ p ⦘ ∷ [] ↦ Δ Ctx)
+      field ⟨_⟩ : ∀ p -> p ∈ ⟨ fst ps ⟩ -> ∀ {A} -> (Xp : π X ∣ ⦗ p ⦘₊ , [] ↦ A Type)
+                  -> ∀ {Δ} -> (Γp : Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx)
                   -- -> ∑ λ δ' -> δ ∣ p ↦ δ' Com ×-𝒰
                   -> Δ ⊢ A GlobalFiber[ p ]
 
