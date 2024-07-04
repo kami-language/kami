@@ -72,7 +72,10 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   forget {a = ▲ x} Γ = fst Γ
 
   cong-Ctx,Var : {A B : ⊢Type ◯} -> A ≡ B -> _≡_ {A = ⊢Ctx} (Γ , A) (Γ , B)
-  cong-Ctx,Var = {!!}
+  cong-Ctx,Var refl-≡ = refl-≡
+
+  transp-Ctx-Var : ∀{ps} -> (Γ ≡ Δ) -> Γ ⊢Var A GlobalFiber[ ps ] -> Δ ⊢Var A GlobalFiber[ ps ]
+  transp-Ctx-Var refl-≡ t = t
 
   --------------------------------------------------------------
   -- Proofs on Operations on Types and contexts

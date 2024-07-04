@@ -19,6 +19,7 @@ open import Agora.TypeTheory.ParamSTT.Definition
 open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.NonEmpty
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (Mode)
@@ -56,12 +57,12 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   rev' [] = []
   rev' (x ∷ xs) = cons (postpend (rev' xs) x)
 
-  transl-Mod3 : ◯ ⟶ a -> (List (𝒫ᶠⁱⁿ (Proc This)))
+  transl-Mod3 : ◯ ⟶ a -> (List (𝒫₊ᶠⁱⁿ (Proc This)))
   transl-Mod3 id' = []
   transl-Mod3 (`[]` ⨾ id') = []
   transl-Mod3 (`[]` ⨾ `＠` U ⨾ ω) = U ∷ transl-Mod3 ω
 
-  F2-Type : (List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Type ◯ -> ⊢Type ◯
+  F2-Type : (List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ◯ -> ⊢Type ◯
   F2-Type [] X = X
   F2-Type (x ∷ xs) X = ◻ (F2-Type xs X) ＠ x
 
@@ -85,10 +86,27 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     [] ◆-≼' [] = []
     (a ∷ p) ◆-≼' (a ∷ q) = a ∷ (p ◆-≼ q)
 
+    _◆-≼≡_ : ∀{as bs cs : List A} -> as ≼ bs -> bs ≡ cs -> as ≼ cs
+    _◆-≼≡_ p refl-≡ = p
+
+    _◆-≡≼_ : ∀{as bs cs : List A} -> as ≡ bs -> bs ≼ cs -> as ≼ cs
+    _◆-≡≼_ refl-≡ p = p
+
+    _◆-≼'≡_ : ∀{as bs cs : List A} -> as ≼' bs -> bs ≡ cs -> as ≼' cs
+    _◆-≼'≡_ p refl-≡ = p
+
+    _◆-≡≼'_ : ∀{as bs cs : List A} -> as ≡ bs -> bs ≼' cs -> as ≼' cs
+    _◆-≡≼'_ refl-≡ p = p
+
+
   module _ {A : 𝒰 𝑖} where
     cons-post : ∀(as : List A) -> (x : A) -> cons (postpend as x) ≡ (as <> (x ∷ []))
     cons-post [] x = refl-≡
     cons-post (x₁ ∷ as) x = cong-≡ (x₁ ∷_) (cons-post as x)
+
+    drop-post : ∀(ps : List A) -> {r : A} -> drop 1 (ps ++-List r ∷ []) ≡ snd (postpend ps r)
+    drop-post [] {r} = refl-≡
+    drop-post (x ∷ ps) {r} = sym-≡ (cons-post ps r)
 
   F-prop : ∀{X} -> F-Type μ X ≡ F2-Type (rev (transl-Mod3 μ)) X
   F-prop {μ = id'} = refl-≡
@@ -129,6 +147,9 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     eval-r-transl-Mod' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev (transl-Mod3 (ϕ₀))
     eval-r-transl-Mod' {ϕ₀ = ϕ₀} = (sym-≡ (unit-r-++-List _) ∙-≡ eval-r-transl-Mod {ϕ₀ = ϕ₀} []) ∙-≡ unit-r-++-List _
 
+    eval-r-transl-Mod'' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev' (transl-Mod3 (ϕ₀))
+    eval-r-transl-Mod'' = {!!}
+
 
     into-≼' : {ϕ₀ ϕ₁ : ⊢ModeHom ◯ (▲ V)}
             -> rev (transl-Mod3 ϕ₀) ≼ rev (transl-Mod3 ϕ₁)
@@ -146,19 +167,22 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
 
 
 
-    module _ {A : 𝒰 𝑖} where
-      add-element : {xs ys zs : List A} -> xs ≼ ys -> xs <> zs ≼ ys <> zs
-      add-element done = id-≼
-      add-element (skip p) = skip (add-element p)
-      add-element (take p) = take (add-element p)
+  module _ {A : 𝒰 𝑖} where
+    add-element : {xs ys zs : List A} -> xs ≼ ys -> xs <> zs ≼ ys <> zs
+    add-element done = id-≼
+    add-element (skip p) = skip (add-element p)
+    add-element (take p) = take (add-element p)
 
-      add-element' : {xs ys zs : List A} -> xs ≼' ys -> xs <> zs ≼' ys <> zs
-      add-element' [] = id-≼'
-      add-element' (a ∷ x) = a ∷ (add-element x)
+    add-element' : {xs ys zs : List A} -> xs ≼' ys -> xs <> zs ≼' ys <> zs
+    add-element' [] = id-≼'
+    add-element' (a ∷ x) = a ∷ (add-element x)
 
-      ι₀-<> : {as bs : List A} -> as ≼ as <> bs
-      ι₀-<> {as = []} = []≼
-      ι₀-<> {as = x ∷ as} = take ι₀-<>
+    ι₀-<> : {as bs : List A} -> as ≼ as <> bs
+    ι₀-<> {as = []} = []≼
+    ι₀-<> {as = x ∷ as} = take ι₀-<>
+
+    add-element-post : {xs ys : List A} -> ∀{r} -> xs ≼ ys -> cons (postpend xs r) ≼ cons (postpend ys r)
+    add-element-post = {!!}
 
   preserve-◆-transl-Mod-3-2 : ∀{ϕ : ⊢ModeHom ◯ (▲ U)} {ψ : ⊢ModeHom (▲ U) (▲ V)}
               -> rev (transl-Mod3 (ϕ ◆' ψ))
@@ -254,7 +278,6 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
                  -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' cons (postpend (rev' (transl-Mod3 ν)) i)
   transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp =
     transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
-
 
 
 
