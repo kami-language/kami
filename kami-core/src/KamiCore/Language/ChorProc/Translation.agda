@@ -111,15 +111,24 @@ module _ (This : Chor𝔓roc 𝑗) where
   -- Context commutation proofs
 
 
-  commute-transl,addRestr : ∀{Γ Γp Γp'} -> transl-Ctx
-     (Γ ∙! ＠ₛ U ∙!* split-Min𝔐TT ν) Γp'
-     ≡ addRestr ν (transl-Ctx Γ Γp , U)
-  commute-transl,addRestr = {!!}
+  cong-,[] : ∀{Γ Δ : TargetCtx ▲} -> Γ ≡ Δ -> fst Γ ,[ snd Γ ] ≡ fst Δ ,[ snd Δ ]
+  cong-,[] refl-≡ = refl-≡
 
-  commute-transl,addRestr-2 : ∀{Γ Γp Γp'} -> transl-Ctx
-     (Γ ∙!* split-Min𝔐TT ν) Γp'
+
+  commute-transl,addRestr : {ν : a ⟶ ▲ U} -> ∀{Γ Γp} -> transl-Ctx
+     (Γ ∙! ＠ₛ U ∙!* split-Min𝔐TT ν) (stepsRes _ (stepRes _ Γp))
+     ≡ addRestr ν (transl-Ctx Γ Γp , U)
+  commute-transl,addRestr {ν = id'} = refl-≡
+  commute-transl,addRestr {ν = `＠` U ⨾ ν} = cong-≡ (_, U) (commute-transl,addRestr {ν = ν})
+  commute-transl,addRestr {ν = `[]` ⨾ ν} = cong-,[] (commute-transl,addRestr {ν = ν})
+
+  commute-transl,addRestr-2 : ∀{ν : a ⟶ ◯} -> ∀{Γ Γp} -> transl-Ctx
+     (Γ ∙!* split-Min𝔐TT ν) (stepsRes _ Γp)
      ≡ addRestr ν (transl-Ctx Γ Γp)
-  commute-transl,addRestr-2 = {!!}
+  commute-transl,addRestr-2 {ν = id'} = refl-≡
+  commute-transl,addRestr-2 {ν = `＠` U ⨾ ν} = cong-≡ (_, U) (commute-transl,addRestr-2 {ν = ν})
+  commute-transl,addRestr-2 {ν = `[]` ⨾ ν} = cong-,[] (commute-transl,addRestr-2 {ν = ν})
+
 
   -- End Context commutation proofs
   --------------------------------------------------------------------
@@ -128,7 +137,6 @@ module _ (This : Chor𝔓roc 𝑗) where
   --------------------------------------------------------------------
   -- Variables
 
-{-
   lift-π-single : ∀{X A p ps q} -> π X ∣ p , ps ↦ A Type -> π ◻ X ＠ q ∣ q , (p ∷ ps) ↦ A Type
   lift-π-single X = proj-＠ {!!} refl-≤ (proj-◻ X)
 
@@ -143,6 +151,8 @@ module _ (This : Chor𝔓roc 𝑗) where
   lift-π-direct : ∀{X B ps r} -> (π X ∣ r , [] ↦ B Type) -> π F2-Type ps X ∣ fst (postpend ps r) , snd (postpend ps r) ↦ B Type
   lift-π-direct = {!!}
 
+
+{-
   mkVar : ∀{Δ X A r ps qs} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> Δ , F2-Type ps X ⊢Var A GlobalFiber[ cons (postpend qs r) ]
   mkVar {r = r} {ps} {qs} [] Xp = zero done Xp -- (lift-π {ps = ps} {qs = qs} {r = r} P Xp)
   mkVar {r = r} {ps} {qs} (a ∷ Ps) Xp = zero {!P!} (lift-π {ps = ps} {qs = qs} {r = r} (a ∷ Ps) Xp)
@@ -165,7 +175,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   updateVar P (suc v) = suc v
   updateVar P (none) = none
 
--}
+
 
   local-var-impossible : ∀{b c A} {Γ : Chor𝔐TT⊢Ctx c} -> (Γp : isCtx₂ Γ) -> {μ : b ⟶ ▲ U} {η : c ⟶ ▲ U} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> 𝟘-𝒰
   local-var-impossible (stepRes _ Γp) (suc! v) = local-var-impossible Γp v
@@ -442,4 +452,4 @@ module _ {𝑗} where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
 
 -}
 -}
-
+-}

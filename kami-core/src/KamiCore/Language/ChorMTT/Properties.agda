@@ -42,7 +42,8 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   -- stepsVar : ∀{μ : } -> isCtx₂ Γ -> isCtx₂ (Γ ∙!* μ)
   stepsRes : {Γ : ⊢Ctx c} -> (μs : Path _⟶ₛ_ b c)
              -> isCtx₂ Γ -> isCtx₂ (Γ ∙!* μs)
-  stepsRes = {!!}
+  stepsRes id' Γp = Γp
+  stepsRes ((.(x ⨾ id') , incl x) ⨾ μs) Γp = stepRes _ (stepsRes μs Γp)
 
 
   ----------------------------------------------------------
@@ -159,4 +160,3 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
     with invisible-id (linearize α-invis)
   ... | refl-≡
     = impossible-trans-Linear (linearize α) αp
-
