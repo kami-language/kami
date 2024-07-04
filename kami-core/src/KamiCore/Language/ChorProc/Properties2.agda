@@ -124,6 +124,9 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     (cons (postpend (rev' as) x))
       ∎-≡
 
+  transl-Mod3-drop-[] : (ϕ : ⊢ModeHom ◯ ◯ ) -> transl-Mod3 (ϕ ◆' (`[]` {U = U} ⨾ id')) ≡ transl-Mod3 ϕ
+  transl-Mod3-drop-[] ϕ = {!!}
+
   private
     split-ψ : (ψ : ⊢ModeHom (▲ U) ◯) -> ∑ λ V -> ∑ λ ψ' -> ψ ≡ ψ' ◆' (`＠` V ⨾ id')
     split-ψ (`＠` W ⨾ id') = W , id' , refl-≡
@@ -144,26 +147,26 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
       (V ∷ (rev (transl-Mod3 ϕ₀) ++-List W ∷ []) ++-List WS)
         ∎-≡
 
-    eval-r-transl-Mod' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev (transl-Mod3 (ϕ₀))
-    eval-r-transl-Mod' {ϕ₀ = ϕ₀} = (sym-≡ (unit-r-++-List _) ∙-≡ eval-r-transl-Mod {ϕ₀ = ϕ₀} []) ∙-≡ unit-r-++-List _
+  eval-r-transl-Mod' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev (transl-Mod3 (ϕ₀))
+  eval-r-transl-Mod' {ϕ₀ = ϕ₀} = (sym-≡ (unit-r-++-List _) ∙-≡ eval-r-transl-Mod {ϕ₀ = ϕ₀} []) ∙-≡ unit-r-++-List _
 
-    eval-r-transl-Mod'' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev' (transl-Mod3 (ϕ₀))
-    eval-r-transl-Mod'' = {!!}
+  eval-r-transl-Mod'' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev' (transl-Mod3 (ϕ₀))
+  eval-r-transl-Mod'' = {!!}
 
 
-    into-≼' : {ϕ₀ ϕ₁ : ⊢ModeHom ◯ (▲ V)}
-            -> rev (transl-Mod3 ϕ₀) ≼ rev (transl-Mod3 ϕ₁)
-            -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
-    into-≼' {V = V} {ϕ₀ = ϕ₀} {ϕ₁} p =
-      let p2 : V ∷ rev (transl-Mod3 ϕ₀) ≼' V ∷ rev (transl-Mod3 ϕ₁)
-          p2 = V ∷ p
-          p3 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' V ∷ rev (transl-Mod3 ϕ₁)
-          p3 = transp-≡ (cong-≡ (λ ξ -> ξ ≼' V ∷ rev (transl-Mod3 ϕ₁)) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₀}))) p2
+  into-≼' : {ϕ₀ ϕ₁ : ⊢ModeHom ◯ (▲ V)}
+          -> rev (transl-Mod3 ϕ₀) ≼ rev (transl-Mod3 ϕ₁)
+          -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
+  into-≼' {V = V} {ϕ₀ = ϕ₀} {ϕ₁} p =
+    let p2 : V ∷ rev (transl-Mod3 ϕ₀) ≼' V ∷ rev (transl-Mod3 ϕ₁)
+        p2 = V ∷ p
+        p3 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' V ∷ rev (transl-Mod3 ϕ₁)
+        p3 = transp-≡ (cong-≡ (λ ξ -> ξ ≼' V ∷ rev (transl-Mod3 ϕ₁)) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₀}))) p2
 
-          p4 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
-          p4 = transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' ξ) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₁}))) p3
+        p4 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
+        p4 = transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' ξ) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₁}))) p3
 
-      in p4
+    in p4
 
 
 

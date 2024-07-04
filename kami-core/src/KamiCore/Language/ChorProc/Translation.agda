@@ -194,20 +194,26 @@ module _ (This : Chor𝔓roc 𝑗) where
     let res = transl-Var-◯ {ν = ν} Γ Γp v PP Γpp Xp
     in suc res
   transl-Var-◯ {ν = ν} (Γ ∙! ＠ₛ U ∙! []ₛ) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp =
-    let Γpp' : transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν ◆ (`[]` ⨾ `＠` U ⨾ id')))) p) ↦ Δ Ctx
-        Γpp' = {!!}
+    let
+        P1 : cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p) ≡ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p)
+        P1 = cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p)
+                  ⟨ cons-post (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p ⟩-≡
+             (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) <> (p ∷ [])
+                  ⟨ cong-≡ (_++-List (p ∷ [])) (eval-r-transl-Mod'' {ϕ₀ = ν ◆' (`[]` ⨾ id')}) ⟩-≡
+             (U ∷ rev' (transl-Mod3 (ν ◆ (`[]` ⨾ id')))) <> (p ∷ [])
+                  ⟨ cong-≡ (λ ξ -> U ∷ rev' ξ <> (p ∷ [])) (transl-Mod3-drop-[] ν) ⟩-≡
+             U ∷ ((rev' (transl-Mod3 ν)) <> (p ∷ []))
+                  ⟨ cong-≡ (U ∷_) (sym-≡ (cons-post (rev' (transl-Mod3 ν)) p)) ⟩-≡
+             U ∷ cons (postpend (rev' (transl-Mod3 ν)) p) ∎-≡
+
+        Γpp' : transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν ◆ (`[]` ⨾ `＠` U ⨾ id')))) p) ↦ Δ Ctx
+        Γpp' = transp-≡ (cong-≡ (λ ξ -> transl-Ctx' Γ Γp ∣ ξ ↦ Δ Ctx) {!!}) Γpp
 
         result = transl-Var-◯ {ν = ν ◆ (`[]` ⨾ `＠` U ⨾ id')} Γ Γp v PP Γpp' Xp
 
-        P1 : cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p) ≡ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p)
-        P1 = cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p)
-                  ⟨ {!!} ⟩-≡
-             cons (postpend (rev' (transl-Mod3 (ν) <> transl-Mod3 (`[]` ⨾ `＠` U ⨾ id'))) p)
-                  ⟨ {!!} ⟩-≡
-             U ∷ cons (postpend (rev' (transl-Mod3 ν)) p) ∎-≡
 
         result' : Δ ⊢Var B GlobalFiber[ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p) ]
-        result' = transp-≡ (cong-≡ (λ ξ -> Δ ⊢Var B GlobalFiber[ ξ ]) {!!}) result
+        result' = transp-≡ (cong-≡ (λ ξ -> Δ ⊢Var B GlobalFiber[ ξ ]) P1) result
 
     in res result'
 
