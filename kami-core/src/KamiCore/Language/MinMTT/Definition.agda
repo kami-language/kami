@@ -30,8 +30,12 @@ record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
   field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1)
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> ∑ λ (ϕ : a ⟶ b) -> isSmall ϕ) a b
+  field preserve-◆-split : ∀{a b c : ⟨ ModeTheory ⟩} -> {μ : a ⟶ b} -> {ν : b ⟶ c}
+                         -> split (μ ◆ ν) ≡ split μ ◆' split ν
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰' (𝑖 ⌄ 5)
   field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
+  field pureTrans : ⟨ Classification ⟩
+  field impureTrans : ⟨ Classification ⟩
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
 
 open MinMTT public
@@ -86,6 +90,10 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
     variable
       A B C : ⊢Type m
 
+    Mod-Type : ∀{a b} -> Path _⟶ₛ_ a b -> ⊢Type a -> ⊢Type b
+    Mod-Type id' X = X
+    Mod-Type (μ ⨾ μs) X = Mod-Type μs ⟨ X ∣ μ ⟩
+
   open [Min𝔐TT/Definition::Type]
 
   module [Min𝔐TT/Definition::Ctx] where
@@ -124,7 +132,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       var : ∀{μ : _ ⟶ o}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
-            -> class α ∼ ⊥
+            -> class α ≤ pureTrans This
             -> Γ ⊢ A
 
       tt : Γ ⊢ Unit
@@ -138,19 +146,16 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
             -> Γ ⊢ B
 
       -- explicit transformations
-      -- trans : ∀ {μ ν : n ⟶ snd m}
-      --         -> (α : μ ⟹ ν)
-      --         -> (¬ class α ∼ ⊥)
-      --         -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
+      trans : ∀ {μ ν : ModeHom n (snd m)}
+              -> (α : μ ⟹ ν)
+              -> (class α ∼ impureTrans This)
+              -> Γ ⊢ Mod-Type (split This μ) A -> Γ ⊢ Tr (Mod-Type (split This ν) A)
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A
       seq : ∀{A : ⊢Type (snd m)} -> Γ ⊢ Tr A -> Γ ∙⟮ A ∣ id ⟯ ⊢ Tr B -> Γ ⊢ Tr B
 
       -- functions
-      -- lam : Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
-      -- app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ∙! μ ⊢ B -> Γ ⊢ B
-
       lam : Γ ∙⟮ A ∣ id ⟯ ⊢ B -> Γ ⊢ A ⇒ B
       app : Γ ⊢ A ⇒ B -> Γ ⊢ A -> Γ ⊢ B
 

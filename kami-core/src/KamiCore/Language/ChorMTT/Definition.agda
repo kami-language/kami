@@ -7,6 +7,7 @@ open import Data.List using (drop)
 
 open import Agora.Conventions hiding (m ; n ; k ; _∣_ ; ls)
 open import Agora.Data.Product.Definition
+open import Agora.Data.Sum.Definition hiding (either)
 open import Agora.Order.Preorder
 open import Agora.Order.Lattice
 open import Agora.Category.Std.Category.Definition
@@ -32,9 +33,21 @@ open import KamiCore.Language.MinMTT.Definition
 open import KamiCore.Language.MinMTT.Properties
 
 
+module _ {𝑖} where
+  macro 𝟚 = #structureOn (𝟙 {𝑖} +-𝒰 𝟙 {𝑖})
+  macro 𝟛 = #structureOn (𝟙 {𝑖} +-𝒰 (𝟚 {𝑖}))
+
+pattern pureT = no tt
+pattern impureForbiddenT = yes (no tt)
+pattern impureT = yes (yes tt)
 
 
+data ChorTransType : 𝒰₀ where
+  pure comm : ChorTransType
 
+instance
+  hasStrictOrder:ChorTransType : hasStrictOrder ChorTransType
+  hasStrictOrder:ChorTransType = {!!}
 
 
 record ChorMTT 𝑗 : 𝒰 (𝑗 ⁺) where
@@ -78,26 +91,27 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     -----------------------------------------
     classify-Single : {a b : Mode PolySR-ModeSystem}
                       -> {μ ν : ⊢ModeHom a b}
-                      -> SingleFace' vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
-    classify-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) = ⊥
-    classify-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ idᵣ₁) top₁ bot) = ⦗ tt ⦘
+                      -> SingleFace' vis μ ν -> (𝒫ᶠⁱⁿ (𝟛 {ℓ₀}))
+    classify-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) = ⦗ pureT ⦘
+    classify-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ id') top₁ bot) = ⦗ impureT ⦘
+    classify-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (x ⨾ idᵣ₁)) top₁ bot) = ⦗ impureForbiddenT ⦘
 
     classify-Linear : {a b : Mode PolySR-ModeSystem}
                       -> {μ ν : ⊢ModeHom a b}
-                      -> Linear2Cell vis μ ν -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
+                      -> Linear2Cell vis μ ν -> (𝒫ᶠⁱⁿ (𝟛 {ℓ₀}))
     classify-Linear [] = ⊥
     classify-Linear (x ∷ xs) = classify-Single x ∨ classify-Linear xs
 
     classify : {a b : Mode PolySR-ModeSystem}
                -> {μ ν : ⊢ModeHom a b}
                -> (α : μ ⟹ ν)
-               -> (𝒫ᶠⁱⁿ (𝟙 {ℓ₀}))
+               -> (𝒫ᶠⁱⁿ (𝟛 {ℓ₀}))
     classify [ incl α₀ ∣ incl α₁ ] = classify-Linear (linearize α₁)
 
     module _ {a b : Mode PolySR-ModeSystem} where
 
       instance
-        isClassified:PolySR : isClassified (𝒫ᶠⁱⁿ (𝟙 {ℓ₀})) (HomCategory a b)
+        isClassified:PolySR : isClassified (𝒫ᶠⁱⁿ (𝟛 {ℓ₀})) (HomCategory a b)
         isClassified:PolySR = record
           { class = classify
           ; preserve-◆ = {!!}
@@ -111,6 +125,14 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     split-Min𝔐TT id' = id'
     split-Min𝔐TT (μ ⨾ μs) = ((μ ⨾ id') , incl μ) ⨾ split-Min𝔐TT μs
 
+    preserve-◆-split-Min𝔐TT : ∀{a b c : Mode PolySR-ModeSystem}
+                              -> {μ : ⊢ModeHom a b}
+                              -> {ν : ⊢ModeHom b c}
+                              -> split-Min𝔐TT (μ ◆ ν)
+                              ≡  split-Min𝔐TT μ ◆' split-Min𝔐TT ν
+    preserve-◆-split-Min𝔐TT {μ = id'} = refl-≡
+    preserve-◆-split-Min𝔐TT {μ = μ ⨾ μs} = cong-≡ (λ ξ -> (μ ⨾ id' , incl μ) ⨾ ξ) (preserve-◆-split-Min𝔐TT {μ = μs})
+
   open [Chor𝔐TT/Definition::Param]
 
 
@@ -120,9 +142,12 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       { ModeTheory = ′ Mode PolySR-ModeSystem ′
       ; isSmall = isSmall-Min𝔐TT
       ; split = split-Min𝔐TT
+      ; preserve-◆-split = λ {a} {b} {c} {μ} {ν} -> preserve-◆-split-Min𝔐TT {μ = μ} {ν}
       ; isTargetMode = λ a -> a ≡ ◯
-      ; Classification = 𝒫ᶠⁱⁿ 𝟙
+      ; Classification = 𝒫ᶠⁱⁿ 𝟛
       ; isClassified:Transformation = isClassified:PolySR
+      ; pureTrans = ⦗ pureT ⦘
+      ; impureTrans = ⦗ impureT ⦘
       }
   open [Chor𝔐TT/Definition::Private]
 
@@ -168,16 +193,16 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
 
 
   module [Chor𝔐TT/Definition::Term] where
-    open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _⊢'_)
+    open [Min𝔐TT/Definition::Term] using (_⊢Var⟮_∣_⇒_⟯ ; zero ; suc! ; suc) public
     open Min𝔐TT/Properties Super
 
     private
       pattern []ₛ = (`[]` ⨾ id' , incl `[]`)
       pattern ＠ₛ U  = (`＠` U ⨾ id' , incl (`＠` _))
 
-    data isBroadcast {a b : ⊢Param} : {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰 𝑗 where
-      br : ∀ U ϕ₀ ϕ₁ -> isBroadcast [ (incl []) ∣ incl (incl (ϕ₀ ⌟[ recv U ]⌞ (ϕ₁ ⌟)) ∷ []) ]
-      -- br : ∀{U} -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
+    data isBroadcast : {a b : ⊢Param} {μ ν : ⊢ModeHom a b} -> μ ⟹ ν -> 𝒰 𝑗 where
+      -- br : ∀ U ϕ₀ ϕ₁ -> isBroadcast [ (incl []) ∣ incl (incl (ϕ₀ ⌟[ recv U ]⌞ (ϕ₁ ⌟)) ∷ []) ]
+      br : ∀ U -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
       
     data _⊢_ : ∀{a} -> ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
       var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
@@ -197,9 +222,12 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
             -> Γ ∙! ＠ₛ U ⊢ B
 
       -- explicit transformations
-      trans : ∀ {μ ν : _ ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α
-            -> Γ ⊢ Mod-Type (split-Min𝔐TT μ) A
-            -> Γ ⊢ Tr (Mod-Type (split-Min𝔐TT ν) A)
+      -- trans : ∀ {μ ν : _ ⟶ b} -> (α : μ ⟹ ν) -> isBroadcast α
+      --       -> Γ ⊢ Mod-Type (split-Min𝔐TT μ) A
+      --       -> Γ ⊢ Tr (Mod-Type (split-Min𝔐TT ν) A)
+
+      broadcast : Γ ⊢ ⟨ ⟨ A ∣ []ₛ ⟩ ∣ ＠ₛ U ⟩
+                -> Γ ⊢ Tr A
 
       -- transformations monad
       pure : Γ ⊢ A -> Γ ⊢ Tr A

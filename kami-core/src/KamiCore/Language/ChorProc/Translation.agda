@@ -340,9 +340,6 @@ module _ (This : Chor𝔓roc 𝑗) where
     in letin-GlobalFibered (multibox t''') s''
   -}
 
-  transl-Term-▲ Γ Γp (trans α (br U ϕ₀ ϕ₁) t) = {!!}
-    --   let t' = transl-Term-◯ _ Γp t
-    --   in broadcast-GlobalFibered t'
   transl-Term-▲ Γ Γp (pure t) = pure-＠-GlobalFibered (transl-Term-▲ Γ Γp t)
   transl-Term-▲ Γ Γp (seq-＠ t s) =
     let t' = transl-Term-▲ Γ Γp t
@@ -404,9 +401,9 @@ module _ (This : Chor𝔓roc 𝑗) where
         s' = transl-Term-◯ _ ((stepVar Γp)) s
     in letin-GlobalFibered (multibox' t''') s'
   -}
-  transl-Term-◯ Γ Γp (trans α (br U ϕ₀ ϕ₁) t) = {!!}
-    --   let t' = transl-Term-◯ _ Γp t
-    --   in broadcast-GlobalFibered t'
+  transl-Term-◯ Γ Γp (broadcast t) =
+      let t' = transl-Term-◯ _ Γp t
+      in broadcast-GlobalFibered t'
   transl-Term-◯ Γ Γp (pure t) = pure-GlobalFibered (transl-Term-◯ Γ Γp t)
   transl-Term-◯ Γ Γp (seq t s) =
     let t' = transl-Term-◯ Γ Γp t

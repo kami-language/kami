@@ -47,6 +47,7 @@ module _ (This : Chor𝔐TT 𝑗) where
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Type] Super
   open Min𝔐TT/Definition.[Min𝔐TT/Definition::Term] Super
     renaming (_⊢_ to _Min𝔐TT⊢_)
+    hiding (_⊢Var⟮_∣_⇒_⟯ ; zero ; suc! ; suc)
 
 
   par-𝔉₂ : Param Super -> Param This
@@ -102,6 +103,13 @@ module _ (This : Chor𝔐TT 𝑗) where
                -> Γ Min𝔐TT⊢ ⟨ B ∣ μ ⟩
   internal-mod T t = letmod id' t (mod _ (T (var (suc! zero) {!idT!} {!!})))
 
+
+
+
+
+
+{-
+
   -- Term helpers
   --------------------------------------------------------------------
 
@@ -147,6 +155,7 @@ module _ (This : Chor𝔐TT 𝑗) where
   transl-Term-▲ (lam t) =
     let t' = transl-Term-▲ t
     in lam-＠ t' -- (com⁻¹-restr-single {μ = id'} t')
+  transl-Term-▲ (trans α αp t) = ⊥-elim (impossible-trans α αp)
   transl-Term-▲ (app t s) = app (transl-Term-▲ t) (transl-Term-▲ s)
   transl-Term-▲ (left t) = left (transl-Term-▲ t)
   transl-Term-▲ (right t) = right (transl-Term-▲ t)
@@ -183,6 +192,7 @@ module _ (This : Chor𝔐TT 𝑗) where
         s' = transl-Term-◯ s
 
     in letmod μ ν t'' s'
+  transl-Term-◯ (trans α αp t) = transl-trans α αp (transl-Term-◯ t)
   transl-Term-◯ (pure t) = pure (transl-Term-◯ t)
   transl-Term-◯ (seq t t₁) = seq (transl-Term-◯ t) (transl-Term-◯ t₁)
   transl-Term-◯ (lam t) = lam (transl-Term-◯ t)
@@ -218,6 +228,8 @@ instance
     }
 
 module _ {𝑗} where macro 𝔉₂ = #structureOn (F₂ {𝑗 = 𝑗})
+
+-}
 
 {-
 -}

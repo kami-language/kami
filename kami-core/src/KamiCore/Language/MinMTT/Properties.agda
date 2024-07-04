@@ -39,8 +39,9 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
     a b c : 𝓂
 
 
-  Mod-Type : ∀{a b} -> Path _⟶ₛ_ a b -> ⊢Type a -> ⊢Type b
-  Mod-Type id' X = X
-  Mod-Type (μ ⨾ μs) X = Mod-Type μs ⟨ X ∣ μ ⟩
+  preserve-◆-Mod-Type : {μ : Path _⟶ₛ_ a b} {ν : Path _⟶ₛ_ b c}
+                      -> Mod-Type (μ ◆' ν) A ≡ Mod-Type ν (Mod-Type μ A)
+  preserve-◆-Mod-Type {μ = id'} = refl-≡
+  preserve-◆-Mod-Type {μ = x ⨾ μ} = preserve-◆-Mod-Type {μ = μ}
 
 
