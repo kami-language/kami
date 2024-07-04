@@ -81,6 +81,9 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     ⊢ModeHom : (a b : Mode PolySR-ModeSystem) -> 𝒰 _
     ⊢ModeHom a b = a ⟶ᵘ b
 
+    ⊢ModeTrans : {a b : Mode PolySR-ModeSystem} (μ ν : ⊢ModeHom a b) -> 𝒰 _
+    ⊢ModeTrans μ ν = μ ⟹ᵘ ν
+
     variable
       a a₀ b c d : Mode PolySR-ModeSystem
       μ ν η ω : ModeHom PolySR-ModeSystem a b
@@ -205,7 +208,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       br : ∀ U -> isBroadcast [ (incl []) ∣ incl (incl (id' ⌟[ recv U ]⌞ (id' ⌟)) ∷ []) ]
       
     data _⊢_ : ∀{a} -> ⊢Ctx {◯} a -> ⊢Type a -> 𝒰 𝑗 where
-      var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> Γ ⊢ A
+      var : {Γ : ⊢Ctx {◯} a} -> ∀{μ : ⊢ModeHom _ b} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> (α : μ ⟹ η) -> class α ≤ ⦗ pureT ⦘ -> Γ ⊢ A
       tt : Γ ⊢ Unit
 
       -- modalities

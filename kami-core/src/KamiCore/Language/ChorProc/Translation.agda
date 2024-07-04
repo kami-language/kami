@@ -27,6 +27,7 @@ open import KamiCore.Language.ChorMTT.Definition
 open import KamiCore.Language.ChorMTT.Properties
 open import KamiCore.Language.ChorProc.Definition
 open import KamiCore.Language.ChorProc.Properties
+open import KamiCore.Language.ChorProc.Properties2
 
 
 
@@ -42,6 +43,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   open [Chor𝔓roc/Definition::Ctx]
   open [Chor𝔓roc/Definition::Term]
   open Chor𝔓roc/Properties This
+  open Chor𝔓roc/Properties2 This
 
   open Chor𝔐TT/Definition Super
   open [Chor𝔐TT/Definition::Type] renaming (⊢Type to Chor𝔐TT⊢Type)
@@ -126,38 +128,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   --------------------------------------------------------------------
   -- Variables
 
-  cons : ∀{A : 𝒰 𝑙} -> A × List A -> List A
-  cons (a , as) = a ∷ as
-
-
-  postpend : ∀{A : 𝒰 𝑙} -> (List A) -> A -> A × List A
-  postpend [] x = x , []
-  postpend (x ∷ xs) z = x , cons (postpend xs z)
-
-  rev' : ∀{A : 𝒰 𝑙} -> List A -> List A
-  rev' [] = []
-  rev' (x ∷ xs) = cons (postpend (rev' xs) x)
-
-  transl-Mod3 : ◯ ⟶ a -> (List (𝒫ᶠⁱⁿ (Proc This)))
-  transl-Mod3 id' = []
-  transl-Mod3 (`[]` ⨾ id') = []
-  transl-Mod3 (`[]` ⨾ `＠` U ⨾ ω) = U ∷ transl-Mod3 ω
-
-  F2-Type : (List (𝒫ᶠⁱⁿ (Proc This))) -> ⊢Type ◯ -> ⊢Type ◯
-  F2-Type [] X = X
-  F2-Type (x ∷ xs) X = ◻ (F2-Type xs X) ＠ x
-
-  F2-comp : ∀{X } -> ∀ xs ys -> F2-Type (xs <> ys) X ≡ F2-Type xs (F2-Type ys X)
-  F2-comp [] ys = refl-≡
-  F2-comp (x ∷ xs) ys = cong-≡ (λ X -> ◻ X ＠ x) (F2-comp xs ys)
-
 {-
-  F-prop : ∀{X} -> F-Type μ X ≡ F2-Type (rev (transl-Mod3 μ)) X
-  F-prop {μ = id'} = refl-≡
-  F-prop {μ = `[]` ⨾ `＠` U ⨾ μ} {X = X} =
-    let Z = F-prop {μ = μ} {X = (◻ X ＠ U)}
-    in Z ∙-≡ sym-≡ (F2-comp (rev (transl-Mod3 μ)) _ )
-
   lift-π-single : ∀{X A p ps q} -> π X ∣ p , ps ↦ A Type -> π ◻ X ＠ q ∣ q , (p ∷ ps) ↦ A Type
   lift-π-single X = proj-＠ {!!} refl-≤ (proj-◻ X)
 
@@ -283,15 +254,9 @@ module _ (This : Chor𝔓roc 𝑗) where
             -> ∀{A} -> Γ Chor𝔐TT⊢ A
             -> transl-Ctx Γ Γp  ⊢ ⦋ A ⦌-Type GlobalFibered[ ps ]
 
-  transl-Term-▲ Γ Γp (var {b = ▲ _} (suc! x) [ incl α₀ ∣ incl α₁ ]) = ⊥-elim (local-var-impossible Γp x)
-  transl-Term-▲ {i = i} Γ Γp (var {b = ◯} {μ = `＠` j ⨾ μ} (suc! x) [ incl α₀ ∣ incl α₁ ]) =
-      let α₀' = linearize α₀
-          α₁' = linearize α₁
-
-          P : i ≤ j
-          P = {!!}
-
-      in incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x {!!} Γp₁ Xp) in var XX))
+  transl-Term-▲ Γ Γp (var {b = ▲ _} (suc! x) [ incl α₀ ∣ incl α₁ ] αp) = ⊥-elim (local-var-impossible Γp x)
+  transl-Term-▲ {i = i} Γ Γp (var {b = ◯} {μ = `＠` j ⨾ μ} (suc! x) α αp) =
+    incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x {!!} Γp₁ Xp) in var XX))
 
   transl-Term-▲ Γ Γp tt = tt-＠-GlobalFibered
   transl-Term-▲ Γ Γp (mod []ₛ t) =
@@ -372,12 +337,9 @@ module _ (This : Chor𝔓roc 𝑗) where
     in rec-Lst-＠-GlobalFibered t' s' u'
 
 
-  transl-Term-◯ Γ Γp (var {b = ▲ _} x [ incl α₀ ∣ incl α₁ ]) = ⊥-elim (local-var-impossible Γp x)
-  transl-Term-◯ Γ Γp (var {b = ◯} {μ = μ} x [ incl α₀ ∣ incl α₁ ]) =
-    let α₀' = linearize α₀
-        α₁' = linearize α₁
-        -- xx = transl-Var' Γ Γp x {!!} {!!}
-    in incl (λ p x₁ Xp Γp₁ → var (transl-Var-◯ {ν = id'} Γ Γp x {!!} Γp₁ Xp))
+  transl-Term-◯ Γ Γp (var {b = ▲ _} x α αp) = ⊥-elim (local-var-impossible Γp x)
+  transl-Term-◯ Γ Γp (var {b = ◯} {μ = μ} x α αp) =
+    incl (λ p x₁ Xp Γp₁ → var (transl-Var-◯ {ν = id'} Γ Γp x (transToSublist₁ α {!!}) Γp₁ Xp))
   transl-Term-◯ Γ Γp tt = tt-GlobalFibered
   transl-Term-◯ Γ Γp (mod (＠ₛ U) t) = transl-Term-▲ Γ Γp t
   transl-Term-◯ Γ Γp (letmod (＠ₛ U) ν t s) = {!!}

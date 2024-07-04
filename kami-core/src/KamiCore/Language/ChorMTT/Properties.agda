@@ -120,7 +120,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   transl-trans-Linear [] αp t = pure t
   transl-trans-Linear (x ∷ α) αp t =
     let t' = transl-trans-Single x (ι₀-∨ ⟡ αp) t
-        t'' = transl-trans-Linear α (ι₁-∨ {a = classify-Single x} ⟡ αp) (var zero {!!})
+        t'' = transl-trans-Linear α (ι₁-∨ {a = classify-Single x} ⟡ αp) (var zero {!!} {!!})
     in seq t' t''
 
 

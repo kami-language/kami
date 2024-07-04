@@ -26,14 +26,14 @@ open import KamiCore.Language.ChorMTT.Definition
 
 
 module _ {A : 𝒰 𝑖} where
-  data _≼_ : List A -> List A -> 𝒰 𝑖 where
-    done : ∀{as} -> [] ≼ as
-    take : ∀{x as bs} -> as ≼ bs -> x ∷ as ≼ x ∷ bs
-    skip : ∀{x as bs} -> as ≼ bs -> as ≼ x ∷ bs
+  -- data _≼_ : List A -> List A -> 𝒰 𝑖 where
+  --   done : ∀{as} -> [] ≼ as
+  --   take : ∀{x as bs} -> as ≼ bs -> x ∷ as ≼ x ∷ bs
+  --   skip : ∀{x as bs} -> as ≼ bs -> as ≼ x ∷ bs
 
-  split-≼ : ∀ ps qs -> ∀{U V} -> (ps <> (U ∷ [])) ≼ (qs <> (V ∷ [])) -> (ps ≼ qs ×-𝒰 U ≡ V) +-𝒰 (ps <> (U ∷ []) ≼ qs)
+  split-≼ : ∀ (ps qs : List A) -> ∀{U V} -> (ps <> (U ∷ [])) ≼ (qs <> (V ∷ [])) -> (ps ≼ qs ×-𝒰 U ≡ V) +-𝒰 (ps <> (U ∷ []) ≼ qs)
   split-≼ [] [] (take P) = left (done , refl-≡)
-  split-≼ [] (x ∷ qs) (take P) = yes (take (done))
+  split-≼ [] (x ∷ qs) (take P) = yes (take ([]≼))
   split-≼ [] (x ∷ qs) (skip P) with split-≼ [] qs P
   ... | no (P , Q) = no (skip P , Q)
   ... | yes P = yes (skip P)
