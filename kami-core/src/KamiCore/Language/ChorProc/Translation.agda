@@ -152,6 +152,7 @@ module _ (This : Chor𝔓roc 𝑗) where
   lift-π-direct = {!!}
 
 
+
 {-
   mkVar : ∀{Δ X A r ps qs} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> Δ , F2-Type ps X ⊢Var A GlobalFiber[ cons (postpend qs r) ]
   mkVar {r = r} {ps} {qs} [] Xp = zero done Xp -- (lift-π {ps = ps} {qs = qs} {r = r} P Xp)
