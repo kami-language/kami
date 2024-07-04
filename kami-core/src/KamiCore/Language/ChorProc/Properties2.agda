@@ -72,6 +72,11 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   -------------------------
   -- properties
 
+  module _ {A : 𝒰 𝑖} where
+    cons-post : ∀(as : List A) -> (x : A) -> cons (postpend as x) ≡ (as <> (x ∷ []))
+    cons-post [] x = refl-≡
+    cons-post (x₁ ∷ as) x = cong-≡ (x₁ ∷_) (cons-post as x)
+
   F-prop : ∀{X} -> F-Type μ X ≡ F2-Type (rev (transl-Mod3 μ)) X
   F-prop {μ = id'} = refl-≡
   F-prop {μ = `[]` ⨾ `＠` U ⨾ μ} {X = X} =
@@ -79,8 +84,14 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     in Z ∙-≡ sym-≡ (F2-comp (rev (transl-Mod3 μ)) _ )
 
   rev≡rev' : ∀{A : 𝒰 𝑖} (as : List A) -> rev as ≡ rev' as
-  rev≡rev' = {!!}
-
+  rev≡rev' [] = refl-≡
+  rev≡rev' (x ∷ as) =
+    (rev as ++-List x ∷ [])
+      ⟨ sym-≡ (cons-post (rev as) x) ⟩-≡
+    (cons (postpend (rev as) x))
+      ⟨ cong-≡ (λ ξ -> cons (postpend ξ x)) (rev≡rev' as) ⟩-≡
+    (cons (postpend (rev' as) x))
+      ∎-≡
 
   private
     split-ψ : (ψ : ⊢ModeHom (▲ U) ◯) -> ∑ λ V -> ∑ λ ψ' -> ψ ≡ ψ' ◆' (`＠` V ⨾ id')
@@ -88,10 +99,38 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     split-ψ (`＠` W ⨾ `[]` ⨾ ϕ) with split-ψ ϕ
     ... | V , ϕ' , refl-≡ = V , `＠` W ⨾ `[]` ⨾ ϕ' , refl-≡
 
+    eval-r-transl-Mod : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> ∀ WS -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) <> WS ≡ V ∷ rev (transl-Mod3 (ϕ₀)) <> WS
+    eval-r-transl-Mod {ϕ₀ = `[]` ⨾ id'} WS = refl-≡
+    eval-r-transl-Mod {V = V} {ϕ₀ = `[]` ⨾ `＠` W ⨾ ϕ₀} WS =
+      let P = eval-r-transl-Mod {ϕ₀ = ϕ₀} (W ∷ WS)
+      in
+      ((rev (transl-Mod3 (ϕ₀ ◆' `＠` V ⨾ id')) ++-List W ∷ []) ++-List WS)
+        ⟨ assoc-++-List _ (W ∷ []) WS ⟩-≡
+      (rev (transl-Mod3 (ϕ₀ ◆' `＠` V ⨾ id')) ++-List (W ∷ WS))
+        ⟨ P ⟩-≡
+      (V ∷ rev (transl-Mod3 ϕ₀) ++-List W ∷ WS)
+        ⟨ cong-≡ (V ∷_) (sym-≡ (assoc-++-List _ (W ∷ []) WS)) ⟩-≡
+      (V ∷ (rev (transl-Mod3 ϕ₀) ++-List W ∷ []) ++-List WS)
+        ∎-≡
+
+    eval-r-transl-Mod' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev (transl-Mod3 (ϕ₀))
+    eval-r-transl-Mod' {ϕ₀ = ϕ₀} = (sym-≡ (unit-r-++-List _) ∙-≡ eval-r-transl-Mod {ϕ₀ = ϕ₀} []) ∙-≡ unit-r-++-List _
+
+
     into-≼' : {ϕ₀ ϕ₁ : ⊢ModeHom ◯ (▲ V)}
             -> rev (transl-Mod3 ϕ₀) ≼ rev (transl-Mod3 ϕ₁)
             -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
-    into-≼' = {!!}
+    into-≼' {V = V} {ϕ₀ = ϕ₀} {ϕ₁} p =
+      let p2 : V ∷ rev (transl-Mod3 ϕ₀) ≼' V ∷ rev (transl-Mod3 ϕ₁)
+          p2 = V ∷ p
+          p3 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' V ∷ rev (transl-Mod3 ϕ₁)
+          p3 = transp-≡ (cong-≡ (λ ξ -> ξ ≼' V ∷ rev (transl-Mod3 ϕ₁)) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₀}))) p2
+
+          p4 : rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' rev (transl-Mod3 (ϕ₁ ◆' (`＠` V ⨾ id')))
+          p4 = transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≼' ξ) (sym-≡ (eval-r-transl-Mod' {ϕ₀ = ϕ₁}))) p3
+
+      in p4
+
 
     module _ {A : 𝒰 𝑖} where
       add-element : {xs ys zs : List A} -> xs ≼ ys -> xs <> zs ≼ ys <> zs
@@ -118,6 +157,7 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   ... | V , ψ' , refl-≡ = into-≼' {ϕ₀ = ϕ ◆' ψ'} {ϕ₁ = ϕ ◆' `＠` U ⨾ `[]` ⨾ ψ'} (preserve-◆-transl-Mod-3-2 {ϕ = ϕ} {ψ = ψ'})
 
 
+
 -- Goal: rev (transl-Mod3 (idₗ₁ ◆' idᵣ₁)) ≼'
 --       rev
 --       (transl-Mod3
@@ -133,7 +173,6 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
 -- Goal: rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 η)
 
 
-{-
   --------------------------------------------------------------------
   -- Interactions with transformations
   --------------------------------------------------------------------
@@ -164,7 +203,7 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
                  -> (α : SingleFace' vis μ ν)
                  -> classify-Single α ≤ ⦗ pureT ⦘
                  -> rev (transl-Mod3 μ) ≼' rev (transl-Mod3 ν)
-  transToSublist-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) refl-≡ refl-≡) αp = {!!}
+  transToSublist-Single (singleFace (ϕ ⌟[ send U ]⌞ ψ) refl-≡ refl-≡) αp = preserve-◆-transl-Mod-3 {ϕ = ϕ} {ψ = ψ}
   transToSublist-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (_ ⨾ _)) top₁ bot) αp = ⊥-elim (≰-singleton (λ ()) αp)
   transToSublist-Single (singleFace (ϕ ⌟[ recv U ]⌞ id') top bot) αp = ⊥-elim (≰-singleton (λ ()) αp)
 
@@ -194,4 +233,12 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   transToSublist₁ {μ = μ} {ν = ν} α αp =
     transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) ≼' ξ) (rev≡rev' (transl-Mod3 ν))) (transToSublist α αp)
 
--}
+
+  -- transToSublist₁ : ∀{μ ν : ⊢ModeHom ◯ ◯}
+  --                -> (α : ⊢ModeTrans μ ν)
+  --                -> classify α ≤ ⦗ pureT ⦘
+  --                -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 ν)
+-- Goal: (rev (transl-Mod3 μ) ++-List
+--        Agora.Conventions.Prelude.Data.List.Base._.[ i ])
+--       ≼' cons (postpend (rev' (transl-Mod3 η)) i)
+
