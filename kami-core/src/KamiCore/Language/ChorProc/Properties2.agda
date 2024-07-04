@@ -73,6 +73,19 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   -- properties
 
   module _ {A : 𝒰 𝑖} where
+    -- id-≼ : ∀{as : List A} -> as ≼ as
+    -- id-≼ {as = []} = done
+    -- id-≼ {as = x ∷ as} = take id-≼
+
+    id-≼' : ∀{as : List A} -> as ≼' as
+    id-≼' {as = []} = []
+    id-≼' {as = a ∷ as} = a ∷ id-≼
+
+    _◆-≼'_ : ∀{as bs cs : List A} -> as ≼' bs -> bs ≼' cs -> as ≼' cs
+    [] ◆-≼' [] = []
+    (a ∷ p) ◆-≼' (a ∷ q) = a ∷ (p ◆-≼ q)
+
+  module _ {A : 𝒰 𝑖} where
     cons-post : ∀(as : List A) -> (x : A) -> cons (postpend as x) ≡ (as <> (x ∷ []))
     cons-post [] x = refl-≡
     cons-post (x₁ ∷ as) x = cong-≡ (x₁ ∷_) (cons-post as x)
@@ -132,11 +145,16 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
       in p4
 
 
+
     module _ {A : 𝒰 𝑖} where
       add-element : {xs ys zs : List A} -> xs ≼ ys -> xs <> zs ≼ ys <> zs
       add-element done = id-≼
       add-element (skip p) = skip (add-element p)
       add-element (take p) = take (add-element p)
+
+      add-element' : {xs ys zs : List A} -> xs ≼' ys -> xs <> zs ≼' ys <> zs
+      add-element' [] = id-≼'
+      add-element' (a ∷ x) = a ∷ (add-element x)
 
       ι₀-<> : {as bs : List A} -> as ≼ as <> bs
       ι₀-<> {as = []} = []≼
@@ -176,18 +194,6 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   --------------------------------------------------------------------
   -- Interactions with transformations
   --------------------------------------------------------------------
-  module _ {A : 𝒰 𝑖} where
-    -- id-≼ : ∀{as : List A} -> as ≼ as
-    -- id-≼ {as = []} = done
-    -- id-≼ {as = x ∷ as} = take id-≼
-
-    id-≼' : ∀{as : List A} -> as ≼' as
-    id-≼' {as = []} = []
-    id-≼' {as = a ∷ as} = a ∷ id-≼
-
-    _◆-≼'_ : ∀{as bs cs : List A} -> as ≼' bs -> bs ≼' cs -> as ≼' cs
-    [] ◆-≼' [] = []
-    (a ∷ p) ◆-≼' (a ∷ q) = a ∷ (p ◆-≼ q)
 
 
 
@@ -234,11 +240,22 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) ≼' ξ) (rev≡rev' (transl-Mod3 ν))) (transToSublist α αp)
 
 
-  -- transToSublist₁ : ∀{μ ν : ⊢ModeHom ◯ ◯}
-  --                -> (α : ⊢ModeTrans μ ν)
-  --                -> classify α ≤ ⦗ pureT ⦘
-  --                -> rev (transl-Mod3 μ) ≼' rev' (transl-Mod3 ν)
--- Goal: (rev (transl-Mod3 μ) ++-List
---        Agora.Conventions.Prelude.Data.List.Base._.[ i ])
---       ≼' cons (postpend (rev' (transl-Mod3 η)) i)
+  transToSublist' : ∀{μ ν : ⊢ModeHom ◯ ◯}
+                 -> ∀ i
+                 -> (α : ⊢ModeTrans μ ν)
+                 -> classify α ≤ ⦗ pureT ⦘
+                 -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' rev (transl-Mod3 ν) <> (i ∷ [])
+  transToSublist' i α αp = add-element' (transToSublist α αp)
+
+  transToSublist'₁ : ∀{μ ν : ⊢ModeHom ◯ ◯}
+                 -> ∀{i}
+                 -> (α : ⊢ModeTrans μ ν)
+                 -> classify α ≤ ⦗ pureT ⦘
+                 -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' cons (postpend (rev' (transl-Mod3 ν)) i)
+  transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp =
+    transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
+
+
+
+
 
