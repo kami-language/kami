@@ -148,7 +148,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       -- explicit transformations
       trans : ∀ {μ ν : ModeHom n (snd m)}
               -> (α : μ ⟹ ν)
-              -> (class α ∼ impureTrans This)
+              -> (class α ≤ impureTrans This)
               -> Γ ⊢ Mod-Type (split This μ) A -> Γ ⊢ Tr (Mod-Type (split This ν) A)
 
       -- transformations monad

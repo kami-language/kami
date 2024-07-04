@@ -90,7 +90,6 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
               -> μ ≡ ν
   invisible-id [] = refl-≡
 
-{-
 
   transl-trans-Single : ∀ {μ ν : a ⟶ ◯}
               -> {A : ⊢Type a}
@@ -136,7 +135,6 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   ... | refl-≡
     = transl-trans-Linear (linearize α-vis) αp t
 
--}
 
   impossible-trans-Single : ∀ {μ ν : a ⟶ ▲ U}
               -> (α : SingleFace' vis μ ν)

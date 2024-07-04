@@ -108,7 +108,6 @@ module _ (This : Chor𝔐TT 𝑗) where
 
 
 
-{-
 
   -- Term helpers
   --------------------------------------------------------------------
@@ -155,7 +154,12 @@ module _ (This : Chor𝔐TT 𝑗) where
   transl-Term-▲ (lam t) =
     let t' = transl-Term-▲ t
     in lam-＠ t' -- (com⁻¹-restr-single {μ = id'} t')
-  transl-Term-▲ (trans α αp t) = ⊥-elim (impossible-trans α αp)
+  transl-Term-▲ (trans {A = A} α αp t) =
+    let t' = transl-Term-▲ t
+        -- in this case we know that α is the identity, so
+        -- we can use pure on the original term t
+        t'' = cong-Type-ChorMTT (cong-≡ (λ ξ -> (Mod-Type (split-Min𝔐TT ξ) A)) ((impossible-trans α αp))) t'
+    in pure t''
   transl-Term-▲ (app t s) = app (transl-Term-▲ t) (transl-Term-▲ s)
   transl-Term-▲ (left t) = left (transl-Term-▲ t)
   transl-Term-▲ (right t) = right (transl-Term-▲ t)
@@ -229,7 +233,3 @@ instance
 
 module _ {𝑗} where macro 𝔉₂ = #structureOn (F₂ {𝑗 = 𝑗})
 
--}
-
-{-
--}
