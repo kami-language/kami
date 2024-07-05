@@ -125,7 +125,8 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
       ∎-≡
 
   transl-Mod3-drop-[] : (ϕ : ⊢ModeHom ◯ ◯ ) -> transl-Mod3 (ϕ ◆' (`[]` {U = U} ⨾ id')) ≡ transl-Mod3 ϕ
-  transl-Mod3-drop-[] ϕ = {!!}
+  transl-Mod3-drop-[] id' = refl-≡
+  transl-Mod3-drop-[] (`[]` ⨾ `＠` U ⨾ ϕ) = cong-≡ (U ∷_) (transl-Mod3-drop-[] ϕ)
 
   private
     split-ψ : (ψ : ⊢ModeHom (▲ U) ◯) -> ∑ λ V -> ∑ λ ψ' -> ψ ≡ ψ' ◆' (`＠` V ⨾ id')
@@ -151,7 +152,15 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
   eval-r-transl-Mod' {ϕ₀ = ϕ₀} = (sym-≡ (unit-r-++-List _) ∙-≡ eval-r-transl-Mod {ϕ₀ = ϕ₀} []) ∙-≡ unit-r-++-List _
 
   eval-r-transl-Mod'' : {ϕ₀ : ⊢ModeHom ◯ (▲ V)} -> rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id'))) ≡ V ∷ rev' (transl-Mod3 (ϕ₀))
-  eval-r-transl-Mod'' = {!!}
+  eval-r-transl-Mod'' {V = V} {ϕ₀ = ϕ₀} =
+    rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id')))
+      ⟨ sym-≡ (rev≡rev' (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id')))) ⟩-≡
+    rev (transl-Mod3 (ϕ₀ ◆' (`＠` V ⨾ id')))
+      ⟨ eval-r-transl-Mod' {ϕ₀ = ϕ₀} ⟩-≡
+    V ∷ rev (transl-Mod3 (ϕ₀))
+      ⟨ cong-≡ (V ∷_) (rev≡rev' (transl-Mod3 (ϕ₀))) ⟩-≡
+    V ∷ rev' (transl-Mod3 (ϕ₀))
+      ∎-≡
 
 
   into-≼' : {ϕ₀ ϕ₁ : ⊢ModeHom ◯ (▲ V)}
@@ -281,7 +290,6 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
                  -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' cons (postpend (rev' (transl-Mod3 ν)) i)
   transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp = transToSublist₁ {μ = `[]` ⨾ `＠` i ⨾ μ} {ν = `[]` ⨾  `＠` i ⨾ ν} (_⇃◆⇂_ {f = `[]` ⨾ id'} [ incl [] ∣ incl [] ] α) (preserve-⇃◆⇂-Min𝔐TT {μ₀ = `[]` ⨾ id'} [ incl [] ∣ incl [] ] α ⟡-∼≤ [ initial-⊥ , αp ]-∨)
     -- transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
-
 
 
 
