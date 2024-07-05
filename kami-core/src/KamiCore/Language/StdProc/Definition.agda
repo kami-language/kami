@@ -112,6 +112,8 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
 
       -- products
       _,_ : Γ ⊢ A Locally -> Γ ⊢ B Locally -> Γ ⊢ A ×× B Locally
+      fst-×× : Γ ⊢ A ×× B Locally -> Γ ⊢ A Locally
+      snd-×× : Γ ⊢ A ×× B Locally -> Γ ⊢ B Locally
       tt : Γ ⊢ Unit Locally
 
       -- coproducts

@@ -180,7 +180,7 @@ module _ (This : Std𝔓roc) where
 
   tπ' : ∀{X B Γ p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
   tπ' {p = ([] since []) , p≁⊥} P t = ⊥-elim (p≁⊥ refl-≡)
-  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X ⦗ x₁ ⦘₊)
+  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘₊))
   ... | refl-≡ = proj t x₁
   tπ' {X = X} {p = ((x₁ ∷ x ∷ p) since uniquep) , p≁⊥} P t = {!!}
     -- let t' = proj t x₁
@@ -193,11 +193,60 @@ module _ (This : Std𝔓roc) where
   -- ... | right PP  = {!!}
 
 
+{-
+  transp-Type : ∀{Γ A B} -> A ≡ B -> Γ ⊢ A Locally -> Γ ⊢ B Locally
+  transp-Type = {!!}
+
+
+  jπ : ∀{X Γ} -> (∀ {p ps} B -> π X ∣ (p , ps) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> (∀ {p} B -> π X ∣ (p , []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally)
+  iπ : ∀{X Γ} -> (∀ {p} B -> π X ∣ (p , []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> (∀ {p ps} B -> π X ∣ (p , ps) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally)
+
+  jπ = {!!}
+
+  iπ {X = Unit} t B BP = {!!}
+  iπ {X = Either X X₁} t B BP = {!!}
+  iπ {X = Lst X} t B BP = {!!}
+  iπ {X = X ⇒ Y} t B (XP ⇒ YP) = {!!}
+  -- lam (iπ (λ B' B'P -> app (wk (t {!!} {!!})) (jπ (λ C' C'P -> {!!}) _ (π-Type-Proof X (_ , [])))) _ YP)
+  iπ {X = X ×× X₁} t B BP = {!!}
+  iπ {X = Tr X} t B BP = {!!}
+  iπ {X = X ＠ x} t B BP = {!!}
+  -}
+
+{-
+  {-# TERMINATING #-}
+  jω : ∀{A Γ} -> (∀ {p} B -> ω A ∣ (p ∷ []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> Γ ⊢ ⟦ A ⟧-LType Locally
+  iω : ∀{A B Γ} -> Γ ⊢ ⟦ A ⟧-LType Locally -> ∀ p -> ω A ∣ (p ∷ []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally
+
+  jω {A = ◻ A} t = {!!}
+  jω {A = Unit} t = {!!}
+  jω {A = Either A A₁} t = {!!}
+  jω {A = Lst A} t = {!!}
+  jω {A = A ⇒ A₁} t = lam (jω λ {B P -> app (wk (t _ (ω-Type-Proof _ _ ⇒ P))) (iω (var zero) _ (ω-Type-Proof _ _))})
+  jω {A = A ×× B} t = jω (λ B P -> fst-×× (t _ (P ×× ω-Type-Proof _ _))) , {!!}
+  jω {A = Tr A} t = {!!}
+
+  iω {A = ◻ A} t p P = {!!}
+  iω {A = Unit} t p P = {!!}
+  -- iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (iω (app (wk t) (jω (λ A' A'P -> transp-Type (cong-≡ ⟦_⟧-LType (unique-ω PA {!A'P!})) (var zero)))) {!!} PB)
+
+  iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (iω (app (wk t) (jω (λ A' A'P -> {!!}))) {!!} PB)
+
+  -- iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (jω {!!})
+  -- (iω (app (wk t) (jω (λ A' A'P -> transp-Type (cong-≡ ⟦_⟧-LType (unique-ω PA {!A'P!})) (var zero)))) {!!} PB)
+  iω {A = A ×× B} t p (PA ×× PB) = iω (fst-×× t) p PA , iω (snd-×× t) p PB
+
+-}
 
   tω : ∀{A B ps Γ} -> ω A ∣ ps ↦ B Type -> Γ ⊢ ⟦ A ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
 
+
+  -- tπ {X = X} {p = p} P t = tω (split-π P) (tπ' (π-Type-Proof X p) t)
   tπ : ∀{X B p ps Γ} -> π X ∣ p , ps ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tπ {X = X} {p = p} P t = tω (split-π P) (tπ' (π-Type-Proof X p) t)
+  tπ {X = X} {p = p} {[]} P t = tπ' P t
+  tπ {X = .(_ ＠ _)} {p = p} {x ∷ ps} (proj-＠ x₁ x₂) t = tω x₂ (tπ (proj-＠ x₁ done) t)
+  tπ {X = .(_ ＠ _)} {p = p} {x ∷ ps} (proj-＠-≠ x₁) t = tt
+    -- tω (split-π P) (tπ' (π-Type-Proof X p) t)
 
   tω done t = t
   tω (proj-◻ x) t = tπ x t
@@ -281,7 +330,6 @@ instance
     { param = par-𝔉₄
     ; runAt = run-𝔉₄
     }
-
 
 
 

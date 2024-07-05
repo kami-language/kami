@@ -103,21 +103,22 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ... | no x = Unit
     ... | yes x = ω-Type A ps
 
+
     ω-Type : (A : ⊢Type ▲) -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Type ▲
     ω-Type A [] = A
     -- ω-Type (◻ X) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X (p , ps)
     ω-Type (◻ X) (p ∷ ps) = π-Type X (p , ps)
     ω-Type Unit (p ∷ ps) = Unit
-    ω-Type (Either T S)  (p ∷ ps) = Unit
-    ω-Type (T ⇒ S) (p ∷ ps) = Unit
-    ω-Type (T ×× S) (p ∷ ps) = Unit
-    ω-Type (Tr T) (p ∷ ps) = Unit
-    ω-Type (Lst T) (p ∷ ps) = Unit
-    -- ω-Type (Either T S)  (p ∷ ps) = Either (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
-    -- ω-Type (T ⇒ S) (p ∷ ps) = _⇒_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
-    -- ω-Type (T ×× S) (p ∷ ps) = _××_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
-    -- ω-Type (Tr T) (p ∷ ps) = Tr (ω-Type T (p ∷ ps))
-    -- ω-Type (Lst T) (p ∷ ps) = Lst (ω-Type T (p ∷ ps))
+    -- ω-Type (Either T S)  (p ∷ ps) = Unit
+    -- ω-Type (T ⇒ S) (p ∷ ps) = Unit
+    -- ω-Type (T ×× S) (p ∷ ps) = Unit
+    -- ω-Type (Tr T) (p ∷ ps) = Unit
+    -- ω-Type (Lst T) (p ∷ ps) = Unit
+    ω-Type (Either T S)  (p ∷ ps) = Either (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    ω-Type (T ⇒ S) (p ∷ ps) = _⇒_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    ω-Type (T ×× S) (p ∷ ps) = _××_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    ω-Type (Tr T) (p ∷ ps) = Tr (ω-Type T (p ∷ ps))
+    ω-Type (Lst T) (p ∷ ps) = Lst (ω-Type T (p ∷ ps))
 
   π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps , [] ↦ (π-Type X (ps , [])) Type
   π-Type-Proof Unit ps = Unit
@@ -129,6 +130,11 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no x = proj-＠-≠ x
   ... | yes x = proj-＠ x done
   π-Type-Proof (X ×× Y) ps = _××_ (π-Type-Proof X ps) (π-Type-Proof Y ps)
+
+  eval-π-＠ : π-Type (A ＠ ps) (ps , []) ≡ A
+  eval-π-＠ {A = A} {ps = ps} with decide-≤ ps ps
+  ... | yes X = refl-≡
+  ... | no X = ⊥-elim (X refl-≤)
 
 {-
   mutual
@@ -147,13 +153,13 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ω-Type-Proof A [] = done
     ω-Type-Proof (◻ X) (p ∷ ps) = proj-◻ (π-Type-Proof X (p , ps))
     ω-Type-Proof Unit (p ∷ ps) = Unit
-    ω-Type-Proof (Either T S)  (p ∷ ps) = Break-Either
-    ω-Type-Proof (T ⇒ S) (p ∷ ps) = Break-⇒
-    ω-Type-Proof (T ×× S) (p ∷ ps) = Break-××
-    ω-Type-Proof (Tr T) (p ∷ ps) = Break-Tr
-    ω-Type-Proof (Lst T) (p ∷ ps) = Break-Lst
--}
+    ω-Type-Proof (Either T S)  (p ∷ ps) = {!!}
+    ω-Type-Proof (T ⇒ S) (p ∷ ps) = {!!}
+    ω-Type-Proof (T ×× S) (p ∷ ps) = ω-Type-Proof T (p ∷ ps) ×× ω-Type-Proof S (p ∷ ps)
+    ω-Type-Proof (Tr T) (p ∷ ps) = {!!}
+    ω-Type-Proof (Lst T) (p ∷ ps) = {!!}
 
+-}
 
   π-Ctx : ⊢Ctx -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Ctx
   π-Ctx Γ [] = Γ
@@ -172,16 +178,48 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-Ctx-Proof (Γ ,[ x ]) (i ∷ is) = stepRes (π-Ctx-Proof Γ (x ∷ i ∷ is)) 
   π-Ctx-Proof (Γ , x) (i ∷ is) = π-Ctx-Proof Γ (i ∷ is) , π-Type-Proof x i
 
+
   data _≡-Local_ {ps} : {Γ Δ : ⊢Ctx} (Γp : isLocal ps Γ) (Δp : isLocal ps Δ) -> 𝒰 𝑗 where
     refl-Local : ∀{Γ} {Γp : isLocal ps Γ} -> Γp ≡-Local Γp
 
-  idempotent-local : ∀{Δ : ⊢Ctx} (Δp : isLocal ps Δ) -> local-Proof (π-Ctx-Proof Δ (ps ∷ [])) ≡-Local Δp
-  idempotent-local Δp = {!!}
+  map-,Local : {Γ Δ : ⊢Ctx} (Γp : isLocal ps Γ) (Δp : isLocal ps Δ)
+             -> Γp ≡-Local Δp -> A ≡ B -> Γp , A ≡-Local Δp , B
+  map-,Local _ _ refl-Local refl-≡ = refl-Local
+
+  map-stepRes : {Γ Δ : ⊢Ctx} (Γp : isLocal ps Γ) (Δp : isLocal ps Δ)
+             -> Γp ≡-Local Δp -> ∀{q} -> stepRes {k = q} Γp ≡-Local stepRes {k = q} Δp
+  map-stepRes _ _ refl-Local = refl-Local
 
 
-  unique-π : ∀{X A B ps} -> π X ∣ ps ↦ A Type -> π X ∣ ps ↦ B Type -> A ≡ B
-  unique-π p q = {!!}
 
+  idempotent-local : ∀{Δ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> local-Proof (π-Ctx-Proof Δ (ps ∷ pps)) ≡-Local Δp
+  idempotent-local ε = refl-Local
+  idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) (eval-π-＠ {ps = ps})
+  idempotent-local (stepRes Δp) = map-stepRes _ _ (idempotent-local Δp)
+
+
+
+
+
+
+  unique-π : ∀{X A B ps} -> π X ∣ ps , [] ↦ A Type -> π X ∣ ps , [] ↦ B Type -> A ≡ B
+  unique-π (proj-＠ x done) (proj-＠ x₂ done) = refl-≡
+  unique-π (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x)
+  unique-π (proj-＠-≠ x) (proj-＠ x₁ done) = ⊥-elim (x x₁)
+  unique-π (proj-＠-≠ x) (proj-＠-≠ x₁) = refl-≡
+  unique-π (p ⇒ p₁) (q ⇒ q₁) = cong₂-≡ _⇒_ (unique-π p q) (unique-π p₁ q₁)
+  unique-π (p ×× p₁) (q ×× q₁) = cong₂-≡ _××_ (unique-π p q) (unique-π p₁ q₁)
+  unique-π (Either p p₁) (Either q q₁) = cong₂-≡ Either (unique-π p q) (unique-π p₁ q₁)
+  unique-π (Tr p) (Tr q) = cong-≡ Tr (unique-π p q)
+  unique-π (Lst p) (Lst q) = cong-≡ Lst (unique-π p q)
+  unique-π Unit Unit = refl-≡
+
+  -- unique-ω : ∀{X A B ps} -> ω X ∣ ps ↦ A Type -> ω X ∣ ps ↦ B Type -> A ≡ B
+  -- unique-ω = {!!}
+
+  -- unique-π : ∀{X A B ps} -> π X ∣ ps ↦ A Type -> π X ∣ ps ↦ B Type -> A ≡ B
+
+{-
   split-π : ∀{p ps} -> π X ∣ p , ps ↦ A Type -> ω π-Type X (p , []) ∣ ps ↦ A Type
   split-π {p = p} (proj-＠ {qs = qs} x x₁) with decide-≤ p qs
   ... | no x₂ = ⊥-elim (x₂ x)
@@ -198,45 +236,72 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- split-π {p = p} {x₁ ∷ ps} (proj-＠-≠ {qs = _} (no x)) | yes x₂ | yes P = Unit
   -- split-π {p = p} {[]} (proj-＠-≠ {qs = _} (yes x)) | yes x₂ | yes P = done
   -- split-π {p = p} {x₁ ∷ ps} (proj-＠-≠ {qs = _} (yes x)) | yes x₂ | yes P = Unit
-  split-π (P ⇒ P₁) = {!!}
+  split-π {ps = []} (P ⇒ P₁) = {!!}
+  -- split-π {ps = x ∷ ps} (P ⇒ P₁) = split-π P ⇒ split-π P₁
   split-π (P ×× P₁) = {!!}
   split-π (Either P P₁) = {!!}
   split-π (Tr P) = {!!}
   split-π (Lst P) = {!!}
   split-π Unit = {!!}
+  -}
+
 
   --------------------------------------------------------------
   -- Properties of variables
   --------------------------------------------------------------
 
+{-
   mutual
     lem-13' : ∀{ps qs} -> ω C ∣ ps ↦ A Type -> ω C ∣ ps <> qs ↦ B Type -> ω A ∣ ps <> qs ↦ B Type
-    lem-13' = {!!}
+    lem-13' {ps} {.ps} done Q = Q
+    lem-13' {.(◻ _)} (proj-◻ x) (proj-◻ x₁) = {!proj-◻ ?!} --  -- (lem-13 x x₁)
+    lem-13' {.Unit} {.Unit} Unit Q = {!!}
     -- lem-13' {ps = x ∷ ps} (proj-◻ v) (proj-◻ w) =  ? -- let z = lem-13 v w in proj-[] {!!} z
-    -- lem-13' {ps = x ∷ ps} (proj-[] x₁ x₂) (proj-[] x₃ x₄) = proj-[] {!!} (lem-13' x₂ x₄)
-    -- lem-13' {ps = []} Unit-▲ x = x
-    -- lem-13' {ps = x ∷ ps} Unit-▲ Unit-▲ = Unit-▲
+    -- -- lem-13' {ps = x ∷ ps} (proj-◻ x₁ x₂) (proj-◻ x₃ x₄) = proj-[] {!!} (lem-13' x₂ x₄)
+    -- lem-13' {ps = []} Unit x = x
+    -- lem-13' {ps = x ∷ ps} Unit Unit = Unit
     -- lem-13' done w = w
 
     lem-13 : ∀{p ps qs} -> π X ∣ p , ps ↦ A Type -> π X ∣ p , ps <> qs ↦ B Type -> ω A ∣ ps <> qs ↦ B Type
-    lem-13 {Either X X₁} x (Either x₁ x₂) = {!!}
-    lem-13 {X ×× X₁} x (x₁ ×× x₂) = {!!}
-    lem-13 {Tr X} x (Tr x₁) = {!!}
-    lem-13 {Lst X} x (Lst x₁) = {!!}
-    lem-13 (proj-＠ x v) (proj-＠ x₁ w) = lem-13' v w
-    lem-13 (proj-＠ x v) (proj-＠-≠ x₁) = {!!} -- ⊥-elim (x₁ x)
-    lem-13 (proj-＠-≠ x) (proj-＠ x₁ w) = {!!} -- ⊥-elim (x x₁)
-    lem-13 (proj-＠-≠ x) (proj-＠-≠ x₁) = {!Unit!}
-    lem-13 (v ⇒ v₁) (w ⇒ w₁) = {!!}
+    lem-13 (proj-＠ x x₁) (proj-＠ x₂ x₃) = {!!} -- lem-13' x₁ x₃
+    lem-13 (proj-＠ x x₁) (proj-＠-≠ x₂) = {!!}
+    lem-13 (proj-＠-≠ x) (proj-＠ x₁ x₂) = {!!}
+    lem-13 (proj-＠-≠ x) (proj-＠-≠ x₁) = {!!}
+    lem-13 (P₁ ⇒ P₂) (Q ⇒ Q₁) = {!!}
+    lem-13 (P₁ ×× P₂) (Q ×× Q₁) = {!!}
+    lem-13 (Either P₁ P₂) (Either Q Q₁) = {!!}
+    lem-13 (Tr P₁) (Tr Q) = {!!}
+    lem-13 (Lst P₁) (Lst Q) = {!!}
     lem-13 Unit Unit = {!!}
+-}
 
-  lem-12 : ∀{p ps qs} -> π X ∣ p , ps ↦ A Type -> π X ∣ p , ps <> qs ↦ B Type -> π (A ＠ p) ∣ p , ps <> qs ↦ B Type
-  lem-12 v w = proj-＠ refl-≤ (lem-13 v w)
+  lem-14 : ∀{p ps} -> π X ∣ p , [] ↦ A Type -> π X ∣ p , ps ↦ B Type -> ω A ∣ ps ↦ B Type
+  lem-14 (proj-＠ x done) (proj-＠ x₂ x₃) = x₃
+  lem-14 (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x)
+  lem-14 (proj-＠-≠ x) (proj-＠ x₂ x₃) = ⊥-elim (x x₂)
+  lem-14 {ps = []} (proj-＠-≠ x) (proj-＠-≠ x₁) = done
+  lem-14 {ps = _ ∷ _} (proj-＠-≠ x) (proj-＠-≠ x₁) = Unit
+  lem-14 (v ⇒ v₁) (w ⇒ w₁) with unique-π v w | unique-π v₁ w₁
+  ... | refl-≡ | refl-≡ = done
+  lem-14 (v ×× v₁) (w ×× w₁) with unique-π v w | unique-π v₁ w₁
+  ... | refl-≡ | refl-≡ = done
+  lem-14 (Either v v₁) (Either w w₁) with unique-π v w | unique-π v₁ w₁
+  ... | refl-≡ | refl-≡ = done
+  lem-14 (Tr v) (Tr w) with unique-π v w
+  ... | refl-≡ = done
+  lem-14 (Lst v) (Lst w) with unique-π v w
+  ... | refl-≡ = done
+  lem-14 Unit Unit = done
+
+
+  lem-12 : ∀{p ps} -> π X ∣ p , [] ↦ A Type -> π X ∣ p , ps ↦ B Type -> π (A ＠ p) ∣ p , ps ↦ B Type
+  lem-12 v w = proj-＠ refl-≤ (lem-14 v w)
 
 
   projVar1 : ∀{ps qs} -> Γ ∣ ps ↦ Δ Ctx -> Γ ⊢Var A GlobalFiber[ ps <> qs ] -> Δ ⊢Var A GlobalFiber[ ps <> qs ]
   projVar1 done v = v
   projVar1 (p , v) (none) = none
+  -- projVar1 (p , v) (zero x w) = zero x (lem-12 v w )
   projVar1 (p , v) (zero x w) = zero x (lem-12 v w )
   projVar1 (p , x) (suc v) = suc (projVar1 p v)
   projVar1 (stepRes p) (res v) = res (projVar1 p v)
@@ -260,12 +325,34 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   commute-＠-Exp : ∀ ps -> Γ ⊢ (A ⇒ B) ＠ ps GlobalFibered[ qs ]
                         -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) GlobalFibered[ qs ]
-  commute-＠-Exp = {!!}
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠ x₁ done ⇒ proj-＠ x₃ done) Γp = ⟨ t ⟩ _ x (proj-＠ x₁ done) Γp
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠ x₁ done ⇒ proj-＠-≠ x₃) Γp = ⊥-elim (x₃ x₁)
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠ x₂ done) Γp = ⊥-elim (x₁ x₂)
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠-≠ x₂) Γp = lam tt
 
+  map-Var-Fiber : (∀{qs A} -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]) -> ∀ {p} -> Γ ⊢ B GlobalFiber[ p ] -> Δ ⊢ B GlobalFiber[ p ]
   map-Var : (∀{qs A} -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]) -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
-  map-Var = {!!}
+
+  map-Var-Fiber V (var v) = var (V v)
+  map-Var-Fiber V (recv x) = recv x
+  map-Var-Fiber V (send v t) = send v (map-Var-Fiber V t)
+  map-Var-Fiber V (box' x) = box' (map-Var (λ {(res v) -> res (V v)}) x)
+  map-Var-Fiber V (pure t) = pure (map-Var-Fiber V t)
+  map-Var-Fiber V (seq t s) = {!!}
+  map-Var-Fiber V (lam t) = {!!}
+  map-Var-Fiber V (app t t₁) = {!!}
+  map-Var-Fiber V tt = {!!}
+  map-Var-Fiber V (left t) = {!!}
+  map-Var-Fiber V (right t) = {!!}
+  map-Var-Fiber V (either t t₁ t₂) = {!!}
+  map-Var-Fiber V [] = {!!}
+  map-Var-Fiber V (t ∷ t₁) = {!!}
+  map-Var-Fiber V (rec-Lst t t₁ t₂) = {!!}
+
+  map-Var V (incl t) = {!!}
 
 
+{-
   transRes-GlobalFibered : ∀{qs rs} -> rs ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ ps ] -> Γ ,[ rs ] ⊢ X GlobalFibered[ ps ]
   transRes-GlobalFibered = {!!}
 
@@ -485,3 +572,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     where
       f = λ { _ here → p∈qs}
 
+-}
