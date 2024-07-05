@@ -197,6 +197,13 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) (eval-π-＠ {ps = ps})
   idempotent-local (stepRes Δp) = map-stepRes _ _ (idempotent-local Δp)
 
+  idempotent-local' : ∀{Δ Δₗ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> Δ ∣ (ps ∷ pps) ↦ Δₗ Ctx -> Δ ≡ Δₗ
+
+  idempotent-local' ε ε = refl-≡
+  idempotent-local' (Δp , A) (P₁ , proj-＠ x done) = cong₂-≡ _,_ (idempotent-local' Δp P₁) refl-≡
+  idempotent-local' (Δp , A) (P₁ , proj-＠-≠ x) = ⊥-elim (x refl-≤)
+  idempotent-local' (stepRes Δp) (stepRes P₁) = cong-≡ (_,[ _ ]) (idempotent-local' Δp P₁)
+
 
 
 
@@ -330,28 +337,66 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠ x₂ done) Γp = ⊥-elim (x₁ x₂)
   ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠-≠ x₂) Γp = lam tt
 
-  map-Var-Fiber : (∀{qs A} -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]) -> ∀ {p} -> Γ ⊢ B GlobalFiber[ p ] -> Δ ⊢ B GlobalFiber[ p ]
-  map-Var : (∀{qs A} -> Γ ⊢Var A GlobalFiber[ qs ] -> Δ ⊢Var A GlobalFiber[ qs ]) -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
+  map-Var-Fiber : ∀ {p} -> isLocal ⦗ p ⦘₊ Δ -> isLocal ⦗ p ⦘₊ Γ -> (∀{A qs} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘₊ ∷ qs ] -> Δ ⊢Var A GlobalFiber[ ⦗ p ⦘₊ ∷ qs ]) -> Γ ⊢ B GlobalFiber[ p ] -> Δ ⊢ B GlobalFiber[ p  ]
 
-  map-Var-Fiber V (var v) = var (V v)
-  map-Var-Fiber V (recv x) = recv x
-  map-Var-Fiber V (send v t) = send v (map-Var-Fiber V t)
-  map-Var-Fiber V (box' x) = box' (map-Var (λ {(res v) -> res (V v)}) x)
-  map-Var-Fiber V (pure t) = pure (map-Var-Fiber V t)
-  map-Var-Fiber V (seq t s) = {!!}
-  map-Var-Fiber V (lam t) = {!!}
-  map-Var-Fiber V (app t t₁) = {!!}
-  map-Var-Fiber V tt = {!!}
-  map-Var-Fiber V (left t) = {!!}
-  map-Var-Fiber V (right t) = {!!}
-  map-Var-Fiber V (either t t₁ t₂) = {!!}
-  map-Var-Fiber V [] = {!!}
-  map-Var-Fiber V (t ∷ t₁) = {!!}
-  map-Var-Fiber V (rec-Lst t t₁ t₂) = {!!}
+  map-Var : (∀{q A Γₗ Δₗ qs} -> q ∈ ⟨ fst ps ⟩ -> Γ ∣ (⦗ q ⦘₊ ∷ []) ↦ Γₗ Ctx -> Δ ∣ (⦗ q ⦘₊ ∷ []) ↦ Δₗ Ctx -> Γₗ ⊢Var A GlobalFiber[ ⦗ q ⦘₊ ∷ qs ] -> Δₗ ⊢Var A GlobalFiber[ ⦗ q ⦘₊ ∷ qs ])
+            -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
 
-  map-Var V (incl t) = {!!}
+  map-Var-Fiber Δp Γp V (var v) = var (V v)
+  map-Var-Fiber Δp Γp V (recv x) = recv x
+  map-Var-Fiber Δp Γp V (send v t) = send v (map-Var-Fiber Δp Γp V t)
+  map-Var-Fiber Δp Γp V (box' x) = box' (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
+  map-Var-Fiber Δp Γp V (pure t) = pure (map-Var-Fiber Δp Γp V t)
+  map-Var-Fiber Δp Γp V (seq t s) =
+    let t' = map-Var-Fiber Δp Γp V t
+        s' = map-Var-Fiber (Δp , _) (Γp , _) (λ {(suc v) -> suc (V v)
+                              ; none -> none
+                              ; (zero v w) -> (zero v w)}) s
+    in seq t' s'
+  map-Var-Fiber Δp Γp V (lam t) =
+    let t' = map-Var-Fiber (Δp , _) (Γp , _) (λ {(suc v) -> suc (V v)
+                              ; none -> none
+                              ; (zero v w) -> (zero v w)}) t
+    in lam t'
+  map-Var-Fiber Δp Γp V (app t s) =
+    let t' = map-Var-Fiber Δp Γp V t
+        s' = map-Var-Fiber Δp Γp V s
+    in app t' s'
+  map-Var-Fiber Δp Γp V tt = tt
+  map-Var-Fiber Δp Γp V (left t) =
+    let t' = map-Var-Fiber Δp Γp V t
+    in left t'
+  map-Var-Fiber Δp Γp V (right t) =
+    let t' = map-Var-Fiber Δp Γp V t
+    in right t'
+  map-Var-Fiber Δp Γp V (either t s u) =
+    let t' = map-Var-Fiber Δp Γp V t
+        s' = map-Var-Fiber (Δp , _) (Γp , _) (λ {(suc v) -> suc (V v)
+                              ; none -> none
+                              ; (zero v w) -> (zero v w)}) s
+        u' = map-Var-Fiber (Δp , _) (Γp , _) (λ {(suc v) -> suc (V v)
+                              ; none -> none
+                              ; (zero v w) -> (zero v w)}) u
+    in either t' s' u'
+  map-Var-Fiber Δp Γp V [] = []
+  map-Var-Fiber Δp Γp V (t ∷ s) =
+    let t' = map-Var-Fiber Δp Γp V t
+        s' = map-Var-Fiber Δp Γp V s
+    in t' ∷ s'
+  map-Var-Fiber Δp Γp V (rec-Lst t s u) =
+    let t' = map-Var-Fiber Δp Γp V t
+        s' = map-Var-Fiber Δp Γp V s
+        u' = map-Var-Fiber ((Δp , _) , _) ((Γp , _) , _) (λ {(suc (suc v)) -> suc (suc (V v))
+                              ; none -> none
+                              ; (suc (zero v w)) -> (suc (zero v w))
+                              ; (suc none) -> (suc none)
+                              ; (zero v w) -> (zero v w)}) u
+    in rec-Lst t' s' u'
 
 
+  ⟨ map-Var {Γ = Γ} V (incl t) ⟩ p x Xp Γp = map-Var-Fiber (local-Proof Γp) (local-Proof (π-Ctx-Proof Γ _)) (λ vₗ -> V x (π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _)) Γp vₗ ) (t p x Xp ((π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _))))
+
+{-
 {-
   transRes-GlobalFibered : ∀{qs rs} -> rs ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ ps ] -> Γ ,[ rs ] ⊢ X GlobalFibered[ ps ]
   transRes-GlobalFibered = {!!}
@@ -572,4 +617,5 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     where
       f = λ { _ here → p∈qs}
 
+-}
 -}
