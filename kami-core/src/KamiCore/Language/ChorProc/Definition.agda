@@ -58,6 +58,7 @@ module _ {A : 𝒰 𝑖} where
 record ChorProc 𝑗 : 𝒰 (𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
   field allProcs : 𝒫₊ᶠⁱⁿ Proc
+  field inAllProcs : ∀{a} -> a ∈ ⟨ fst allProcs ⟩
 
 open ChorProc public
 
@@ -188,9 +189,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
             -> Γ ⊢ Tr A GlobalFiber[ p ]
 
-      extern : Γ ,[ ⦗ q ⦘₊ ] ⊢ A GlobalFiber[ p ] -> Γ ⊢ A GlobalFiber[ p ]
-
-      box' : Γ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ ps ]
+      box' : Γ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ allProcs This ]
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
 
       -- transformations

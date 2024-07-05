@@ -81,8 +81,9 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- Proofs on Operations on Types and contexts
   --------------------------------------------------------------
 
+
   eval-F-type-right : F-Type (ν ◆' `＠` V ⨾ id') X ≡ (F-Type ν X) ＠ V
-  eval-F-type-right = {!!}
+  eval-F-type-right {V = V} {ν = ν}  = F-Type-map {μ = ν} {ν = `＠` V ⨾ id'}
 
 
 
@@ -106,13 +107,30 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ω-Type A [] = A
     -- ω-Type (◻ X) (p ∷ ps) = [ X ∣ p , ps ]◅ π-Type X (p , ps)
     ω-Type (◻ X) (p ∷ ps) = π-Type X (p , ps)
-    ω-Type Unit (p ∷ ps) = {!!}
-    ω-Type (Either T S)  (x₂ ∷ x₃) = {!!}
-    ω-Type (T ⇒ S) (x₂ ∷ x₃) = {!!}
-    ω-Type (T ×× S) (x₂ ∷ x₃) = {!!}
-    ω-Type (Tr T) (x₁ ∷ x₂) = {!!}
-    ω-Type (Lst T) (x₁ ∷ x₂) = {!!}
+    ω-Type Unit (p ∷ ps) = Unit
+    ω-Type (Either T S)  (p ∷ ps) = Unit
+    ω-Type (T ⇒ S) (p ∷ ps) = Unit
+    ω-Type (T ×× S) (p ∷ ps) = Unit
+    ω-Type (Tr T) (p ∷ ps) = Unit
+    ω-Type (Lst T) (p ∷ ps) = Unit
+    -- ω-Type (Either T S)  (p ∷ ps) = Either (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    -- ω-Type (T ⇒ S) (p ∷ ps) = _⇒_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    -- ω-Type (T ×× S) (p ∷ ps) = _××_ (ω-Type T (p ∷ ps)) (ω-Type S (p ∷ ps))
+    -- ω-Type (Tr T) (p ∷ ps) = Tr (ω-Type T (p ∷ ps))
+    -- ω-Type (Lst T) (p ∷ ps) = Lst (ω-Type T (p ∷ ps))
 
+  π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps , [] ↦ (π-Type X (ps , [])) Type
+  π-Type-Proof Unit ps = Unit
+  π-Type-Proof (Either X Y) ps = Either (π-Type-Proof X ps) (π-Type-Proof Y ps)
+  π-Type-Proof (X ⇒ Y) ps = π-Type-Proof X ps ⇒ π-Type-Proof Y ps
+  π-Type-Proof (Tr X) ps = Tr (π-Type-Proof X ps)
+  π-Type-Proof (Lst X) ps = Lst (π-Type-Proof X ps)
+  π-Type-Proof (A ＠ l) p with decide-≤ p l
+  ... | no x = proj-＠-≠ x
+  ... | yes x = proj-＠ x done
+  π-Type-Proof (X ×× Y) ps = _××_ (π-Type-Proof X ps) (π-Type-Proof Y ps)
+
+{-
   mutual
     π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps ↦ π-Type X ps Type
     π-Type-Proof Unit ps = Unit
@@ -123,11 +141,18 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     π-Type-Proof (A ＠ l) (p , ps) with decide-≤ p l
     ... | no x = proj-＠-≠ x
     ... | yes x = proj-＠ x (ω-Type-Proof A ps)
-    π-Type-Proof (T ×× S) ps = {!!}
+    π-Type-Proof (X ×× Y) ps = _××_ (π-Type-Proof X ps) (π-Type-Proof Y ps)
 
     ω-Type-Proof : (A : ⊢Type ▲) -> (ps : List (𝒫₊ᶠⁱⁿ (Proc This))) -> ω A ∣ ps ↦ ω-Type A ps Type
-    ω-Type-Proof = {!!}
-
+    ω-Type-Proof A [] = done
+    ω-Type-Proof (◻ X) (p ∷ ps) = proj-◻ (π-Type-Proof X (p , ps))
+    ω-Type-Proof Unit (p ∷ ps) = Unit
+    ω-Type-Proof (Either T S)  (p ∷ ps) = Break-Either
+    ω-Type-Proof (T ⇒ S) (p ∷ ps) = Break-⇒
+    ω-Type-Proof (T ×× S) (p ∷ ps) = Break-××
+    ω-Type-Proof (Tr T) (p ∷ ps) = Break-Tr
+    ω-Type-Proof (Lst T) (p ∷ ps) = Break-Lst
+-}
 
 
   π-Ctx : ⊢Ctx -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Ctx
@@ -145,7 +170,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-Ctx-Proof Γ [] = done
   π-Ctx-Proof ε (i ∷ is) = ε
   π-Ctx-Proof (Γ ,[ x ]) (i ∷ is) = stepRes (π-Ctx-Proof Γ (x ∷ i ∷ is)) 
-  π-Ctx-Proof (Γ , x) (i ∷ is) = π-Ctx-Proof Γ (i ∷ is) , π-Type-Proof x (i , [])
+  π-Ctx-Proof (Γ , x) (i ∷ is) = π-Ctx-Proof Γ (i ∷ is) , π-Type-Proof x i
 
   data _≡-Local_ {ps} : {Γ Δ : ⊢Ctx} (Γp : isLocal ps Γ) (Δp : isLocal ps Δ) -> 𝒰 𝑗 where
     refl-Local : ∀{Γ} {Γp : isLocal ps Γ} -> Γp ≡-Local Γp
@@ -164,11 +189,11 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   split-π {p = p} (proj-＠-≠ {qs = qs} x) with decide-≤ p qs
   split-π {p = p} {[]} (proj-＠-≠ {qs = _} x) | no x₂ = done
   split-π {p = p} {x₁ ∷ ps} (proj-＠-≠ {qs = _} x) | no x₂ = Unit
-  ... | yes x₂ = {!!}
+  ... | yes x₂ = ⊥-elim (x x₂)
   -- with p ≟ ⊥
   -- split-π {p = p} (proj-＠-≠ {qs = _} (no x)) | yes x₂ | no P = ⊥-elim (x x₂)
   -- split-π {p = p} (proj-＠-≠ {qs = _} (yes x)) | yes x₂ | no P = ⊥-elim (P x)
-  -- -- ⊥-elim (x x₂)
+  -- -- 
   -- split-π {p = p} {[]} (proj-＠-≠ {qs = _} (no x)) | yes x₂ | yes P = done
   -- split-π {p = p} {x₁ ∷ ps} (proj-＠-≠ {qs = _} (no x)) | yes x₂ | yes P = Unit
   -- split-π {p = p} {[]} (proj-＠-≠ {qs = _} (yes x)) | yes x₂ | yes P = done
@@ -283,7 +308,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
                    -> Γ ⊢ Y GlobalFibered[ ps ]
   ⟨ app-GlobalFibered {X = X} t s ⟩ p p∈ps Y↦Y' Γ↦Δ =
     let X' = π-Type X (⦗ p ⦘₊ , [])
-        X↦X' = π-Type-Proof X (⦗ p ⦘₊ , [])
+        X↦X' = π-Type-Proof X ⦗ p ⦘₊
         t' = (⟨ t ⟩ p p∈ps (X↦X' ⇒ Y↦Y') Γ↦Δ)
         s' = (⟨ s ⟩ p p∈ps X↦X' Γ↦Δ)
     in app t' s'
@@ -299,7 +324,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -------------------
   -- mod-box
 
-  box-GlobalFibered : Γ ,[ qs ] ⊢ X GlobalFibered[ ps ]
+  box-GlobalFibered : Γ ,[ qs ] ⊢ X GlobalFibered[ allProcs This ]
                      -> Γ ⊢ ◻ X ＠ qs GlobalFibered[ ps ]
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠ x done) Γ↦Δ =
     let t' = transRes-GlobalFibered x t
@@ -307,14 +332,14 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = tt
 
 
-  multibox : ∀{ν : ◯ ⟶ ▲ U} -> ∀{Γ i X ps} -> addRestr ν (Γ , i) ⊢ X GlobalFibered[ ps ]
+  multibox : ∀{ν : ◯ ⟶ ▲ U} -> ∀{Γ i X ps} -> addRestr ν (Γ , i) ⊢ X GlobalFibered[ allProcs This ]
              -> Γ ⊢ F-Type ν X ＠ i GlobalFibered[ ps ]
   multibox {ν = `[]` ⨾ id'} t = box-GlobalFibered t
   multibox {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox {ν = ν} (box-GlobalFibered t)
 
-  multibox' : ∀{ν : ◯ ⟶ ◯} -> ∀{Γ X ps} -> addRestr ν Γ ⊢ X GlobalFibered[ ps ]
+  multibox' : ∀{ν : ◯ ⟶ ◯} -> ∀{Γ X ps} -> addRestr ν Γ ⊢ X GlobalFibered[ allProcs This ]
              -> Γ ⊢ F-Type ν X GlobalFibered[ ps ]
-  multibox' {ν = id'} t = t
+  multibox' {ν = id'} t = incl λ {p p∈ps Xp Γp -> ⟨ t ⟩ p (inAllProcs This) Xp Γp}
   multibox' {ν = `[]` ⨾ `＠` U ⨾ ν} t = multibox' {ν = ν} (box-GlobalFibered t)
 
 
@@ -337,7 +362,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
                       -> Γ ⊢ Tr Y GlobalFibered[ ps ]
   seq-GlobalFibered {X = X} {Y = Y} t s = incl λ
     { p x (Tr Yp) Γp →
-      let Xp = π-Type-Proof X (⦗ p ⦘₊ , [])
+      let Xp = π-Type-Proof X (⦗ p ⦘₊)
       in seq (⟨ t ⟩ p x (Tr Xp) Γp) (⟨ s ⟩ p x (Tr Yp) (Γp , Xp))
     }
 
@@ -393,8 +418,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
                       -> Γ ⊢ Z GlobalFibered[ ps ]
   either-GlobalFibered {X = X} {Y = Y} t s u = incl λ
     { p x Zp Γp →
-      let Xp = π-Type-Proof X (⦗ p ⦘₊ , [])
-          Yp = π-Type-Proof Y (⦗ p ⦘₊ , [])
+      let Xp = π-Type-Proof X (⦗ p ⦘₊)
+          Yp = π-Type-Proof Y (⦗ p ⦘₊)
       in either (⟨ t ⟩ p x (Either Xp Yp) Γp) (⟨ s ⟩ p x Zp (Γp , Xp)) ((⟨ u ⟩ p x Zp (Γp , Yp)))
     }
 
@@ -444,7 +469,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
                       -> Γ ⊢ Z GlobalFibered[ ps ]
   rec-Lst-GlobalFibered {X = X} {Z = Z} t s u = incl λ
     { p x Zp Γp →
-      let Xp = π-Type-Proof X (⦗ p ⦘₊ , [])
+      let Xp = π-Type-Proof X (⦗ p ⦘₊)
       in rec-Lst (⟨ t ⟩ p x (Lst Xp) Γp) (⟨ s ⟩ p x Zp Γp) ((⟨ u ⟩ p x Zp ((Γp , Xp) , Zp)))
     }
 
@@ -459,5 +484,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
-
 
