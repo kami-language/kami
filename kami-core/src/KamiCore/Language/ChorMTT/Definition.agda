@@ -136,6 +136,10 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     preserve-◆-split-Min𝔐TT {μ = id'} = refl-≡
     preserve-◆-split-Min𝔐TT {μ = μ ⨾ μs} = cong-≡ (λ ξ -> (μ ⨾ id' , incl μ) ⨾ ξ) (preserve-◆-split-Min𝔐TT {μ = μs})
 
+
+    preserve-⇃◆⇂-Min𝔐TT : ∀{a b c : Mode PolySR-ModeSystem} -> {μ₀ μ₁ : a ⟶ b} -> {ν₀ ν₁ : b ⟶ c} -> (α : μ₀ ⟹ μ₁) -> (β : ν₀ ⟹ ν₁) -> classify (α ⇃◆⇂ β) ≡ classify α ∨ classify β
+    preserve-⇃◆⇂-Min𝔐TT = {!!}
+
   open [Chor𝔐TT/Definition::Param]
 
 
@@ -151,6 +155,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       ; isClassified:Transformation = isClassified:PolySR
       ; pureTrans = ⦗ pureT ⦘
       ; impureTrans = ⦗ impureT ⦘
+      ; preserve-⇃◆⇂ = preserve-⇃◆⇂-Min𝔐TT
       }
   open [Chor𝔐TT/Definition::Private]
 

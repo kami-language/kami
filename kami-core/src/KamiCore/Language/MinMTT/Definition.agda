@@ -37,6 +37,7 @@ record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field pureTrans : ⟨ Classification ⟩
   field impureTrans : ⟨ Classification ⟩
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
+  field preserve-⇃◆⇂ : ∀{a b c : ⟨ ModeTheory ⟩} -> {μ₀ μ₁ : a ⟶ b} -> {ν₀ ν₁ : b ⟶ c} -> (α : μ₀ ⟹ μ₁) -> (β : ν₀ ⟹ ν₁) -> class (α ⇃◆⇂ β) ∼ class α ∨ class β
 
 open MinMTT public
 

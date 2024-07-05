@@ -279,7 +279,7 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
                  -> (α : ⊢ModeTrans (`＠` i ⨾ μ) (`＠` i ⨾ ν))
                  -> classify α ≤ ⦗ pureT ⦘
                  -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' cons (postpend (rev' (transl-Mod3 ν)) i)
-  transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp = {!!}
+  transToSublist'₁ {μ = μ} {ν = ν} {i = i} α αp = transToSublist₁ {μ = `[]` ⨾ `＠` i ⨾ μ} {ν = `[]` ⨾  `＠` i ⨾ ν} (_⇃◆⇂_ {f = `[]` ⨾ id'} [ incl [] ∣ incl [] ] α) (preserve-⇃◆⇂-Min𝔐TT {μ₀ = `[]` ⨾ id'} [ incl [] ∣ incl [] ] α ⟡-∼≤ [ initial-⊥ , αp ]-∨)
     -- transp-≡ (cong-≡ (λ ξ -> rev (transl-Mod3 μ) <> (i ∷ []) ≼' ξ) (rev≡rev' (i ∷ transl-Mod3 ν))) (transToSublist' i α αp)
 
 
