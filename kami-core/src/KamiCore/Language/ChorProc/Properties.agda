@@ -321,11 +321,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
-  lem-12-α : ∀{p ps} -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> α X ∣ ⦗ p ⦘₊ , ps ↦ B Type -> α (A ＠ ⦗ p ⦘₊) ∣ ⦗ p ⦘₊ , ps ↦ B Type
-  lem-12-α (proj-＠ x₂ x₃) (proj-＠ x x₁) = {!!}
-  lem-12-α (proj-＠-≠ x₂) (proj-＠ x x₁) = {!!}
-  lem-12-α (proj-＠ x₁ x₂) (proj-＠-≠ x) = {!⊥-elim (x x₁)!}
-  lem-12-α (proj-＠-≠ x₁) (proj-＠-≠ x) = {!proj-＠ ? ?!}
 
 
 
@@ -369,7 +364,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   map-Var-Fiber Δp Γp V (var v) = var (V v)
   map-Var-Fiber Δp Γp V (recv x) = recv x
   map-Var-Fiber Δp Γp V (send v t) = send v (map-Var-Fiber Δp Γp V t)
-  map-Var-Fiber Δp Γp V (box' x) = box' (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
+  map-Var-Fiber Δp Γp V (box' p≤qs x) = {!!} -- box' p≤qs (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
   map-Var-Fiber Δp Γp V (pure t) = pure (map-Var-Fiber Δp Γp V t)
   map-Var-Fiber Δp Γp V (seq t s) =
     let t' = map-Var-Fiber Δp Γp V t

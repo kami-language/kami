@@ -92,7 +92,7 @@ module Chor𝔓roc/TranslationVar (This : Chor𝔓roc 𝑗) where
         ZZ : (Δ , F-Type μ (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) ⦗ p ⦘₊) ]
         ZZ = transp-Ctx-Var (cong-Ctx,Var (sym-≡ (F-prop {μ = μ} {X = (⦋ x ⦌-Type ＠ U)}))) YY
 
-    in updateVar {!!} ZZ
+    in updateVar x₁ ZZ
   transl-Var-▲ {ν = ν} (Γ ∙! ＠ₛ U ∙! []ₛ) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp =
     let p = ⦗ p ⦘₊
         P1 : cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p) ≡ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p)
