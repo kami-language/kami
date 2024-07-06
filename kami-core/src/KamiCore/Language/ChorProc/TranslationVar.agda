@@ -75,26 +75,26 @@ module Chor𝔓roc/TranslationVar (This : Chor𝔓roc 𝑗) where
               -> Γ ⊢Var⟮ A ∣ (`＠` U ⨾ μ) ⇒ (η) ⟯
               -> rev (transl-Mod3 (`[]` ⨾ `＠` U ⨾ μ)) ≼' rev' (transl-Mod3 (`[]` ⨾ `＠` V ⨾ (ν ◆' η)))
               -> ∀{p Δ B}
-              -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν))) p) ↦ Δ Ctx
-              -> π ⦋ A ⦌-Type ＠ V ∣ p , [] ↦ B Type
-              -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+              -> transl-Ctx' Γ Γp ∣ cons (postpend (rev' (transl-Mod3 (ν))) ⦗ p ⦘₊) ↦ Δ Ctx
+              -> π ⦋ A ⦌-Type ＠ V ∣ ⦗ p ⦘₊ , [] ↦ B Type
+              -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) ⦗ p ⦘₊) ]
   transl-Var-▲ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) (suc v) PP (Γpp , x₁) Xp =
     let res = transl-Var-▲ {ν = ν} Γ Γp v PP Γpp Xp
     in suc res
   transl-Var-▲ {ν = ν} (Γ ∙⟮ x ∣ (`＠` U ⨾ μ) ⟯) (stepVar Γp) {U = U} {V} {A = A} zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp =
     let
-        YY : (Δ , F2-Type (rev (transl-Mod3 (μ))) (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+        YY : (Δ , F2-Type (rev (transl-Mod3 (μ))) (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) ⦗ p ⦘₊) ]
         YY = mkVar-▲ {U = U} {V = V} {ps = (rev (transl-Mod3 (μ)))} {qs = (rev' (transl-Mod3 (ν)))} (μ≼ν ◆-≼'≡ (sym-≡ (rev≡rev' (transl-Mod3 (`[]` ⨾ `＠` V ⨾ ν))) ∙-≡ cong-≡ (_++-List V ∷ []) (rev≡rev' (transl-Mod3 ν)) )) Xp
 -- (transl-Mod3 (`[]` ⨾ `＠` V ⨾ ν))
 
         -- mkVar {ps = (rev (transl-Mod3 μ))} {qs = (rev' (transl-Mod3 (`[]` ⨾ ν)))} μ≼ν Xp
 
-        ZZ : (Δ , F-Type μ (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
+        ZZ : (Δ , F-Type μ (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) ⦗ p ⦘₊) ]
         ZZ = transp-Ctx-Var (cong-Ctx,Var (sym-≡ (F-prop {μ = μ} {X = (⦋ x ⦌-Type ＠ U)}))) YY
 
-    in updateVar x₁ ZZ
+    in updateVar {!!} ZZ
   transl-Var-▲ {ν = ν} (Γ ∙! ＠ₛ U ∙! []ₛ) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp =
-    let
+    let p = ⦗ p ⦘₊
         P1 : cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p) ≡ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p)
         P1 = cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p)
                   ⟨ cons-post (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p ⟩-≡

@@ -64,24 +64,43 @@ module Chor𝔓roc/Properties3 (This : Chor𝔓roc 𝑗) where
 
 
   mkVar : ∀{Δ X A r ps qs} -> ps ≼' qs -> π X ∣ r , [] ↦ A Type -> Δ , F2-Type ps X ⊢Var A GlobalFiber[ cons (postpend qs r) ]
-  mkVar {r = r} {ps} {qs} [] Xp = zero done Xp -- (lift-π {ps = ps} {qs = qs} {r = r} P Xp)
-  mkVar {r = r} {ps} {qs} (_∷_ a {bs = bs} Ps) Xp = zero (add-element {zs = (r ∷ [])} Ps ◆-≼≡ drop-post (a ∷ bs)) (lift-π {ps = ps} {qs = qs} {r = r} (a ∷ Ps) Xp)
+  mkVar {r = r} {ps} {qs} [] Xp = zero done {!!} -- Xp -- (lift-π {ps = ps} {qs = qs} {r = r} P Xp)
+  mkVar {r = r} {ps} {qs} (_∷_ a {bs = bs} Ps) Xp = zero (add-element {zs = (r ∷ [])} Ps ◆-≼≡ drop-post (a ∷ bs)) {!!} -- (lift-π {ps = ps} {qs = qs} {r = r} (a ∷ Ps) Xp)
 
   mkVar-▲ : ∀{Δ A B U V r ps qs} -> (ps <> (U ∷ [])) ≼' (qs <> (V ∷ [])) -> π A ＠ V ∣ r , [] ↦ B Type -> Δ , F2-Type ps (A ＠ U) ⊢Var B GlobalFiber[ cons (postpend qs r) ]
-  mkVar-▲ {ps = []} {qs = []} (_ ∷ x) P = zero done P
+  mkVar-▲ {ps = []} {qs = []} (_ ∷ x) P = zero done {!!} -- P
   mkVar-▲ {ps = []} {qs = x ∷ qs} (.x ∷ x₁) P with P
-  ... | proj-＠ x₂ done = zero []≼ ( (proj-＠ refl-≤ done))
+  ... | proj-＠ x₂ done = zero []≼ {!!} -- ( (proj-＠ refl-≤ done))
   ... | proj-＠-≠ x₂ = none
   mkVar-▲ {U = U} {V} {r = r} {ps = x ∷ ps} {qs = .x ∷ qs} (.x ∷ x₁) P with split-≼ ps qs x₁
-  ... | no (Q , refl-≡) = zero (add-element-post Q) ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} P))))
+  ... | no (Q , refl-≡) = zero (add-element-post Q) {!!} -- ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} P))))
   ... | yes Q with P
-  ... | proj-＠ x₂ done = zero ((cons-post ps _) ◆-≡≼ ((Q ◆-≼ ι₀-<> {bs = (r ∷ [])}) ◆-≼≡ sym-≡ (cons-post qs _))) ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} (proj-＠ refl-≤ done)))))
+  ... | proj-＠ x₂ done = zero ((cons-post ps _) ◆-≡≼ ((Q ◆-≼ ι₀-<> {bs = (r ∷ [])}) ◆-≼≡ sym-≡ (cons-post qs _))) {!!} -- ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} (proj-＠ refl-≤ done)))))
   ... | proj-＠-≠ x₂ = none
   mkVar-▲ {U = U} {.x} {r = r} {ps = x ∷ []} {qs = []} (.x ∷ ()) P
   mkVar-▲ {U = U} {.x} {r = r} {ps = x ∷ x₂ ∷ ps} {qs = []} (.x ∷ ()) P
 
+
+
+  mkVar-▲-2 : ∀{Δ A B C U V r ps qs} -> (ps <> (U ∷ [])) ≼' (qs <> (V ∷ [])) -> π A ＠ V ∣ ⦗ r ⦘₊ , [] ↦ B Type -> π F2-Type ps (A ＠ U) ∣ fst (postpend qs ⦗ r ⦘₊) , [] ↦ C Type -> Δ , C ＠ fst (postpend qs ⦗ r ⦘₊) ⊢Var B GlobalFiber[ cons (postpend qs ⦗ r ⦘₊) ]
+  mkVar-▲-2 {ps = []} {qs = []} (_ ∷ x) P CP with unique-π CP P
+  ... | refl-≡ = zero done (proj-＠ refl-≤ done) -- P
+  mkVar-▲-2 {ps = []} {qs = x ∷ qs} (.x ∷ x₁) P (proj-＠-≠ yy) = {!!}
+  mkVar-▲-2 {ps = []} {qs = x ∷ qs} (.x ∷ x₁) P (proj-＠ a done) with P
+  ... | proj-＠ x₂ done = zero []≼ {!proj-＠ ? ?!} -- ( (proj-＠ refl-≤ done))
+  ... | proj-＠-≠ x₂ = none
+  mkVar-▲-2 {U = U} {V} {r = r} {ps = x ∷ ps} {qs = .x ∷ qs} (.x ∷ x₁) P CP with split-≼ ps qs x₁
+  ... | no (Q , refl-≡) = zero (add-element-post Q) {!!} -- ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} P))))
+  ... | yes Q with P
+  ... | proj-＠ x₂ done = zero {!!} {!!}
+  -- ((cons-post ps _) ◆-≡≼ ((Q ◆-≼ ι₀-<> {bs = (r ∷ [])}) ◆-≼≡ sym-≡ (cons-post qs _))) {!!} -- ( (proj-＠ refl-≤ (proj-◻ (lift-π-direct {ps = ps} (proj-＠ refl-≤ done)))))
+  ... | proj-＠-≠ x₂ = none
+
+  mkVar-▲-2 {U = U} {.x} {r = r} {ps = x ∷ []} {qs = []} (.x ∷ ()) P
+  mkVar-▲-2 {U = U} {.x} {r = r} {ps = x ∷ x₂ ∷ ps} {qs = []} (.x ∷ ()) P
+
   updateVar : ∀{X A B Δ p ps} -> π X ∣ p , [] ↦ B Type ->  Δ , X ⊢Var A GlobalFiber[ p ∷ ps ] -> Δ , B ＠ p ⊢Var A GlobalFiber[ p ∷ ps ]
-  updateVar P (zero x x₁) = zero x (lem-12 P x₁)
+  updateVar P (zero x x₁) = zero x {!!} --(lem-12-α P x₁)
   updateVar P (suc v) = suc v
   updateVar P (none) = none
 
