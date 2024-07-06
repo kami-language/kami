@@ -16,6 +16,7 @@ open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
+open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
@@ -65,7 +66,7 @@ module _ (This : Std𝔓roc) where
   ⟦ Tr T ⟧-LType = Tr ⟦ T ⟧-LType
   ⟦ Lst T ⟧-LType = Lst ⟦ T ⟧-LType
 
-  ⟦_⟧-FType X n = ⟦ π-Type X (⦗ n ⦘₊ , []) ⟧-LType
+  ⟦_⟧-FType X n = ⟦ π-Type X (⦗ n ⦘ , []) ⟧-LType
 
   ⟪𝔉₁∣_Type⟫ : Chor𝔓roc⊢Type ◯ -> ⊢Type
   ⟪𝔉₁∣_Type⟫ = ⟦_⟧-FType
@@ -82,7 +83,7 @@ module _ (This : Std𝔓roc) where
   ⟦_⟧-LCtx (stepRes P) = ⟦ P ⟧-LCtx
 
   ⟦_⟧-FCtx : ∀ (Γ : Chor𝔓roc⊢Ctx) -> ⊢Ctx
-  ⟦_⟧-FCtx Γ n = ⟦ local-Proof (π-Ctx-Proof Γ (⦗ n ⦘₊ ∷ [])) ⟧-LCtx
+  ⟦_⟧-FCtx Γ n = ⟦ local-Proof (π-Ctx-Proof Γ (⦗ n ⦘ ∷ [])) ⟧-LCtx
 
   ⟪𝔉₁∣_Ctx⟫ : Chor𝔓roc⊢Ctx -> ⊢Ctx
   ⟪𝔉₁∣_Ctx⟫ = ⟦_⟧-FCtx
@@ -93,30 +94,30 @@ module _ (This : Std𝔓roc) where
   cong-LCtx refl-Local = refl-≡
 
 
-  eval₃-FCtx : ∀{Δ ps p n} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘₊ ∷ []))) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx
+  eval₃-FCtx : ∀{Δ ps p n} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘ ∷ []))) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx
   eval₃-FCtx {Δ = ε} {p} {ns} = refl-≡
   eval₃-FCtx {Δ = Δ ,[ x ]} {p} {ns} = eval₃-FCtx {Δ = Δ} {ps = ns ∷ p}
   eval₃-FCtx {Δ = Δ , x} {p} {ns} = cong-≡ (λ ξ -> ξ , _) (eval₃-FCtx {Δ = Δ} {p} {ns})
 
-  eval₂-FCtx : ∀{Δ p n} -> ⟦ local-Proof (π-Ctx-Proof (Δ ,[ ⦗ p ⦘₊ ]) (⦗ n ⦘₊ ∷ [])) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ [])) ⟧-LCtx
+  eval₂-FCtx : ∀{Δ p n} -> ⟦ local-Proof (π-Ctx-Proof (Δ ,[ ⦗ p ⦘ ]) (⦗ n ⦘ ∷ [])) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘ ∷ [])) ⟧-LCtx
   eval₂-FCtx {Δ = Δ} {p} {n} =
-    ⟦ local-Proof (π-Ctx-Proof (Δ ,[ ⦗ p ⦘₊ ]) (⦗ n ⦘₊ ∷ [])) ⟧-LCtx
+    ⟦ local-Proof (π-Ctx-Proof (Δ ,[ ⦗ p ⦘ ]) (⦗ n ⦘ ∷ [])) ⟧-LCtx
 
     ⟨ refl-≡ ⟩-≡
 
-    ⟦ local-Proof (stepRes (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ ⦗ n ⦘₊ ∷ []))) ⟧-LCtx
+    ⟦ local-Proof (stepRes (π-Ctx-Proof Δ (⦗ p ⦘ ∷ ⦗ n ⦘ ∷ []))) ⟧-LCtx
 
     ⟨ refl-≡ ⟩-≡
 
-    ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ ⦗ n ⦘₊ ∷ [])) ⟧-LCtx
+    ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘ ∷ ⦗ n ⦘ ∷ [])) ⟧-LCtx
 
     ⟨ eval₃-FCtx {Δ = Δ} {ps = []} ⟩-≡
 
-    ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ [])) ⟧-LCtx
+    ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘ ∷ [])) ⟧-LCtx
 
     ∎-≡
 
-  eval-FCtx : ∀{Δ p n} -> ⟦ Δ ,[ ⦗ p ⦘₊ ] ⟧-FCtx n ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ [])) ⟧-LCtx
+  eval-FCtx : ∀{Δ p n} -> ⟦ Δ ,[ ⦗ p ⦘ ] ⟧-FCtx n ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘ ∷ [])) ⟧-LCtx
   eval-FCtx {Δ = Δ} = eval₂-FCtx {Δ = Δ}
 
 
@@ -164,79 +165,21 @@ module _ (This : Std𝔓roc) where
 
 
 
-{-
-  tπ' : ∀{X B Γ p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tπ' {p = ([] since []) , p≁⊥} P t = ⊥-elim (p≁⊥ refl-≡)
-  tπ' {X = X} {p = ((x₁ ∷ p) since uniquep) , p≁⊥} P t
-    -- let t' = proj t x₁
-    -- in π-term-preserve-≤ {!!} (π-Type-Proof X ⦗ x₁ ⦘₊) P t'
-    with π-preserve-≤ x₁≤p P (π-Type-Proof X ⦗ x₁ ⦘₊)
-    where
-      x₁≤p = {!!}
-      -- x₁≁⊥ = {!!}
-  ... | left refl-≡ = proj t x₁
-  ... | right PP  = {!!}
-  -}
+
 
   tπ' : ∀{X B Γ p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
+  tπ' = {!!}
+{-
   tπ' {p = ([] since []) , p≁⊥} P t = ⊥-elim (p≁⊥ refl-≡)
-  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘₊))
+  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘))
   ... | refl-≡ = proj t x₁
   tπ' {X = X} {p = ((x₁ ∷ x ∷ p) since uniquep) , p≁⊥} P t = {!!}
-    -- let t' = proj t x₁
-    -- in π-term-preserve-≤ {!!} (π-Type-Proof X ⦗ x₁ ⦘₊) P t'
-  --   with π-preserve-≤ x₁≤p P (π-Type-Proof X ⦗ x₁ ⦘₊)
-  --   where
-  --     x₁≤p = {!!}
-  --     -- x₁≁⊥ = {!!}
-  -- ... | left refl-≡ = proj t x₁
-  -- ... | right PP  = {!!}
-
-
-{-
-  transp-Type : ∀{Γ A B} -> A ≡ B -> Γ ⊢ A Locally -> Γ ⊢ B Locally
-  transp-Type = {!!}
-
-
-  jπ : ∀{X Γ} -> (∀ {p ps} B -> π X ∣ (p , ps) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> (∀ {p} B -> π X ∣ (p , []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally)
-  iπ : ∀{X Γ} -> (∀ {p} B -> π X ∣ (p , []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> (∀ {p ps} B -> π X ∣ (p , ps) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally)
-
-  jπ = {!!}
-
-  iπ {X = Unit} t B BP = {!!}
-  iπ {X = Either X X₁} t B BP = {!!}
-  iπ {X = Lst X} t B BP = {!!}
-  iπ {X = X ⇒ Y} t B (XP ⇒ YP) = {!!}
-  -- lam (iπ (λ B' B'P -> app (wk (t {!!} {!!})) (jπ (λ C' C'P -> {!!}) _ (π-Type-Proof X (_ , [])))) _ YP)
-  iπ {X = X ×× X₁} t B BP = {!!}
-  iπ {X = Tr X} t B BP = {!!}
-  iπ {X = X ＠ x} t B BP = {!!}
   -}
 
-{-
-  {-# TERMINATING #-}
-  jω : ∀{A Γ} -> (∀ {p} B -> ω A ∣ (p ∷ []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally) -> Γ ⊢ ⟦ A ⟧-LType Locally
-  iω : ∀{A B Γ} -> Γ ⊢ ⟦ A ⟧-LType Locally -> ∀ p -> ω A ∣ (p ∷ []) ↦ B Type -> Γ ⊢ ⟦ B ⟧-LType Locally
 
-  jω {A = ◻ A} t = {!!}
-  jω {A = Unit} t = {!!}
-  jω {A = Either A A₁} t = {!!}
-  jω {A = Lst A} t = {!!}
-  jω {A = A ⇒ A₁} t = lam (jω λ {B P -> app (wk (t _ (ω-Type-Proof _ _ ⇒ P))) (iω (var zero) _ (ω-Type-Proof _ _))})
-  jω {A = A ×× B} t = jω (λ B P -> fst-×× (t _ (P ×× ω-Type-Proof _ _))) , {!!}
-  jω {A = Tr A} t = {!!}
 
-  iω {A = ◻ A} t p P = {!!}
-  iω {A = Unit} t p P = {!!}
-  -- iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (iω (app (wk t) (jω (λ A' A'P -> transp-Type (cong-≡ ⟦_⟧-LType (unique-ω PA {!A'P!})) (var zero)))) {!!} PB)
 
-  iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (iω (app (wk t) (jω (λ A' A'P -> {!!}))) {!!} PB)
 
-  -- iω {A = A ⇒ B} t p (PA ⇒ PB) = lam (jω {!!})
-  -- (iω (app (wk t) (jω (λ A' A'P -> transp-Type (cong-≡ ⟦_⟧-LType (unique-ω PA {!A'P!})) (var zero)))) {!!} PB)
-  iω {A = A ×× B} t p (PA ×× PB) = iω (fst-×× t) p PA , iω (snd-×× t) p PB
-
--}
 
   tω : ∀{A B ps Γ} -> ω A ∣ ps ↦ B Type -> Γ ⊢ ⟦ A ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
 
@@ -254,7 +197,7 @@ module _ (This : Std𝔓roc) where
 
   tv  : ∀{Δ A p ps} -> (Δp : isLocal p Δ) -> Δ ⊢Var A GlobalFiber[ p ∷ ps ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
   tv (Δp , A) none = tt -- tϕ x₁ (tω x₂ (var zero))
-  tv (Δp , A) (zero P (proj-＠ b c)) = (tω c (var zero))
+  tv (Δp , A) (zero P X@(proj-＠ b c)) = (tω c (var zero))
   tv (Δp , A) (zero P (proj-＠-≠ x)) = tt -- tϕ x₁ (tω x₂ (var zero))
   tv (Δp , A) (suc v) = let x = tv Δp v in wk x
   tv (stepRes Δp) (res v) = let x = tv Δp v in x
@@ -268,19 +211,19 @@ module _ (This : Std𝔓roc) where
   transp-Ctx-Locally : ∀{Γ Δ X} -> Γ ≡ Δ -> Γ ⊢ X Locally -> Δ ⊢ X Locally
   transp-Ctx-Locally refl-≡ t = t
 
-  ta : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ allProcs Super ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
+  ta : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ ⊤ ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
 
 
-  tr : ∀ {Δ p A} -> (Δp : isLocal ⦗ p ⦘₊ Δ) -> Δ ⊢ A GlobalFiber[ p ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
+  tr : ∀ {Δ p A} -> (Δp : isLocal ⦗ p ⦘ Δ) -> Δ ⊢ A GlobalFiber[ p ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
   tr Δp (var v) = tv Δp v
   tr Δp (recv {p = p} x) = recv p
   tr Δp (send {X = X} {p = p} v t)
-    with unique-π v (π-Type-Proof X (⦗ p ⦘₊))
+    with unique-π v (π-Type-Proof X (⦗ p ⦘))
   ... | refl-≡ =
     let t' = tr Δp t
     in send t'
   tr {Δ} {p} Δp (box' {X = X} x) =
-    let t' : ⟦ Δ ,[ ⦗ p ⦘₊ ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
+    let t' : ⟦ Δ ,[ ⦗ p ⦘ ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
         t' = ta {Γ = Δ ,[ _ ]} x
     in box λ n ->
       let t'' = t' n
@@ -306,10 +249,10 @@ module _ (This : Std𝔓roc) where
   tr Δp (t ∷ t₁) = (tr Δp t) ∷ (tr Δp t₁) 
   tr Δp (rec-Lst t t₁ t₂) = rec-Lst ((tr Δp t)) ((tr Δp t₁)) ((tr ((Δp , _) , _) t₂))
 
-  ta {Γ = Γ} {X} ts n = tr (local-Proof (π-Ctx-Proof Γ _)) (⟨ ts ⟩ n (inAllProcs Super) (π-Type-Proof X _) (π-Ctx-Proof Γ _))
+  ta {Γ = Γ} {X} ts n = tr (local-Proof (π-Ctx-Proof Γ _)) (⟨ ts ⟩ n ({!!}) (π-Type-Proof X _) (π-Ctx-Proof Γ _))
 
 
-  ⟪𝔉₁∣_Term⟫ : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ allProcs Super ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
+  ⟪𝔉₁∣_Term⟫ : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ ⊤ ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
   ⟪𝔉₁∣_Term⟫ = ta
 
   -- End Term

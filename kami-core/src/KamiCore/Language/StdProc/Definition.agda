@@ -16,6 +16,7 @@ open import Agora.TypeTheory.ParamSTT.Definition
 open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
@@ -40,7 +41,6 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
     Super : Chor𝔓roc _
     Super = record
       { Proc = 𝔽 (This .Roles)
-      ; allProcs = {!!}
       }
 
   open [Std𝔓roc/Definition::Private]
