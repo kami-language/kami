@@ -221,6 +221,19 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   unique-π (Lst p) (Lst q) = cong-≡ Lst (unique-π p q)
   unique-π Unit Unit = refl-≡
 
+  unique-π-Ctx : ∀{Γ Δ₀ Δ₁ p ps qs} -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ p ∷ qs ↦ Δ₁ Ctx -> Δ₀ ≡ Δ₁
+  unique-π-Ctx ε ε = refl-≡
+  unique-π-Ctx (P₁ , x) (Q , x₁) with unique-π x x₁
+  ... | refl-≡ = cong-≡ (_, _) (unique-π-Ctx P₁ Q)
+  unique-π-Ctx (stepRes P₁) (stepRes Q) = cong-≡ (_,[ _ ]) (unique-π-Ctx P₁ Q)
+
+  unique-π-Ctx-≤ : ∀{Γ Δ₀ Δ₁ p ps q qs} -> q ≤ p -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ q ∷ qs ↦ Δ₁ Ctx -> Δ₀ ∣ q ∷ [] ↦ Δ₁ Ctx
+  unique-π-Ctx-≤ pp ε ε = ε
+  unique-π-Ctx-≤ pp (P₁ , x) (Q , x₁) = {!!} , {!!}
+  unique-π-Ctx-≤ pp (stepRes P₁) (stepRes Q) = {!!}
+
+
+
   -- unique-ω : ∀{X A B ps} -> ω X ∣ ps ↦ A Type -> ω X ∣ ps ↦ B Type -> A ≡ B
   -- unique-ω = {!!}
 
@@ -396,10 +409,39 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   ⟨ map-Var {Γ = Γ} V (incl t) ⟩ p x Xp Γp = map-Var-Fiber (local-Proof Γp) (local-Proof (π-Ctx-Proof Γ _)) (λ vₗ -> V x (π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _)) Γp vₗ ) (t p x Xp ((π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _))))
 
-{-
-{-
+
+  map-Var' : ∀{p} -> isLocal p Γ -> isLocal p Δ -> (∀{A qs} -> Γ ⊢Var A GlobalFiber[ p ∷ qs ] -> Δ ⊢Var A GlobalFiber[ p ∷ qs ])
+            -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
+  map-Var' = {!!}
+
+  resVar : ∀{qs rs ps ps'} -> rs ≤ qs -> Γ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Γ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
+  resVar {ps = []} pp (zero x x₁) = {!!}
+  resVar {ps = []} pp (suc v) = {!!}
+  resVar {ps = []} pp (res v) = {!!}
+  resVar {ps = []} pp none = {!!}
+  resVar {ps = p ∷ ps} pp (zero x x₁) = {!!}
+  resVar {ps = p ∷ ps} pp (suc v) = {!!}
+  resVar {ps = p ∷ ps} pp (res v) = {!!}
+  resVar {ps = p ∷ ps} pp none = {!!}
+
+
+
+  resVar' : ∀{Γ Δ₀ Δ₁ qs rs ps ps' ps''} -> Γ ∣ ps <> (qs ∷ ps'') ↦ Δ₀ Ctx -> Γ ∣ ps <> (rs ∷ ps'') ↦ Δ₁ Ctx  -> rs ≤ qs -> Δ₀ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Δ₁ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
+  resVar' {ps = []} (P0 , x₂) (P1 , x₃) pp (zero {ps = []} x (proj-＠ a done)) = zero x (proj-＠ {!!} {!!})
+  resVar' {ps = []} (P0 , x₂) (P1 , x₃) pp (zero {ps = []} x (proj-＠-≠ a)) = zero x {!x₁!}
+  resVar' {ps = []} (P0 , x₂) (P1 , x₃) pp (zero {ps = (p ∷ ps)} x x₁) = zero x {!!}
+  resVar' {ps = []} P0 P1 pp (suc v) = {!!}
+  resVar' {ps = []} P0 P1 pp (res v) = {!!}
+  resVar' {ps = []} P0 P1 pp none = {!!}
+  resVar' {ps = p ∷ ps} P0 P1 pp v = {!!}
+
+  -- resVar p (zero x p) = zero {!!} ?
+  -- resVar p (suc v) = suc (resVar p v)
+  -- resVar {ps = ps} rel (res {p = p} v) = res (resVar {ps = p ∷ ps} rel v)
+
   transRes-GlobalFibered : ∀{qs rs} -> rs ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ ps ] -> Γ ,[ rs ] ⊢ X GlobalFibered[ ps ]
-  transRes-GlobalFibered = {!!}
+  -- transRes-GlobalFibered {qs = qs} {rs = rs} pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (let v' = resVar {ps = []} pp v in projVar1 {ps = rs ∷ []} (unique-π-Ctx-≤ pp Γp Δp ) v')}) t
+  transRes-GlobalFibered {qs = qs} {rs = rs} pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (resVar' {ps = []} Γp Δp pp v)}) t
 
   cong-GlobalFibered : ∀{Γ Δ} -> Γ ≡ Δ -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
   cong-GlobalFibered {X = X} {ps = ps} p = transp-≡ (cong-≡ (λ ξ -> ξ ⊢ X GlobalFibered[ ps ]) p)
@@ -460,9 +502,16 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
                      -> Γ ⊢ ◻ X ＠ qs GlobalFibered[ ps ]
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠ x done) Γ↦Δ =
     let t' = transRes-GlobalFibered x t
-    in box' {p = p} (map-Var (projVar3 (Γ↦Δ)) t')
+    in box' {p = p} {!!} --  (map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (transp-Ctx-Var ((idempotent-local' (local-Proof Γ↦Δ) Δp)) (transp-Ctx-Var (unique-π-Ctx Γp Γ↦Δ) v))}) t')
+    -- in box' {p = p} (map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (transp-Ctx-Var ((idempotent-local' (local-Proof Γ↦Δ) Δp)) (transp-Ctx-Var (unique-π-Ctx Γp Γ↦Δ) v))}) t')
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = tt
 
+{-
+
+{-
+
+{-
+{-
 
   multibox : ∀{ν : ◯ ⟶ ▲ U} -> ∀{Γ i X ps} -> addRestr ν (Γ , i) ⊢ X GlobalFibered[ allProcs This ]
              -> Γ ⊢ F-Type ν X ＠ i GlobalFibered[ ps ]
@@ -617,5 +666,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     where
       f = λ { _ here → p∈qs}
 
+-}
+-}
 -}
 -}
