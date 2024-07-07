@@ -96,13 +96,21 @@ module _ (This : Std𝔓roc) where
 
 
   remap₃-FCtx : ∀{Δ ps p n A} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘₊ ∷ []))) ⟧-LCtx ⊢Var A Locally
-                             -> ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx ⊢Var A Locally
-  remap₃-FCtx {Δ = ε} {p} {ns} t = t
+                             -> ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx ⊢ A Locally
+  remap₃-FCtx {Δ = ε} {p} {ns} t = var t
   remap₃-FCtx {Δ = Δ ,[ x ]} {p} {ns} t = remap₃-FCtx {Δ = Δ} {ps = ns ∷ p} t
-  remap₃-FCtx {Δ = Δ , x} {p} {ns} zero = {!!}
-  remap₃-FCtx {Δ = Δ , x} {p} {ns} (suc v) = suc (remap₃-FCtx {Δ = Δ} v)
+  remap₃-FCtx {Δ = Δ , X} {ps = ps} {p} {n} zero with γ-Type X (p , ps <> (⦗ n ⦘₊ ∷ [])) | drop-γ {X = X} {p = p} {ps} {⦗ n ⦘₊}
+  ... | Y | (no refl-≡) = tt
+  ... | Y | (yes refl-≡) = var zero
+  remap₃-FCtx {Δ = Δ , x} {p} {ns} (suc v) = wk (remap₃-FCtx {Δ = Δ} v)
+
+  remap-FCtx : ∀{Δ ps p n A} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘₊ ∷ []))) ⟧-LCtx ⊢ A Locally
+                             -> ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx ⊢ A Locally
+  remap-FCtx {Δ = Δ} {ps = ps} {p} {n} t = subst (λ _ -> remap₃-FCtx {Δ = Δ} {ps = ps} {p} {n}) t
 
 
+  -- NOTE: Not needed anymore since we have the remap-FCtx functions above
+{-
   eval₃-FCtx : ∀{Δ ps p n} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘₊ ∷ []))) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx
   eval₃-FCtx {Δ = ε} {p} {ns} = refl-≡
   eval₃-FCtx {Δ = Δ ,[ x ]} {p} {ns} = eval₃-FCtx {Δ = Δ} {ps = ns ∷ p}
@@ -129,6 +137,7 @@ module _ (This : Std𝔓roc) where
 
   eval-FCtx : ∀{Δ p n} -> ⟦ Δ ,[ ⦗ p ⦘₊ ] ⟧-FCtx n ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ [])) ⟧-LCtx
   eval-FCtx {Δ = Δ} = eval₂-FCtx {Δ = Δ}
+  -}
 
 
   -- End Ctx
@@ -243,7 +252,8 @@ module _ (This : Std𝔓roc) where
           t''' : ⟦ Δp ⟧-LCtx ⊢ ⟦ X ⟧-FType n Locally
           t''' =
                transp-Ctx-Locally (cong-LCtx (idempotent-local Δp))
-                 (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) t'')
+                 (remap-FCtx {Δ = Δ} {ps = []} t'')
+                 -- (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) t'')
 
       in t''' -- t'''
   tr Δp (pure t) = pure (tr Δp t)

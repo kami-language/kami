@@ -80,6 +80,7 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
 
     variable
       Γ : LCtx
+      Δ : LCtx
 
   open [Std𝔓roc/Definition::Ctx]
 
@@ -137,9 +138,16 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
 
   open [Std𝔓roc/Definition::Term]
 
+  _⋆-LCtx_ : LCtx -> LCtx -> LCtx
+  _⋆-LCtx_ Γ Δ = {!!}
+
 
   wk : Γ ⊢ A Locally -> Γ , B ⊢ A Locally
   wk = {!!}
+
+  subst : (∀ B -> Γ ⊢Var B Locally -> Δ ⊢ B Locally) -> Γ ⊢ A Locally -> Δ ⊢ A Locally
+  subst = {!!}
+
 
 
   λStdProc : STT _
