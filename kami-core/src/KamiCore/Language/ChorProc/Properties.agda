@@ -132,10 +132,31 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes x = proj-＠ x done
   π-Type-Proof (X ×× Y) ps = _××_ (π-Type-Proof X ps) (π-Type-Proof Y ps)
 
+
+  γ-Type : (X : ⊢Type ◯) -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲
+  γ-Type X (p , []) = π-Type X (p , [])
+  γ-Type (Unit) (p , (r ∷ rs)) = Unit
+  γ-Type (Either X Y) (p , (r ∷ rs)) = Unit
+  γ-Type (X ⇒ Y) (p , (r ∷ rs)) = Unit
+  γ-Type (X ×× Y)  (p , (r ∷ rs)) = Unit
+  γ-Type (Tr X)  (p , (r ∷ rs)) = Unit
+  γ-Type (Lst X)  (p , (r ∷ rs)) = Unit
+  γ-Type (A ＠ l) (p , (r ∷ rs)) with decide-≤ p l
+  ... | no x = Unit
+  ... | yes x = A
+
+  γ-Type-Proof : (X : ⊢Type ◯) -> ∀ pps -> γ X ∣ pps ↦ (γ-Type X pps) Type
+  γ-Type-Proof = {!!}
+
+{-
   eval-π-＠ : π-Type (A ＠ ps) (ps , []) ≡ A
   eval-π-＠ {A = A} {ps = ps} with decide-≤ ps ps
   ... | yes X = refl-≡
   ... | no X = ⊥-elim ({!!})
+  -}
+
+  eval-γ-＠ : π-Type (A ＠ ps) (ps , []) ≡ A
+  eval-γ-＠ = {!!}
 
 {-
   mutual
@@ -166,7 +187,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-Ctx Γ [] = Γ
   π-Ctx ε (i ∷ is) = ε
   π-Ctx (Γ ,[ x ]) (i ∷ is) = π-Ctx Γ (x ∷ i ∷ is) ,[ x ]
-  π-Ctx (Γ , x) (i ∷ is) = π-Ctx Γ (i ∷ is) , π-Type x (i , []) ＠ i
+  π-Ctx (Γ , x) (i ∷ is) = π-Ctx Γ (i ∷ is) , γ-Type x (i , is) ＠ i
 
   local-Proof : ∀ {Γ Δ p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> isLocal p Δ
   local-Proof ε = ε
@@ -177,7 +198,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-Ctx-Proof Γ [] = done
   π-Ctx-Proof ε (i ∷ is) = ε
   π-Ctx-Proof (Γ ,[ x ]) (i ∷ is) = stepRes (π-Ctx-Proof Γ (x ∷ i ∷ is)) 
-  π-Ctx-Proof (Γ , x) (i ∷ is) = π-Ctx-Proof Γ (i ∷ is) , π-Type-Proof x i
+  π-Ctx-Proof (Γ , x) (i ∷ is) = π-Ctx-Proof Γ (i ∷ is) , γ-Type-Proof x (i , is)
+
 
 
   data _≡-Local_ {ps} : {Γ Δ : ⊢Ctx} (Γp : isLocal ps Γ) (Δp : isLocal ps Δ) -> 𝒰 𝑗 where
@@ -195,15 +217,19 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   idempotent-local : ∀{Δ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> local-Proof (π-Ctx-Proof Δ (ps ∷ pps)) ≡-Local Δp
   idempotent-local ε = refl-Local
-  idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) (eval-π-＠ {ps = ps})
+  idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) {!!} -- (eval-γ-＠ {ps = ps})
   idempotent-local (stepRes Δp) = map-stepRes _ _ (idempotent-local Δp)
 
-  idempotent-local' : ∀{Δ Δₗ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> Δ ∣ (ps ∷ pps) ↦ Δₗ Ctx -> Δ ≡ Δₗ
 
+  idempotent-local' : ∀{Δ Δₗ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> Δ ∣ (ps ∷ pps) ↦ Δₗ Ctx -> Δ ≡ Δₗ
+  idempotent-local' = {!!}
+
+{-
   idempotent-local' ε ε = refl-≡
   idempotent-local' (Δp , A) (P₁ , proj-＠ x done) = cong₂-≡ _,_ (idempotent-local' Δp P₁) refl-≡
   idempotent-local' (Δp , A) (P₁ , proj-＠-≠ x) = {!!} -- ⊥-elim (x refl-≤)
   idempotent-local' (stepRes Δp) (stepRes P₁) = cong-≡ (_,[ _ ]) (idempotent-local' Δp P₁)
+  -}
 
 
 
@@ -225,8 +251,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   unique-π-Ctx : ∀{Γ Δ₀ Δ₁ p ps qs} -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ p ∷ qs ↦ Δ₁ Ctx -> Δ₀ ≡ Δ₁
   unique-π-Ctx ε ε = refl-≡
-  unique-π-Ctx (P₁ , x) (Q , x₁) with unique-π x x₁
-  ... | refl-≡ = cong-≡ (_, _) (unique-π-Ctx P₁ Q)
+  unique-π-Ctx (P₁ , x) (Q , x₁) = {!!} --  with unique-π x x₁
+  -- ... | refl-≡ = cong-≡ (_, _) (unique-π-Ctx P₁ Q)
   unique-π-Ctx (stepRes P₁) (stepRes Q) = cong-≡ (_,[ _ ]) (unique-π-Ctx P₁ Q)
 
   unique-π-Ctx-≤ : ∀{Γ Δ₀ Δ₁ p ps q qs} -> q ≤ p -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ q ∷ qs ↦ Δ₁ Ctx -> Δ₀ ∣ q ∷ [] ↦ Δ₁ Ctx
@@ -443,6 +469,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-subset pp Unit Unit = {!!}
 
 
+{-
   resVar'' : ∀{Γ Δ Δ₀ Δ₁ qs p ps ps' ps''} -> Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx
           -> Γ ∣ ps <> (qs ∷ ps'') ↦ Δ₀ Ctx
           -> Δ ∣ ps <> (⦗ p ⦘₊ ∷ ps'') ↦ Δ₁ Ctx
@@ -459,6 +486,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   resVar'' {ps = []} P Q R pp (res v) = {!!}
   resVar'' {ps = []} P Q R pp none = {!!}
   resVar'' {ps = p ∷ ps} P Q R pp v = {!!}
+  -}
 
 {-
   resVar' : ∀{Γ Δ₀ Δ₁ qs rs ps ps' ps''} -> Γ ∣ ps <> (qs ∷ ps'') ↦ Δ₀ Ctx -> Γ ∣ ps <> (rs ∷ ps'') ↦ Δ₁ Ctx  -> rs ≤ qs -> Δ₀ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Δ₁ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
@@ -469,7 +497,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   resVar' {ps = []} P0 P1 pp (res v) = {!!}
   resVar' {ps = []} P0 P1 pp none = {!!}
   resVar' {ps = p ∷ ps} P0 P1 pp v = {!!}
-  -}⦗ p ⦘₊
+  -}
 
 
   -- resVar p (zero x p) = zero {!!} ?
@@ -481,7 +509,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- transRes-GlobalFibered {qs = qs} {rs = rs} pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (resVar' {ps = []} Γp Δp pp v)}) t
 
   transRes'-GlobalFibered : ∀{qs} -> Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx -> ⦗ p ⦘₊ ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ ps ] -> Δ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ ps ]
-  transRes'-GlobalFibered P pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (let v' = resVar'' {ps = []} P Γp Δp pp v in v')}) t
+  transRes'-GlobalFibered P pp t = {!!} --  map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (let v' = resVar'' {ps = []} P Γp Δp pp v in v')}) t
   -- projVar1 {ps = _ ∷ []} (unique-π-Ctx-≤ pp Γp Δp ) v')}) t
 
 

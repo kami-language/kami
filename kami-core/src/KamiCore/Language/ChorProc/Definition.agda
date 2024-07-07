@@ -160,6 +160,13 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       -- proj-＠ : ∀{ps pps qs A B} -> ⦗ qs ⦘₊ ≤ ps -> ω A ∣ pps ↦ B Type -> α A ＠ ⦗ qs ⦘₊ ∣ ps , pps ↦ B Type
       -- proj-＠-≠ : ∀{ps pps qs A} -> (¬ ⦗ qs ⦘₊ ≤ ps) -> α A ＠ ⦗ qs ⦘₊ ∣ ps , pps ↦ Unit Type
 
+      -- Idea: if we are on a sublevel (p , (r ∷ rs)) then everything which is a global type which is not an ＠, gets projected to Unit.
+      data γ_∣_↦_Type : ⊢Type ◯ -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
+        toplevel : ∀{p X A} -> π X ∣ p , [] ↦ A Type -> γ X ∣ p , [] ↦ A Type
+        sublevel-＠ : ∀{ps qs r rs A} -> ps ≤ qs -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ A Type
+        sublevel-＠-≠ : ∀{ps qs r rs A} -> ¬ (ps ≤ qs) -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ Unit Type
+        sublevel-break-⇒ : ∀{X Y ps r rs} -> γ X ⇒ Y ∣ ps , (r ∷ rs) ↦ Unit Type
+
 
 
   open [Chor𝔓roc/Definition::Type]
@@ -177,7 +184,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
     data _∣_↦_Ctx : ⊢Ctx -> (l : List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Ctx -> 𝒰 (𝑗) where
       done : Γ ∣ [] ↦ Γ Ctx
       ε : ∀{p ps} -> ε ∣ p ∷ ps ↦ ε Ctx
-      _,_ : ∀{p ps A} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> π X ∣ p , [] ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
+      _,_ : ∀{p ps A} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> γ X ∣ p , ps ↦ A Type -> Γ , X ∣ p ∷ ps ↦ (Δ , A ＠ p) Ctx
       stepRes : ∀{p ps} -> Γ ∣ p ∷ ps ↦ Δ Ctx -> Γ ,[ p ] ∣ ps ↦ Δ ,[ p ] Ctx
 
 
