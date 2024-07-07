@@ -166,6 +166,11 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
         sublevel-＠ : ∀{ps qs r rs A} -> ps ≤ qs -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ A Type
         sublevel-＠-≠ : ∀{ps qs r rs A} -> ¬ (ps ≤ qs) -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ Unit Type
         sublevel-break-⇒ : ∀{X Y ps r rs} -> γ X ⇒ Y ∣ ps , (r ∷ rs) ↦ Unit Type
+        sublevel-break-×× : ∀{p r rs} -> γ (X ×× Y) ∣ p , (r ∷ rs) ↦ Unit Type
+        sublevel-break-Either : ∀{p r rs} -> γ (Either X Y) ∣ p , (r ∷ rs) ↦ Unit Type
+        sublevel-break-Tr : ∀{p r rs} -> γ (Tr X) ∣ p , (r ∷ rs) ↦ Unit Type
+        sublevel-break-Lst : ∀{p r rs} -> γ (Lst X) ∣ p , (r ∷ rs) ↦ Unit Type
+        sublevel-break-Unit : ∀{p r rs} -> γ Unit ∣ p , (r ∷ rs) ↦ Unit Type
 
 
 
