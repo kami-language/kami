@@ -470,7 +470,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
               -> Δ , (A ＠ ps) ⊢Var A₁ GlobalFiber[ ps ∷ Vs' ]
   resVarVar x pp (toplevel (proj-＠ p0 done)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
   resVarVar x pp (toplevel (proj-＠-≠ p0)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
-  resVarVar x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
+  resVarVar x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ {!!} RR)
   resVarVar x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
   resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
   resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
@@ -479,6 +479,99 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   resVarVar x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
   resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = ⊥-elim (x₁ refl-≤)
   resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
+
+
+
+{-
+  resVarVar2 : ∀{A B C D} -> ∀{p₀ p₁ ps ps₁ ps' ps'' rs vs ws}
+               -> ps₁ ≼ (p₁ ∷ ps ++-List ws ∷ ps')
+               -> vs ≤ ws
+              -> (PP   : γ X ∣ p₀ , (p₁ ∷ ps ++-List vs ∷ []) ↦ C Type)
+              -> (QQ   : γ X ∣ p₀ , (p₁ ∷ ps ++-List ws ∷ ps'' ∷ rs) ↦ D Type)
+              -> (RR   : γ C ＠ p₀ ∣ p₀ , (p₁ ∷ ps ++-List vs ∷ ps'' ∷ rs) ↦ A Type)
+              -> (VV   : π D ＠ p₀ ∣ p₀ , ps₁ ↦ B Type)
+              -> (Δ , (A ＠ p₀)) ⊢Var B GlobalFiber[ p₀ ∷ p₁ ∷ ps ++-List vs ∷ ps' ]
+  resVarVar2 = {!!}
+  -}
+
+  resVarVar2 : ∀{A B C D} -> ∀{p₀ p₁ ps ps₁ ps' ps'' rs vs ws}
+               -> ps₁ ≼ (p₁ ∷ ps ++-List ws ∷ ps')
+               -> vs ≤ ws
+              -> (PP   : γ X ∣ p₀ , (p₁ ∷ ps ++-List vs ∷ []) ↦ C Type)
+              -> (QQ   : γ X ∣ p₀ , (p₁ ∷ ps ++-List ws ∷ ps'' ∷ rs) ↦ D Type)
+              -> (RR   : γ C ＠ p₀ ∣ p₀ , (p₁ ∷ ps ++-List vs ∷ ps'' ∷ rs) ↦ A Type)
+              -> (VV   : π D ＠ p₀ ∣ p₀ , ps₁ ↦ B Type)
+              -> (Δ , (A ＠ p₀)) ⊢Var B GlobalFiber[ p₀ ∷ p₁ ∷ ps ++-List vs ∷ ps' ]
+  resVarVar2 x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero {!!} (proj-＠ {!!} {!!})
+  resVarVar2 x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = {!!} -- ⊥-elim (p0 (pp ⟡ qq))
+  resVarVar2 x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar2 x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar2 x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar2 x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar2 x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = {!!} -- ⊥-elim (x₂ refl-≤)
+  resVarVar2 x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = {!!} -- ⊥-elim (x₁ refl-≤)
+  resVarVar2 x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = {!!} -- ⊥-elim (x₂ refl-≤)
+
+{-
+  resVarVar2 : ∀{A B C D} -> ∀{p₀ zs ps₁ ps' ps'' rs vs ws}
+               -> ps₁ ≼ (zs ++-List ws ∷ ps')
+               -> vs ≤ ws
+              -> (PP   : γ X ∣ p₀ , (zs ++-List vs ∷ []) ↦ C Type)
+              -> (QQ   : γ X ∣ p₀ , (zs ++-List ws ∷ ps'' ∷ rs) ↦ D Type)
+              -> (RR   : γ C ＠ p₀ ∣ p₀ , (zs ++-List vs ∷ ps'' ∷ rs) ↦ A Type)
+              -> (VV   : π D ＠ p₀ ∣ p₀ , ps₁ ↦ B Type)
+              -> (Δ , (A ＠ p₀)) ⊢Var B GlobalFiber[ p₀ ∷ zs ++-List vs ∷ ps' ]
+  resVarVar2 x pp (toplevel (proj-＠ p0 done)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
+  resVarVar2 x pp (toplevel (proj-＠-≠ p0)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
+  resVarVar2 x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ {!!} RR)
+  resVarVar2 x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
+  resVarVar2 x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar2 x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar2 x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar2 x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar2 x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
+  resVarVar2 x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = ⊥-elim (x₁ refl-≤)
+  resVarVar2 x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
+  -}
+
+
+
+
+              -- -> (PP   : γ X ∣ ps , Ps ↦ A₂ Type)
+              -- -> (QQ   : γ X ∣ qs , (Q0 ∷ Qs)  ↦ A₃ Type)
+              -- -> (RR   : γ A₂ ＠ ps ∣ ps , (R0 ∷ Rs) ↦ A Type)
+              -- -> (VV   : π A₃ ＠ qs ∣ qs , Vs ↦ A₁ Type)
+              -- -> Δ , (A ＠ ps) ⊢Var A₁ GlobalFiber[ ps ∷ Vs' ]
+
+  replaceIn-π : ∀{rs qs ps} -> qs ≤ rs -> π X ∣ rs , ps ↦ B Type -> π X ∣ qs , ps ↦ B Type
+  replaceIn-π pp (Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].proj-＠ x x₁) = {!!}
+  replaceIn-π pp (Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].proj-＠-≠ x) = {!!}
+  replaceIn-π pp (P₁ Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].⇒ P₂) = {!!}
+  replaceIn-π pp (P₁ Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].×× P₂) = {!!}
+  replaceIn-π pp (Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].Either P₁ P₂) = {!!}
+  replaceIn-π pp (Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].Tr P₁) = {!!}
+  replaceIn-π pp (Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].Lst P₁) = {!!}
+  replaceIn-π pp Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].Unit = {!!}
+
+  replaceIn-ω : ∀{rs qs ps} -> qs ≤ rs -> ω A ∣ rs ∷ ps ↦ B Type -> ω A ∣ qs ∷ ps ↦ B Type
+  replaceIn-ω pp (proj-◻ x) = proj-◻ {!!}
+  replaceIn-ω pp Unit = {!!}
+
+{-
+  replaceIn-≼ : {A : 𝒰 𝑖} -> {qs : A} -> ∀{ps qs0 qs1} -> ps ≼ (qs0 <> (qs ∷ qs1)) -> ∀ rs -> ∑ λ ps' -> ps' ≼ qs0 <> (rs ∷ qs1)
+  replaceIn-≼ {qs0 = []} (skip pp) rs = _ , skip pp
+  replaceIn-≼ {qs0 = []} (take pp) rs = _ , take pp
+  replaceIn-≼ {qs0 = q ∷ qs0} (skip pp) rs = let ps' , pp' = replaceIn-≼ {qs0 = qs0} pp rs in _ , skip pp'
+  replaceIn-≼ {qs0 = q ∷ qs0} (take pp) rs = let ps' , pp' = replaceIn-≼ {qs0 = qs0} pp rs in _ , take pp'
+
+  π-replace-≼ : ∀{qs ps qs0 qs1} -> (pp : ps ≼ (qs0 <> (qs ∷ qs1))) -> ∀ {rs} -> rs ≤ qs -> ω A ∣ ps ↦ B Type -> ω A ∣ fst (replaceIn-≼ {qs0 = qs0} pp rs) ↦ B Type
+  π-replace-≼ {qs0 = []} (skip pp) rs≤qs Ap = Ap
+  π-replace-≼ {qs0 = []} (take pp) rs≤qs Ap = replaceIn-ω rs≤qs Ap
+  π-replace-≼ {qs0 = q ∷ qs0} pp rs≤qs Ap = {!!}
+
+  π-replace'-≼ : ∀{p qs ps qs0 qs1} -> (pp : ps ≼ (qs0 <> (qs ∷ qs1))) -> ∀ {rs} -> rs ≤ qs -> π X ∣ p , ps ↦ B Type -> π X ∣ p , fst (replaceIn-≼ {qs0 = qs0} pp rs) ↦ B Type
+  π-replace'-≼ = {!!}
+
 
 
   resVar'' : ∀{Γ Δ Δ₀ Δ₁ qs p ps ps' ps'' rs} -> Γ ∣ ps <> (⦗ p ⦘₊ ∷ []) ↦ Δ Ctx
@@ -497,8 +590,12 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   resVar'' {ps = p ∷ ps} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ p ∷ ps} P Q R pp v)
   resVar'' {ps = p ∷ ps} (P , PP) (Q , QQ) (R , RR) pp none = none
 
-  resVar'' {ps = p ∷ []} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) = resVarVar {!!} refl-≤ PP QQ RR VV
-  resVar'' {ps = p₀ ∷ p₁ ∷ ps} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) = resVarVar {!!} refl-≤ PP QQ RR VV
+  resVar'' {ps = p ∷ []} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) =
+    let ps' , x' = replaceIn-≼ {qs0 = []} x _
+    in resVarVar x' refl-≤ PP QQ RR (π-replace'-≼ {qs0 = []} x pp VV ) -- resVarVar2 {zs = []} x pp PP QQ RR VV
+  resVar'' {Δ = Δ} {ps = p₀ ∷ p₁ ∷ ps} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) =
+    let t = resVarVar {Δ = Δ} x refl-≤ PP QQ RR VV
+    in resVarVar2 x pp PP QQ RR VV
 
 
 
@@ -766,4 +863,5 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
+-}
 -}
