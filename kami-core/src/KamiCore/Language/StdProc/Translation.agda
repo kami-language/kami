@@ -222,8 +222,8 @@ module _ (This : Std𝔓roc) where
   ... | refl-≡ =
     let t' = tr Δp t
     in send t'
-  tr {Δ} {p} Δp (box' {X = X} x) =
-    let t' : ⟦ Δ ,[ ⦗ p ⦘₊ ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
+  tr {Δ} {p} Δp (box' {X = X} {qs = qs} p≤qs x) =
+    let t' : ⟦ Δ ,[ qs ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
         t' = ta {Γ = Δ ,[ _ ]} x
     in box λ n ->
       let t'' = t' n
@@ -232,9 +232,9 @@ module _ (This : Std𝔓roc) where
           t''' : ⟦ Δp ⟧-LCtx ⊢ ⟦ X ⟧-FType n Locally
           t''' =
                transp-Ctx-Locally (cong-LCtx (idempotent-local Δp))
-                 (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) t'')
+                 (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) {!!})
 
-      in t'''
+      in {!!} -- t'''
   tr Δp (pure t) = pure (tr Δp t)
   tr Δp (seq t t₁) = seq (tr Δp t) (tr (Δp , _) t₁)
   tr Δp (lam t) =
