@@ -160,17 +160,27 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       -- proj-＠ : ∀{ps pps qs A B} -> ⦗ qs ⦘₊ ≤ ps -> ω A ∣ pps ↦ B Type -> α A ＠ ⦗ qs ⦘₊ ∣ ps , pps ↦ B Type
       -- proj-＠-≠ : ∀{ps pps qs A} -> (¬ ⦗ qs ⦘₊ ≤ ps) -> α A ＠ ⦗ qs ⦘₊ ∣ ps , pps ↦ Unit Type
 
+
+      data isNot＠ : ⊢Type ◯ -> 𝒰 𝑗 where
+        is-⇒ : isNot＠ (X ⇒ Y)
+        is-×× : isNot＠ (X ×× Y)
+        is-Either : isNot＠ (Either X Y)
+        is-Tr : isNot＠ ((Tr X))
+        is-Lst : isNot＠ ((Lst X))
+        is-Unit : isNot＠ (Unit)
+
       -- Idea: if we are on a sublevel (p , (r ∷ rs)) then everything which is a global type which is not an ＠, gets projected to Unit.
       data γ_∣_↦_Type : ⊢Type ◯ -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
         toplevel : ∀{p X A} -> π X ∣ p , [] ↦ A Type -> γ X ∣ p , [] ↦ A Type
         sublevel-＠ : ∀{ps qs r rs A} -> ps ≤ qs -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ A Type
         sublevel-＠-≠ : ∀{ps qs r rs A} -> ¬ (ps ≤ qs) -> γ A ＠ qs ∣ ps , (r ∷ rs) ↦ Unit Type
-        sublevel-break-⇒ : ∀{X Y ps r rs} -> γ X ⇒ Y ∣ ps , (r ∷ rs) ↦ Unit Type
-        sublevel-break-×× : ∀{p r rs} -> γ (X ×× Y) ∣ p , (r ∷ rs) ↦ Unit Type
-        sublevel-break-Either : ∀{p r rs} -> γ (Either X Y) ∣ p , (r ∷ rs) ↦ Unit Type
-        sublevel-break-Tr : ∀{p r rs} -> γ (Tr X) ∣ p , (r ∷ rs) ↦ Unit Type
-        sublevel-break-Lst : ∀{p r rs} -> γ (Lst X) ∣ p , (r ∷ rs) ↦ Unit Type
-        sublevel-break-Unit : ∀{p r rs} -> γ Unit ∣ p , (r ∷ rs) ↦ Unit Type
+        sublevel-break : ∀{ps r rs} -> isNot＠ X -> γ X ∣ ps , (r ∷ rs) ↦ Unit Type
+        -- sublevel-break-⇒ : ∀{X Y ps r rs} -> γ X ⇒ Y ∣ ps , (r ∷ rs) ↦ Unit Type
+        -- sublevel-break-×× : ∀{p r rs} -> γ (X ×× Y) ∣ isNot＠
+        -- sublevel-break-Either : ∀{p r rs} -> γ (Either X Y) ∣ isNot＠
+        -- sublevel-break-Tr : ∀{p r rs} -> γ (Tr X) ∣ isNot＠
+        -- sublevel-break-Lst : ∀{p r rs} -> γ (Lst X) ∣ isNot＠
+        -- sublevel-break-Unit : ∀{p r rs} -> γ Unit ∣ isNot＠
 
 
 
