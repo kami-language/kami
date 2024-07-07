@@ -219,7 +219,11 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
             -> Γ ⊢ Tr A GlobalFiber[ p ]
 
-      box' : ∀ {qs} -> ⦗ p ⦘₊ ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ allProcs This ]
+      -- box' : ∀ {qs} -> ⦗ p ⦘₊ ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ allProcs This ]
+      --      -> Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx
+      --       -> Δ ⊢ ◻ X GlobalFiber[ p ]
+
+      box' : Γ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ allProcs This ]
             -> Γ ⊢ ◻ X GlobalFiber[ p ]
 
       -- transformations

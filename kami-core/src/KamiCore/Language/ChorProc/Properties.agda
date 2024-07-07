@@ -390,7 +390,11 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   map-Var-Fiber Δp Γp V (var v) = var (V v)
   map-Var-Fiber Δp Γp V (recv x) = recv x
   map-Var-Fiber Δp Γp V (send v t) = send v (map-Var-Fiber Δp Γp V t)
-  map-Var-Fiber Δp Γp V (box' p≤qs x) = {!!} -- box' p≤qs (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
+  -- map-Var-Fiber Δp Γp V (box' p≤qs x Γp') = box' p≤qs (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → {!!}}) x) {!!}
+
+  -- res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) Γp'
+  -- (map-Var (λ {(res v) -> res (V v)}) x)
+  map-Var-Fiber Δp Γp V (box' x) = box' (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
   map-Var-Fiber Δp Γp V (pure t) = pure (map-Var-Fiber Δp Γp V t)
   map-Var-Fiber Δp Γp V (seq t s) =
     let t' = map-Var-Fiber Δp Γp V t
@@ -446,42 +450,107 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
             -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
   map-Var' = {!!}
 
-  resVar : ∀{qs rs ps ps'} -> rs ≤ qs -> Γ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Γ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
-  resVar {ps = []} pp (zero x x₁) = {!!}
-  resVar {ps = []} pp (suc v) = {!!}
-  resVar {ps = []} pp (res v) = {!!}
-  resVar {ps = []} pp none = {!!}
-  resVar {ps = p ∷ ps} pp (zero x x₁) = {!!}
-  resVar {ps = p ∷ ps} pp (suc v) = {!!}
-  resVar {ps = p ∷ ps} pp (res v) = {!!}
-  resVar {ps = p ∷ ps} pp none = {!!}
+  -- resVar : ∀{qs rs ps ps'} -> rs ≤ qs -> Γ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Γ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
+  -- resVar {ps = []} pp (zero x x₁) = {!!}
+  -- resVar {ps = []} pp (suc v) = {!!}
+  -- resVar {ps = []} pp (res v) = {!!}
+  -- resVar {ps = []} pp none = {!!}
+  -- resVar {ps = p ∷ ps} pp (zero x x₁) = {!!}
+  -- resVar {ps = p ∷ ps} pp (suc v) = {!!}
+  -- resVar {ps = p ∷ ps} pp (res v) = {!!}
+  -- resVar {ps = p ∷ ps} pp none = {!!}
 
-  π-subset : ∀{p q} -> ⦗ p ⦘₊ ≤ q -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π X ∣ q , [] ↦ B Type -> A ≡ B
-  π-subset pp (proj-＠ x done) (proj-＠ x₂ done) = {!!}
-  π-subset pp (proj-＠ x done) (proj-＠-≠ x₂) = {!!}
-  π-subset pp (proj-＠-≠ x) (proj-＠ x₁ x₂) = {!!}
-  π-subset pp (proj-＠-≠ x) (proj-＠-≠ x₁) = {!!}
-  π-subset pp (P₁ ⇒ P₂) (Q ⇒ Q₁) = {!!}
-  π-subset pp (P₁ ×× P₂) (Q ×× Q₁) = {!!}
-  π-subset pp (Either P₁ P₂) (Either Q Q₁) = {!!}
-  π-subset pp (Tr P₁) (Tr Q) = {!!}
-  π-subset pp (Lst P₁) (Lst Q) = {!!}
-  π-subset pp Unit Unit = {!!}
+  -- π-subset : ∀{p q} -> ⦗ p ⦘₊ ≤ q -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π X ∣ q , [] ↦ B Type -> A ≡ B
+  -- π-subset pp (proj-＠ x done) (proj-＠ x₂ done) = {!!}
+  -- π-subset pp (proj-＠ x done) (proj-＠-≠ x₂) = {!!}
+  -- π-subset pp (proj-＠-≠ x) (proj-＠ x₁ x₂) = {!!}
+  -- π-subset pp (proj-＠-≠ x) (proj-＠-≠ x₁) = {!!}
+  -- π-subset pp (P₁ ⇒ P₂) (Q ⇒ Q₁) = {!!}
+  -- π-subset pp (P₁ ×× P₂) (Q ×× Q₁) = {!!}
+  -- π-subset pp (Either P₁ P₂) (Either Q Q₁) = {!!}
+  -- π-subset pp (Tr P₁) (Tr Q) = {!!}
+  -- π-subset pp (Lst P₁) (Lst Q) = {!!}
+  -- π-subset pp Unit Unit = {!!}
 
 
-{-
-  resVar'' : ∀{Γ Δ Δ₀ Δ₁ qs p ps ps' ps''} -> Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx
-          -> Γ ∣ ps <> (qs ∷ ps'') ↦ Δ₀ Ctx
-          -> Δ ∣ ps <> (⦗ p ⦘₊ ∷ ps'') ↦ Δ₁ Ctx
+-- VV   : π D ＠ p₀ ∣ p₀ , ps₁ ↦ B Type
+-- PP   : γ X ∣ p₀ , (p₁ ∷ ps ++-List ⦗ p ⦘₊ ∷ []) ↦ C Type
+-- QQ   : γ X ∣ p₀ , (p₁ ∷ ps ++-List qs ∷ ps'' ∷ rs) ↦ D Type
+-- RR   : γ C ＠ p₀ ∣ p₀ , (p₁ ∷ ps ++-List ⦗ p ⦘₊ ∷ ps'' ∷ rs) ↦ A Type
+  resVarVar : ∀{A A₁ A₂ A₃} -> ∀{ps qs Vs Vs' Ps Q0 Qs R0 Rs} -> Vs ≼ Vs' -> ps ≤ qs
+              -> (PP   : γ X ∣ ps , Ps ↦ A₂ Type)
+              -> (QQ   : γ X ∣ qs , (Q0 ∷ Qs)  ↦ A₃ Type)
+              -> (RR   : γ A₂ ＠ ps ∣ ps , (R0 ∷ Rs) ↦ A Type)
+              -> (VV   : π A₃ ＠ qs ∣ qs , Vs ↦ A₁ Type)
+              -> Δ , (A ＠ ps) ⊢Var A₁ GlobalFiber[ ps ∷ Vs' ]
+  resVarVar x pp (toplevel (proj-＠ p0 done)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
+  resVarVar x pp (toplevel (proj-＠-≠ p0)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = {!!}
+  resVarVar x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
+  resVarVar x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = {!!}
+  resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar x pp (p0) (sublevel-break-⇒) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
+  resVarVar x pp (p0) (sublevel-break-⇒) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
+  resVarVar x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = {!!}
+  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = {!!}
+  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = {!!}
+
+
+  resVar'' : ∀{Γ Δ Δ₀ Δ₁ qs p ps ps' ps'' rs} -> Γ ∣ ps <> (⦗ p ⦘₊ ∷ []) ↦ Δ Ctx
+          -> Γ ∣ ps <> (qs ∷ ps'' ∷ rs) ↦ Δ₀ Ctx
+          -> Δ ∣ ps <> (⦗ p ⦘₊ ∷ ps'' ∷ rs) ↦ Δ₁ Ctx
           -> ⦗ p ⦘₊ ≤ qs
           -> Δ₀ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ]
           -> Δ₁ ⊢Var A GlobalFiber[ ps <> (⦗ p ⦘₊ ∷ ps') ]
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠ x₁ done) pp (zero {ps = []} x (proj-＠ x₂ done)) = zero x (proj-＠ {!!} {!!})
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠ x₁ done) pp (zero {ps = []} x (proj-＠-≠ x₂)) = zero x {!!}
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠ x₁ done) pp (zero {ps = x₂ ∷ ps} x y) = zero x {!!}
-  -- resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠ x₁ done) pp (zero x y) = zero x {!!}
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = zero x {!!}
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , proj-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = zero x {!!}
+  {-
+  resVar'' {ps = []} (P , toplevel (proj-＠ p0 done)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = zero {!!} (proj-＠ refl-≤ RR)
+  resVar'' {ps = []} (P , toplevel (proj-＠-≠ p0)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = {!!}
+  resVar'' {ps = []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
+  resVar'' {ps = []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
+  resVar'' {ps = []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
+  resVar'' {ps = []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = {!!}
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
+  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp (suc v) = suc (resVar'' {ps = []} P Q R pp v)
+  resVar'' {ps = []} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ []} P Q R pp v)
+  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp none = none
+  resVar'' {ps = p ∷ []} (P , sublevel-＠ p0) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = zero {!!} (proj-＠ refl-≤ RR)
+  resVar'' {ps = p ∷ []} (P , sublevel-＠-≠ p0) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = {!!}
+  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
+  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
+  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
+  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
+  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
+  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = {!!}
+  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
+  -}
+  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp (suc v) = suc (resVar'' {ps = []} P Q R pp v)
+  resVar'' {ps = []} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ []} P Q R pp v)
+  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp none = none
+  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) = resVarVar x pp PP QQ RR VV
+
+  resVar'' {ps = p ∷ ps} (P , PP) (Q , QQ) (R , RR) pp (suc v) = suc (resVar'' {ps = p ∷ ps} P Q R pp v)
+  resVar'' {ps = p ∷ ps} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ p ∷ ps} P Q R pp v)
+  resVar'' {ps = p ∷ ps} (P , PP) (Q , QQ) (R , RR) pp none = none
+
+  resVar'' {ps = p ∷ []} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) = resVarVar {!!} refl-≤ PP QQ RR VV
+  resVar'' {ps = p₀ ∷ p₁ ∷ ps} (P , PP) (Q , QQ) (R , RR) pp (zero x VV) = resVarVar {!!} refl-≤ PP QQ RR VV
+
+
+
+
+
+
+          {-
+  resVar'' {ps = []} (P , toplevel (proj-＠ p0 done)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero {ps = []} x (proj-＠ x₂ done)) = zero []≼ (proj-＠ refl-≤ done)
+  resVar'' {ps = []} (P , toplevel (proj-＠-≠ p0)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero {ps = []} x (proj-＠ x₂ done)) = {!!}
+  resVar'' {ps = []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero {ps = []} x (proj-＠ x₂ done)) = none
+  resVar'' {ps = []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero {ps = []} x (proj-＠ x₂ done)) = none
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero {ps = []} x (proj-＠-≠ x₂)) = none
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero {ps = x₂ ∷ ps} x y) = zero x {!!}
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = zero x {!!}
+  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = zero x {!!}
   resVar'' {ps = []} P Q R pp (suc v) = {!!}
   resVar'' {ps = []} P Q R pp (res v) = {!!}
   resVar'' {ps = []} P Q R pp none = {!!}
@@ -509,7 +578,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- transRes-GlobalFibered {qs = qs} {rs = rs} pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (resVar' {ps = []} Γp Δp pp v)}) t
 
   transRes'-GlobalFibered : ∀{qs} -> Γ ∣ ⦗ p ⦘₊ ∷ [] ↦ Δ Ctx -> ⦗ p ⦘₊ ≤ qs -> Γ ,[ qs ] ⊢ X GlobalFibered[ ps ] -> Δ ,[ ⦗ p ⦘₊ ] ⊢ X GlobalFibered[ ps ]
-  transRes'-GlobalFibered P pp t = {!!} --  map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (let v' = resVar'' {ps = []} P Γp Δp pp v in v')}) t
+  transRes'-GlobalFibered P pp t = map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (let v' = resVar'' {ps = []} P Γp Δp pp v in v')}) t
   -- projVar1 {ps = _ ∷ []} (unique-π-Ctx-≤ pp Γp Δp ) v')}) t
 
 
@@ -519,7 +588,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   cong-Type-GlobalFibered : ∀{X Y} -> X ≡ Y -> Γ ⊢ X GlobalFibered[ ps ] -> Γ ⊢ Y GlobalFibered[ ps ]
   cong-Type-GlobalFibered {Γ = Γ} {ps = ps} p = transp-≡ (cong-≡ (λ ξ -> Γ ⊢ ξ GlobalFibered[ ps ]) p)
 
-{-
 
 
   --------------------------------------------------------------
@@ -542,7 +610,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- lambda
 
   lam-GlobalFibered : Γ , X ⊢ Y GlobalFibered[ ps ] -> Γ ⊢ X ⇒ Y GlobalFibered[ ps ]
-  lam-GlobalFibered t = incl λ {p p∈ps (X↦A ⇒ Y↦B) Γ↦Δ -> lam (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , X↦A)) }
+  lam-GlobalFibered t = incl λ {p p∈ps (X↦A ⇒ Y↦B) Γ↦Δ -> lam (⟨ t ⟩ p p∈ps Y↦B (Γ↦Δ , toplevel X↦A)) }
 
 
   -------------------
@@ -574,10 +642,13 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠ x done) Γ↦Δ =
     let t' = transRes'-GlobalFibered Γ↦Δ x t
     in box' {p = p} t'
+
     -- in box' {p = p} {!!} --  (map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (transp-Ctx-Var ((idempotent-local' (local-Proof Γ↦Δ) Δp)) (transp-Ctx-Var (unique-π-Ctx Γp Γ↦Δ) v))}) t')
     -- in box' {p = p} (map-Var (λ {q∈ps (stepRes Γp) (stepRes Δp) (res v) -> res (transp-Ctx-Var ((idempotent-local' (local-Proof Γ↦Δ) Δp)) (transp-Ctx-Var (unique-π-Ctx Γp Γ↦Δ) v))}) t')
   ⟨ box-GlobalFibered {X = X} t ⟩ p p∈ps (proj-＠-≠ x) Γ↦Δ = tt
 
+
+{-
 {-
 {-
 

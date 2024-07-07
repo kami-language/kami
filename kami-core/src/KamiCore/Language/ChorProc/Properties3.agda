@@ -86,4 +86,7 @@ module Chor𝔓roc/Properties3 (This : Chor𝔓roc 𝑗) where
   updateVar P (suc v) = suc v
   updateVar P (none) = none
 
+  updateVar-γ : ∀{X A B Δ p ps} -> γ X ∣ p , ps ↦ B Type ->  Δ , X ⊢Var A GlobalFiber[ p ∷ ps ] -> Δ , B ＠ p ⊢Var A GlobalFiber[ p ∷ ps ]
+  updateVar-γ x = {!!}
+
 

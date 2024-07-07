@@ -97,7 +97,7 @@ module _ (This : Std𝔓roc) where
   eval₃-FCtx : ∀{Δ ps p n} -> ⟦ local-Proof (π-Ctx-Proof Δ ((p ∷ ps) <> (⦗ n ⦘₊ ∷ []))) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (p ∷ ps)) ⟧-LCtx
   eval₃-FCtx {Δ = ε} {p} {ns} = refl-≡
   eval₃-FCtx {Δ = Δ ,[ x ]} {p} {ns} = eval₃-FCtx {Δ = Δ} {ps = ns ∷ p}
-  eval₃-FCtx {Δ = Δ , x} {p} {ns} = cong-≡ (λ ξ -> ξ , _) (eval₃-FCtx {Δ = Δ} {p} {ns})
+  eval₃-FCtx {Δ = Δ , x} {p} {ns} = {!!} -- cong-≡ (λ ξ -> ξ , _) (eval₃-FCtx {Δ = Δ} {p} {ns})
 
   eval₂-FCtx : ∀{Δ p n} -> ⟦ local-Proof (π-Ctx-Proof (Δ ,[ ⦗ p ⦘₊ ]) (⦗ n ⦘₊ ∷ [])) ⟧-LCtx ≡ ⟦ local-Proof (π-Ctx-Proof Δ (⦗ p ⦘₊ ∷ [])) ⟧-LCtx
   eval₂-FCtx {Δ = Δ} {p} {n} =
@@ -168,13 +168,10 @@ module _ (This : Std𝔓roc) where
 
 
   tπ' : ∀{X B Γ p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tπ' = {!!}
-{-
   tπ' {p = ([] since []) , p≁⊥} P t = ⊥-elim (p≁⊥ refl-≡)
   tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘))
   ... | refl-≡ = proj t x₁
   tπ' {X = X} {p = ((x₁ ∷ x ∷ p) since uniquep) , p≁⊥} P t = {!!}
-  -}
 
 
 
@@ -197,7 +194,7 @@ module _ (This : Std𝔓roc) where
 
   tv  : ∀{Δ A p ps} -> (Δp : isLocal p Δ) -> Δ ⊢Var A GlobalFiber[ p ∷ ps ] -> ⟦ Δp ⟧-LCtx ⊢ ⟦ A ⟧-LType Locally
   tv (Δp , A) none = tt -- tϕ x₁ (tω x₂ (var zero))
-  tv (Δp , A) (zero P X@(proj-＠ b c)) = {!!} -- (tω c (var zero))
+  tv (Δp , A) (zero P X@(proj-＠ b c)) = (tω c (var zero))
   tv (Δp , A) (zero P (proj-＠-≠ x)) = tt -- tϕ x₁ (tω x₂ (var zero))
   tv (Δp , A) (suc v) = let x = tv Δp v in wk x
   tv (stepRes Δp) (res v) = let x = tv Δp v in x
@@ -222,9 +219,13 @@ module _ (This : Std𝔓roc) where
   ... | refl-≡ =
     let t' = tr Δp t
     in send t'
-  tr {Δ} {p} Δp (box' {X = X} {qs = qs} p≤qs x) =
-    let t' : ⟦ Δ ,[ qs ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
+  tr {Δ} {p} Δp (box' {X = X} x ) =
+    let t' : ⟦ Δ ,[ _ ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
         t' = ta {Γ = Δ ,[ _ ]} x
+
+        -- t2' : ⟦ Δ ,[ ⦗ p ⦘₊ ] ⟧-FCtx ⊢ ⟦ X ⟧-FType
+        -- t2' = ta {Γ = Δ ,[ ⦗ p ⦘₊ ]} {!!}
+
     in box λ n ->
       let t'' = t' n
 
@@ -232,9 +233,9 @@ module _ (This : Std𝔓roc) where
           t''' : ⟦ Δp ⟧-LCtx ⊢ ⟦ X ⟧-FType n Locally
           t''' =
                transp-Ctx-Locally (cong-LCtx (idempotent-local Δp))
-                 (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) {!!})
+                 (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) t'')
 
-      in {!!} -- t'''
+      in t''' -- t'''
   tr Δp (pure t) = pure (tr Δp t)
   tr Δp (seq t t₁) = seq (tr Δp t) (tr (Δp , _) t₁)
   tr Δp (lam t) =
