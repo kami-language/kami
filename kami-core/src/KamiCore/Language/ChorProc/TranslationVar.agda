@@ -91,7 +91,7 @@ module Chor𝔓roc/TranslationVar (This : Chor𝔓roc 𝑗) where
         ZZ : (Δ , F-Type μ (⦋ x ⦌-Type ＠ U)) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 (ν))) p) ]
         ZZ = transp-Ctx-Var (cong-Ctx,Var (sym-≡ (F-prop {μ = μ} {X = (⦋ x ⦌-Type ＠ U)}))) YY
 
-    in updateVar-γ x₁ ZZ
+    in updateVar-γ (MakeNot＠ {A = ⦋ x ⦌-Type} {μs = μ} {W =  U}) x₁ ZZ
   transl-Var-▲ {ν = ν} (Γ ∙! ＠ₛ U ∙! []ₛ) (stepRes `[]` (stepRes x Γp)) (suc! (suc! v)) PP {p = p} {Δ = Δ ,[ _ ]} {B = B} (stepRes Γpp) Xp =
     let
         P1 : cons (postpend (rev' (transl-Mod3 (ν ◆' `[]` ⨾ `＠` U ⨾ id'))) p) ≡ U ∷ cons (postpend (rev' (transl-Mod3 ν)) p)
@@ -127,15 +127,6 @@ module Chor𝔓roc/TranslationVar (This : Chor𝔓roc 𝑗) where
               -> π ⦋ X ⦌-Type ∣ p , [] ↦ B Type
               -> Δ ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
 
-  transl-Var-◯ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp =
-    let
-        YY : (Δ , F2-Type (rev (transl-Mod3 μ)) ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
-        YY = mkVar {ps = (rev (transl-Mod3 μ))} {qs = (rev' (transl-Mod3 ν))} μ≼ν Xp
-
-        ZZ : (Δ , F-Type μ ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
-        ZZ = transp-Ctx-Var (cong-Ctx,Var (sym-≡ (F-prop {μ = μ} {X = (⦋ x ⦌-Type)}))) YY
-
-    in updateVar-γ x₁ ZZ
   transl-Var-◯ {ν = ν} (Γ ∙⟮ x ∣ μ ⟯) (stepVar Γp) (suc v) PP (Γpp , x₁) Xp =
     let res = transl-Var-◯ {ν = ν} Γ Γp v PP Γpp Xp
     in suc res
@@ -162,6 +153,23 @@ module Chor𝔓roc/TranslationVar (This : Chor𝔓roc 𝑗) where
         result' = transp-≡ (cong-≡ (λ ξ -> Δ ⊢Var B GlobalFiber[ ξ ]) P1) result
 
     in res result'
+
+  transl-Var-◯ {ν = ν} (Γ ∙⟮ x ∣ μ@(`[]` ⨾ `＠` W ⨾ μs) ⟯) (stepVar Γp) zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp =
+    let
+        YY : (Δ , F2-Type (rev (transl-Mod3 μ)) ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+        YY = mkVar {ps = (rev (transl-Mod3 μ))} {qs = (rev' (transl-Mod3 ν))} μ≼ν Xp
+
+        ZZ : (Δ , F-Type μ ⦋ x ⦌-Type) ⊢Var B GlobalFiber[ cons (postpend (rev' (transl-Mod3 ν)) p) ]
+        ZZ = transp-Ctx-Var (cong-Ctx,Var (sym-≡ (F-prop {μ = μ} {X = (⦋ x ⦌-Type)}))) YY
+
+    in updateVar-γ (MakeNot＠ {A = ◻ ⦋ x ⦌-Type} {μs = μs} {W = W}) x₁ ZZ
+  transl-Var-◯ {ν = `[]` ⨾ `＠` V ⨾ νs} (Γ ∙⟮ x ∣ id' ⟯) (stepVar Γp) zero () {p = p} {Δ = Δ , _} {B = B} (Γpp , x₁) Xp -- = {!!}
+  transl-Var-◯ {ν = id'} (Γ ∙⟮ x ∣ id' ⟯) (stepVar Γp) zero μ≼ν {p = p} {Δ = Δ , _} {B = B} (Γpp , toplevel x₁) Xp =  (zero id-≼ (proj-＠ refl-≤ (lem-14 x₁ Xp)))
+
+
+
+
+--------------------------------------------------------------------
 
 {-
 

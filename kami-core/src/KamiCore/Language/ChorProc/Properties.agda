@@ -244,22 +244,23 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
+{-
   idempotent-local : ∀{Δ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> local-Proof (π-Ctx-Proof Δ (ps ∷ pps)) ≡-Local Δp
   idempotent-local ε = refl-Local
   idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) {!!}
   -- (eval-γ-＠ {ps = ps})
   idempotent-local (stepRes Δp) = map-stepRes _ _ (idempotent-local Δp)
+  -}
+
 
 
   idempotent-local' : ∀{Δ Δₗ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> Δ ∣ (ps ∷ pps) ↦ Δₗ Ctx -> Δ ≡ Δₗ
-  idempotent-local' = {!!}
-
-{-
   idempotent-local' ε ε = refl-≡
-  idempotent-local' (Δp , A) (P₁ , proj-＠ x done) = cong₂-≡ _,_ (idempotent-local' Δp P₁) refl-≡
-  idempotent-local' (Δp , A) (P₁ , proj-＠-≠ x) = {!!} -- ⊥-elim (x refl-≤)
+  idempotent-local' (Δp , A) (P₁ , toplevel (proj-＠ x done)) = cong₂-≡ _,_ (idempotent-local' Δp P₁) refl-≡
+  idempotent-local' (Δp , A) (P₁ , toplevel (proj-＠-≠ x)) = ⊥-elim (x refl-≤)
+  idempotent-local' (Δp , A) (P₁ , sublevel-＠ x) = cong₂-≡ _,_ (idempotent-local' Δp P₁) refl-≡
+  idempotent-local' (Δp , A) (P₁ , sublevel-＠-≠ x) = ⊥-elim (x refl-≤)
   idempotent-local' (stepRes Δp) (stepRes P₁) = cong-≡ (_,[ _ ]) (idempotent-local' Δp P₁)
-  -}
 
 
 
@@ -269,8 +270,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   unique-π : ∀{X A B ps} -> π X ∣ ps , [] ↦ A Type -> π X ∣ ps , [] ↦ B Type -> A ≡ B
   unique-π (proj-＠ x done) (proj-＠ x₂ done) = refl-≡
-  unique-π (proj-＠ x done) (proj-＠-≠ x₂) = {!!} -- ⊥-elim (x₂ x)
-  unique-π (proj-＠-≠ x) (proj-＠ x₁ done) = {!!} -- ⊥-elim (x x₁)
+  unique-π (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x) -- ⊥-elim (x₂ x)
+  unique-π (proj-＠-≠ x) (proj-＠ x₁ done) = ⊥-elim (x x₁) -- ⊥-elim (x x₁)
   unique-π (proj-＠-≠ x) (proj-＠-≠ x₁) = refl-≡
   unique-π (p ⇒ p₁) (q ⇒ q₁) = cong₂-≡ _⇒_ (unique-π p q) (unique-π p₁ q₁)
   unique-π (p ×× p₁) (q ×× q₁) = cong₂-≡ _××_ (unique-π p q) (unique-π p₁ q₁)
@@ -280,16 +281,23 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   unique-π Unit Unit = refl-≡
 
 
+
+{-
   unique-π-Ctx : ∀{Γ Δ₀ Δ₁ p ps qs} -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ p ∷ qs ↦ Δ₁ Ctx -> Δ₀ ≡ Δ₁
   unique-π-Ctx ε ε = refl-≡
   unique-π-Ctx (P₁ , x) (Q , x₁) = {!!} --  with unique-π x x₁
   -- ... | refl-≡ = cong-≡ (_, _) (unique-π-Ctx P₁ Q)
   unique-π-Ctx (stepRes P₁) (stepRes Q) = cong-≡ (_,[ _ ]) (unique-π-Ctx P₁ Q)
+  -}
 
+{-
   unique-π-Ctx-≤ : ∀{Γ Δ₀ Δ₁ p ps q qs} -> q ≤ p -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ q ∷ qs ↦ Δ₁ Ctx -> Δ₀ ∣ q ∷ [] ↦ Δ₁ Ctx
   unique-π-Ctx-≤ pp ε ε = ε
   unique-π-Ctx-≤ pp (P₁ , x) (Q , x₁) = {!!} , {!!}
   unique-π-Ctx-≤ pp (stepRes P₁) (stepRes Q) = {!!}
+  -}
+
+
 
 
 
@@ -302,8 +310,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   lem-14 : ∀{p ps} -> π X ∣ p , [] ↦ A Type -> π X ∣ p , ps ↦ B Type -> ω A ∣ ps ↦ B Type
   lem-14 (proj-＠ x done) (proj-＠ x₂ x₃) = x₃
-  lem-14 (proj-＠ x done) (proj-＠-≠ x₂) = {!!} -- ⊥-elim (x₂ x)
-  lem-14 (proj-＠-≠ x) (proj-＠ x₂ x₃) = {!!} -- ⊥-elim (x x₂)
+  lem-14 (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x) -- ⊥-elim (x₂ x)
+  lem-14 (proj-＠-≠ x) (proj-＠ x₂ x₃) = ⊥-elim (x x₂) -- ⊥-elim (x x₂)
   lem-14 {ps = []} (proj-＠-≠ x) (proj-＠-≠ x₁) = done
   lem-14 {ps = _ ∷ _} (proj-＠-≠ x) (proj-＠-≠ x₁) = Unit
   lem-14 (v ⇒ v₁) (w ⇒ w₁) with unique-π v w | unique-π v₁ w₁
@@ -320,7 +328,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
   lem-12 : ∀{p ps} -> π X ∣ p , [] ↦ A Type -> π X ∣ p , ps ↦ B Type -> π (A ＠ p) ∣ p , ps ↦ B Type
-  lem-12 v w = proj-＠ {!!} (lem-14 v w)
+  lem-12 v w = proj-＠ refl-≤ (lem-14 v w)
 
 
 
@@ -358,9 +366,10 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   commute-＠-Exp : ∀ ps -> Γ ⊢ (A ⇒ B) ＠ ps GlobalFibered[ qs ]
                         -> Γ ⊢ ((A ＠ ps) ⇒ (B ＠ ps)) GlobalFibered[ qs ]
   ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠ x₁ done ⇒ proj-＠ x₃ done) Γp = ⟨ t ⟩ _ x (proj-＠ x₁ done) Γp
-  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠ x₁ done ⇒ proj-＠-≠ x₃) Γp = {!!} -- ⊥-elim (x₃ x₁)
-  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠ x₂ done) Γp = {!!} -- ⊥-elim (x₁ x₂)
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠ x₁ done ⇒ proj-＠-≠ x₃) Γp = ⊥-elim (x₃ x₁) -- ⊥-elim (x₃ x₁)
+  ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠ x₂ done) Γp = ⊥-elim (x₁ x₂) -- ⊥-elim (x₁ x₂)
   ⟨ commute-＠-Exp ps t ⟩ p x (proj-＠-≠ x₁ ⇒ proj-＠-≠ x₂) Γp = lam tt
+
 
   map-Var-Fiber : ∀ {p} -> isLocal ⦗ p ⦘₊ Δ -> isLocal ⦗ p ⦘₊ Γ -> (∀{A qs} -> Γ ⊢Var A GlobalFiber[ ⦗ p ⦘₊ ∷ qs ] -> Δ ⊢Var A GlobalFiber[ ⦗ p ⦘₊ ∷ qs ]) -> Γ ⊢ B GlobalFiber[ p ] -> Δ ⊢ B GlobalFiber[ p  ]
 
@@ -370,11 +379,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   map-Var-Fiber Δp Γp V (var v) = var (V v)
   map-Var-Fiber Δp Γp V (recv x) = recv x
   map-Var-Fiber Δp Γp V (send v t) = send v (map-Var-Fiber Δp Γp V t)
-  -- map-Var-Fiber Δp Γp V (box' p≤qs x Γp') = box' p≤qs (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → {!!}}) x) {!!}
-
-  -- res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) Γp'
-  -- (map-Var (λ {(res v) -> res (V v)}) x)
-  map-Var-Fiber Δp Γp V (box' x) = box' (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x) -- (map-Var (λ {(res v) -> res (V v)}) x)
+  map-Var-Fiber Δp Γp V (box' x) = box' (map-Var (λ {q∈ps (stepRes Γproj) (stepRes Δproj) (res v) → res (transp-Ctx-Var ((idempotent-local' Δp Δproj)) (V (transp-Ctx-Var (sym-≡ (idempotent-local' Γp Γproj)) v)))}) x)
   map-Var-Fiber Δp Γp V (pure t) = pure (map-Var-Fiber Δp Γp V t)
   map-Var-Fiber Δp Γp V (seq t s) =
     let t' = map-Var-Fiber Δp Γp V t
@@ -426,9 +431,9 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ⟨ map-Var {Γ = Γ} V (incl t) ⟩ p x Xp Γp = map-Var-Fiber (local-Proof Γp) (local-Proof (π-Ctx-Proof Γ _)) (λ vₗ -> V x (π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _)) Γp vₗ ) (t p x Xp ((π-Ctx-Proof Γ (⦗ p ⦘₊ ∷ _))))
 
 
-  map-Var' : ∀{p} -> isLocal p Γ -> isLocal p Δ -> (∀{A qs} -> Γ ⊢Var A GlobalFiber[ p ∷ qs ] -> Δ ⊢Var A GlobalFiber[ p ∷ qs ])
-            -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
-  map-Var' = {!!}
+  -- map-Var' : ∀{p} -> isLocal p Γ -> isLocal p Δ -> (∀{A qs} -> Γ ⊢Var A GlobalFiber[ p ∷ qs ] -> Δ ⊢Var A GlobalFiber[ p ∷ qs ])
+  --           -> Γ ⊢ X GlobalFibered[ ps ] -> Δ ⊢ X GlobalFibered[ ps ]
+  -- map-Var' = {!!}
 
   -- resVar : ∀{qs rs ps ps'} -> rs ≤ qs -> Γ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ] -> Γ ⊢Var A GlobalFiber[ ps <> (rs ∷ ps') ]
   -- resVar {ps = []} pp (zero x x₁) = {!!}
@@ -464,16 +469,16 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
               -> (VV   : π A₃ ＠ qs ∣ qs , Vs ↦ A₁ Type)
               -> Δ , (A ＠ ps) ⊢Var A₁ GlobalFiber[ ps ∷ Vs' ]
   resVarVar x pp (toplevel (proj-＠ p0 done)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
-  resVarVar x pp (toplevel (proj-＠-≠ p0)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = {!!}
+  resVarVar x pp (toplevel (proj-＠-≠ p0)) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
   resVarVar x pp (sublevel-＠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = zero x (proj-＠ refl-≤ RR)
-  resVarVar x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = {!!}
+  resVarVar x pp (sublevel-＠-≠ p0) (sublevel-＠ qq) (sublevel-＠ x₁) (proj-＠ x₂ RR) = ⊥-elim (p0 (pp ⟡ qq))
   resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
   resVarVar x pp (p0) (sublevel-＠-≠ qq) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
   resVarVar x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ done)) = none
   resVarVar x pp (p0) (sublevel-break _) (sublevel-＠ x₁) ((proj-＠ x₂ Unit)) = none
-  resVarVar x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = {!!}
-  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = {!!}
-  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = {!!}
+  resVarVar x pp (p0) (qq) (sublevel-＠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
+  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠ x₂ x₃)) = ⊥-elim (x₁ refl-≤)
+  resVarVar x pp (p0) (qq) (sublevel-＠-≠ x₁) ((proj-＠-≠ x₂)) = ⊥-elim (x₂ refl-≤)
 
 
   resVar'' : ∀{Γ Δ Δ₀ Δ₁ qs p ps ps' ps'' rs} -> Γ ∣ ps <> (⦗ p ⦘₊ ∷ []) ↦ Δ Ctx
@@ -482,29 +487,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
           -> ⦗ p ⦘₊ ≤ qs
           -> Δ₀ ⊢Var A GlobalFiber[ ps <> (qs ∷ ps') ]
           -> Δ₁ ⊢Var A GlobalFiber[ ps <> (⦗ p ⦘₊ ∷ ps') ]
-  {-
-  resVar'' {ps = []} (P , toplevel (proj-＠ p0 done)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = zero {!!} (proj-＠ refl-≤ RR)
-  resVar'' {ps = []} (P , toplevel (proj-＠-≠ p0)) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = {!!}
-  resVar'' {ps = []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
-  resVar'' {ps = []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
-  resVar'' {ps = []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
-  resVar'' {ps = []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = {!!}
-  resVar'' {ps = []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
-  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp (suc v) = suc (resVar'' {ps = []} P Q R pp v)
-  resVar'' {ps = []} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ []} P Q R pp v)
-  resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp none = none
-  resVar'' {ps = p ∷ []} (P , sublevel-＠ p0) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = zero {!!} (proj-＠ refl-≤ RR)
-  resVar'' {ps = p ∷ []} (P , sublevel-＠-≠ p0) (Q , sublevel-＠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ RR)) = {!!}
-  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
-  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-＠-≠ qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
-  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ done)) = none
-  resVar'' {ps = p ∷ []} (P , p0) (Q , sublevel-break-⇒) (R , sublevel-＠ x₁) pp (zero x (proj-＠ x₂ Unit)) = none
-  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
-  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠ x₂ x₃)) = {!!}
-  resVar'' {ps = p ∷ []} (P , p0) (Q , qq) (R , sublevel-＠-≠ x₁) pp (zero x (proj-＠-≠ x₂)) = {!!}
-  -}
+  
   resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp (suc v) = suc (resVar'' {ps = []} P Q R pp v)
   resVar'' {ps = []} (stepRes P) (stepRes Q) (stepRes R) pp (res v) = res (resVar'' {ps = _ ∷ []} P Q R pp v)
   resVar'' {ps = []} (P , PP) (Q , QQ) (R , RR) pp none = none
@@ -519,6 +502,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
+{-
 
 
 
@@ -782,4 +766,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
-
+-}

@@ -193,8 +193,9 @@ module Chor𝔓roc/Properties2 (This : Chor𝔓roc 𝑗) where
     ι₀-<> {as = []} = []≼
     ι₀-<> {as = x ∷ as} = take ι₀-<>
 
+
     add-element-post : {xs ys : List A} -> ∀{r} -> xs ≼ ys -> cons (postpend xs r) ≼ cons (postpend ys r)
-    add-element-post = {!!}
+    add-element-post {xs = xs} {ys} {r} pp = cons-post xs r ◆-≡≼ (add-element {zs = r ∷ []} pp ◆-≼≡ (sym-≡ (cons-post ys r)))
 
   preserve-◆-transl-Mod-3-2 : ∀{ϕ : ⊢ModeHom ◯ (▲ U)} {ψ : ⊢ModeHom (▲ U) (▲ V)}
               -> rev (transl-Mod3 (ϕ ◆' ψ))
