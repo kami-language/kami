@@ -93,7 +93,30 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   --------------------------------------------------------------
 
   mutual
+    π-Type-Single : (X : ⊢Type ◯) -> ((⟨ Proc This ⟩) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲
+    π-Type-Single Unit ps = Unit
+    π-Type-Single (Either X Y) ps = Either (π-Type-Single X ps) (π-Type-Single Y ps)
+    π-Type-Single (X ⇒ Y) ps = π-Type-Single X ps ⇒ π-Type-Single Y ps
+    π-Type-Single (X ×× Y)  ps = π-Type-Single X ps ×× π-Type-Single Y ps
+    π-Type-Single (Tr X)  ps = Tr (π-Type-Single X ps)
+    π-Type-Single (Lst X)  ps = Lst (π-Type-Single X ps)
+    π-Type-Single (A ＠ l) (p , ps) with decide-≤ ⦗ p ⦘₊ l
+    ... | no x = Unit
+    ... | yes x = ω-Type A ps
+
     π-Type : (X : ⊢Type ◯) -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲
+    π-Type X ((([] since []) , rs) , ps) = ⊥-elim (rs refl-≡)
+    π-Type X (((p ∷ [] since [-]) , rs), ps) = π-Type-Single X (p , ps)
+    π-Type Unit ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (Either X X₁) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (Lst X) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (X ⇒ X₁) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (X ×× X₁) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (Tr X) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
+    π-Type (A ＠ l) (R@(((p ∷ q ∷ ps) since Ps) , rs) , qs) with decide-≤ R l
+    ... | no x = Unit
+    ... | yes x = ω-Type A qs
+{-
     π-Type Unit ps = Unit
     π-Type (Either X Y) ps = Either (π-Type X ps) (π-Type Y ps)
     π-Type (X ⇒ Y) ps = π-Type X ps ⇒ π-Type Y ps
@@ -103,6 +126,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     π-Type (A ＠ l) (p , ps) with decide-≤ p l
     ... | no x = Unit
     ... | yes x = ω-Type A ps
+    -}
 
 
     ω-Type : (A : ⊢Type ▲) -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Type ▲
@@ -121,16 +145,45 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ω-Type (Tr T) (p ∷ ps) = Tr (ω-Type T (p ∷ ps))
     ω-Type (Lst T) (p ∷ ps) = Lst (ω-Type T (p ∷ ps))
 
-  π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps , [] ↦ (π-Type X (ps , [])) Type
-  π-Type-Proof Unit ps = Unit
-  π-Type-Proof (Either X Y) ps = Either (π-Type-Proof X ps) (π-Type-Proof Y ps)
-  π-Type-Proof (X ⇒ Y) ps = π-Type-Proof X ps ⇒ π-Type-Proof Y ps
-  π-Type-Proof (Tr X) ps = Tr (π-Type-Proof X ps)
-  π-Type-Proof (Lst X) ps = Lst (π-Type-Proof X ps)
-  π-Type-Proof (A ＠ l) p with decide-≤ p l
+
+  π-Type-Single-Proof : (X : ⊢Type ◯) -> (p : ⟨ (Proc This) ⟩) -> π X ∣ ⦗ p ⦘₊ , [] ↦ (π-Type X (⦗ p ⦘₊ , [])) Type
+  π-Type-Single-Proof Unit ps = Unit
+  π-Type-Single-Proof (Either X Y) ps = Either (π-Type-Single-Proof X ps) (π-Type-Single-Proof Y ps)
+  π-Type-Single-Proof (X ⇒ Y) ps = π-Type-Single-Proof X ps ⇒ π-Type-Single-Proof Y ps
+  π-Type-Single-Proof (Tr X) ps = Tr (π-Type-Single-Proof X ps)
+  π-Type-Single-Proof (Lst X) ps = Lst (π-Type-Single-Proof X ps)
+  π-Type-Single-Proof (A ＠ l) p with decide-≤ ⦗ p ⦘₊ l
   ... | no x = proj-＠-≠ x
   ... | yes x = proj-＠ x done
-  π-Type-Proof (X ×× Y) ps = _××_ (π-Type-Proof X ps) (π-Type-Proof Y ps)
+  π-Type-Single-Proof (X ×× Y) ps = _××_ (π-Type-Single-Proof X ps) (π-Type-Single-Proof Y ps)
+
+  π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps , [] ↦ (π-Type X (ps , [])) Type
+  π-Type-Proof X (([] since []) , rs) = ⊥-elim (rs refl-≡)
+  π-Type-Proof X ((p ∷ [] since [-]) , rs) = π-Type-Single-Proof X p
+  π-Type-Proof Unit (((p ∷ q ∷ ps) since Ps) , rs) = break-π is-Unit
+  π-Type-Proof (Either X X₁) (((p ∷ q ∷ ps) since Ps) , rs) =  break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-Either
+  π-Type-Proof (Lst X) (((p ∷ q ∷ ps) since Ps) , rs) = Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-Lst
+  π-Type-Proof (X ⇒ X₁) (((p ∷ q ∷ ps) since Ps) , rs) = Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-⇒
+  π-Type-Proof (X ×× X₁) (((p ∷ q ∷ ps) since Ps) , rs) = Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-××
+  π-Type-Proof (Tr X) (((p ∷ q ∷ ps) since Ps) , rs) = Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-Tr
+  π-Type-Proof (A ＠ l) R@(((p ∷ q ∷ ps) since Ps) , rs) with decide-≤ R l
+  ... | no x = proj-＠-≠ x
+  ... | yes x = proj-＠ x done
+
+
+{-
+  unique-π : ∀{X A B ps} -> π X ∣ ps , [] ↦ A Type -> π X ∣ ps , [] ↦ B Type -> A ≡ B
+  unique-π (proj-＠ x done) (proj-＠ x₂ done) = refl-≡
+  unique-π (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x) -- ⊥-elim (x₂ x)
+  unique-π (proj-＠-≠ x) (proj-＠ x₁ done) = ⊥-elim (x x₁) -- ⊥-elim (x x₁)
+  unique-π (proj-＠-≠ x) (proj-＠-≠ x₁) = refl-≡
+  unique-π (p ⇒ p₁) (q ⇒ q₁) = cong₂-≡ _⇒_ (unique-π p q) (unique-π p₁ q₁)
+  unique-π (p ×× p₁) (q ×× q₁) = cong₂-≡ _××_ (unique-π p q) (unique-π p₁ q₁)
+  unique-π (Either p p₁) (Either q q₁) = cong₂-≡ Either (unique-π p q) (unique-π p₁ q₁)
+  unique-π (Tr p) (Tr q) = cong-≡ Tr (unique-π p q)
+  unique-π (Lst p) (Lst q) = cong-≡ Lst (unique-π p q)
+  unique-π Unit Unit = refl-≡
+  unique-π (break-π X) (break-π Y) = refl-≡
 
 
   γ-Type : (X : ⊢Type ◯) -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲
@@ -157,10 +210,35 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no x = sublevel-＠-≠ x
   ... | yes x = sublevel-＠ x
 
+  singleton-≤-≡ : ∀{qs : 𝒫₊ᶠⁱⁿ (Proc This)} -> ∀{p} -> qs ≤-𝒫₊ᶠⁱⁿ ⦗ p ⦘₊ -> qs ≡ (⦗_⦘₊ p )
+  singleton-≤-≡ = {!!}
+
+  -- replaceIn-πS pp (proj-＠ x x₁) = yes $ proj-＠ (pp ⟡ x) x₁
+  -- replaceIn-πS pp (proj-＠-≠ x) = no refl-≡
+  -- replaceIn-πS pp (break-π x) = yes $ break-π x
+
+  replaceIn-π : ∀{rs qs ps} -> qs ≤ rs -> π X ∣ rs , ps ↦ B Type -> (B ≡ Unit) +-𝒰 π X ∣ qs , ps ↦ B Type
+  replaceIn-π pp (proj-＠ x x₁) = yes $ proj-＠ (pp ⟡ x) x₁
+  replaceIn-π pp (proj-＠-≠ x) = no refl-≡
+  replaceIn-π pp (P₁ ⇒ P₂) with singleton-≤-≡ pp
+  ... | refl-≡ = yes (P₁ ⇒ P₂)
+  replaceIn-π pp (P₁ ×× P₂) with singleton-≤-≡ pp
+  ... | refl-≡ = yes (P₁ ×× P₂)
+  replaceIn-π pp (Either P₁ P₂) with singleton-≤-≡ pp
+  ... | refl-≡ = yes (Either P₁ P₂)
+  replaceIn-π pp (Tr P₁) with singleton-≤-≡ pp
+  ... | refl-≡ = yes (Tr P₁)
+  replaceIn-π pp (Lst P₁) with singleton-≤-≡ pp
+  ... | refl-≡ = yes (Lst P₁)
+  replaceIn-π pp Unit with singleton-≤-≡ pp
+  ... | refl-≡ = yes Unit
+  replaceIn-π pp (break-π x) = no refl-≡
+
 
   drop-γ-impl : ∀{p ps n} -> γ X ∣ (p , ps) ↦ A Type -> γ X ∣ (p , ps <> (n ∷ [])) ↦ B Type -> (B ≡ Unit) +-𝒰 (A ≡ B)
   drop-γ-impl (toplevel (proj-＠ x done)) (sublevel-＠ x₁) = yes refl-≡
   drop-γ-impl (toplevel (proj-＠-≠ x)) (sublevel-＠ x₁) = ⊥-elim (x x₁)
+  drop-γ-impl (toplevel (break-π ())) (sublevel-＠ x₁)
   drop-γ-impl (toplevel x) (sublevel-＠-≠ x₁) = no refl-≡
   drop-γ-impl (toplevel x) (sublevel-break x₁) = no refl-≡
   drop-γ-impl (sublevel-＠ x) (sublevel-＠ x₁) = yes refl-≡
@@ -184,7 +262,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes X = refl-≡
   ... | no X = ⊥-elim (X refl-≤)
   eval-γ-＠ {A = A} {ps = ps} {pps = []} with decide-≤ ps ps
-  ... | yes X = refl-≡
+  ... | yes X = ? -- refl-≡
   ... | no X = ⊥-elim (X refl-≤)
 
 {-
@@ -268,18 +346,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
-  unique-π : ∀{X A B ps} -> π X ∣ ps , [] ↦ A Type -> π X ∣ ps , [] ↦ B Type -> A ≡ B
-  unique-π (proj-＠ x done) (proj-＠ x₂ done) = refl-≡
-  unique-π (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x) -- ⊥-elim (x₂ x)
-  unique-π (proj-＠-≠ x) (proj-＠ x₁ done) = ⊥-elim (x x₁) -- ⊥-elim (x x₁)
-  unique-π (proj-＠-≠ x) (proj-＠-≠ x₁) = refl-≡
-  unique-π (p ⇒ p₁) (q ⇒ q₁) = cong₂-≡ _⇒_ (unique-π p q) (unique-π p₁ q₁)
-  unique-π (p ×× p₁) (q ×× q₁) = cong₂-≡ _××_ (unique-π p q) (unique-π p₁ q₁)
-  unique-π (Either p p₁) (Either q q₁) = cong₂-≡ Either (unique-π p q) (unique-π p₁ q₁)
-  unique-π (Tr p) (Tr q) = cong-≡ Tr (unique-π p q)
-  unique-π (Lst p) (Lst q) = cong-≡ Lst (unique-π p q)
-  unique-π Unit Unit = refl-≡
-
 
 
 {-
@@ -325,6 +391,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   lem-14 (Lst v) (Lst w) with unique-π v w
   ... | refl-≡ = done
   lem-14 Unit Unit = done
+  lem-14 (break-π X) (break-π Y) = done
 
 
   lem-12 : ∀{p ps} -> π X ∣ p , [] ↦ A Type -> π X ∣ p , ps ↦ B Type -> π (A ＠ p) ∣ p , ps ↦ B Type
@@ -546,7 +613,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
   -- TODO : We need a new projection type which does not allow opening of not-＠ types in a sublevel.
 
-  -- replaceIn-π : ∀{rs qs ps} -> qs ≤ rs -> π X ∣ rs , ps ↦ B Type -> π X ∣ qs , ps ↦ B Type
+
   -- replaceIn-π pp (proj-＠ x x₁) = {!!}
   -- replaceIn-π pp (proj-＠-≠ x) = {!!}
   -- replaceIn-π pp (P₁ ⇒ P₂) = {!!}
@@ -556,13 +623,15 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- replaceIn-π pp (Lst P₁) = {!!}
   -- replaceIn-π pp Unit = {!!}
 
+
   replaceIn-πS : ∀{rs qs ps} -> qs ≤ rs -> πS X ∣ rs , ps ↦ B Type -> (B ≡ Unit) +-𝒰 πS X ∣ qs , ps ↦ B Type
   replaceIn-πS pp (proj-＠ x x₁) = yes $ proj-＠ (pp ⟡ x) x₁
   replaceIn-πS pp (proj-＠-≠ x) = no refl-≡
   replaceIn-πS pp (break-π x) = yes $ break-π x
 
+
   replaceIn-ω : ∀{rs qs ps} -> qs ≤ rs -> ω A ∣ rs ∷ ps ↦ B Type -> (B ≡ Unit) +-𝒰 ω A ∣ qs ∷ ps ↦ B Type
-  replaceIn-ω pp (proj-◻ x) with replaceIn-πS pp x
+  replaceIn-ω pp (proj-◻ x) with replaceIn-π pp x
   ... | no P = no P
   ... | yes P = yes $ proj-◻ P
   replaceIn-ω pp Unit = yes Unit
@@ -580,7 +649,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ω-replace-≼ {qs0 = []} (take pp) rs≤qs Ap = replaceIn-ω rs≤qs Ap
     ω-replace-≼ {qs0 = q ∷ qs0} (skip pp) rs≤qs Ap = ω-replace-≼ {qs0 = qs0} pp rs≤qs Ap
     ω-replace-≼ {qs0 = q ∷ qs0} (take pp) rs≤qs (proj-◻ x)
-      with πS-replace-≼ {qs0 = qs0} pp rs≤qs x
+      with π-replace-≼ {qs0 = qs0} pp rs≤qs x
     ... | no P = no P
     ... | yes P = yes (proj-◻ P)
     ω-replace-≼ {qs0 = q ∷ qs0} (take pp) rs≤qs Unit = yes Unit
@@ -592,24 +661,24 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     πS-replace-≼ pp x (proj-＠-≠ x₁) = no refl-≡
     πS-replace-≼ pp x (break-π x₁) = no refl-≡
 
-  π-replace-≼ : ∀{p qs ps qs0 qs1} -> (pp : ps ≼ (qs0 <> (qs ∷ qs1))) -> ∀ {rs} -> rs ≤ qs -> π X ∣ p , ps ↦ B Type -> (B ≡ Unit) +-𝒰 π X ∣ p , fst (replaceIn-≼ {qs0 = qs0} pp rs) ↦ B Type
+    π-replace-≼ : ∀{p qs ps qs0 qs1} -> (pp : ps ≼ (qs0 <> (qs ∷ qs1))) -> ∀ {rs} -> rs ≤ qs -> π X ∣ p , ps ↦ B Type -> (B ≡ Unit) +-𝒰 π X ∣ p , fst (replaceIn-≼ {qs0 = qs0} pp rs) ↦ B Type
 
-  π-replace-≼ pp x (proj-＠ x₁ x₂) with ω-replace-≼ pp x x₂
-  ... | no Q = no Q
-  ... | yes Q = yes (proj-＠ x₁ Q)
-  π-replace-≼ pp x (proj-＠-≠ x₁) = no refl-≡
-  π-replace-≼ {qs0 = []} (skip pp) x (P₁ ⇒ P₂) = yes (P₁ ⇒ P₂)
-  π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (P₁ ⇒ P₂) = π-replace-≼ {qs0 = qs0} pp x (P₁ ⇒ P₂)
-  π-replace-≼ {qs0 = []} (skip pp) x (P₁ ×× P₂) = yes (P₁ ×× P₂)
-  π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (P₁ ×× P₂) = π-replace-≼ {qs0 = qs0} pp x (P₁ ×× P₂)
-  π-replace-≼ {qs0 = []} (skip pp) x (Either P₁ P₂) = yes (Either P₁ P₂)
-  π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Either P₁ P₂) = π-replace-≼ {qs0 = qs0} pp x (Either P₁ P₂)
-  π-replace-≼ {qs0 = []} (skip pp) x (Tr P₁) = yes (Tr P₁)
-  π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Tr P₁) = π-replace-≼ {qs0 = qs0} pp x (Tr P₁)
-  π-replace-≼ {qs0 = []} (skip pp) x (Lst P₁) = yes (Lst P₁)
-  π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Lst P₁) = π-replace-≼ {qs0 = qs0} pp x (Lst P₁)
-  π-replace-≼ pp x Unit = no refl-≡
-
+    π-replace-≼ pp x (proj-＠ x₁ x₂) with ω-replace-≼ pp x x₂
+    ... | no Q = no Q
+    ... | yes Q = yes (proj-＠ x₁ Q)
+    π-replace-≼ pp x (proj-＠-≠ x₁) = no refl-≡
+    π-replace-≼ {qs0 = []} (skip pp) x (P₁ ⇒ P₂) = yes (P₁ ⇒ P₂)
+    π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (P₁ ⇒ P₂) = π-replace-≼ {qs0 = qs0} pp x (P₁ ⇒ P₂)
+    π-replace-≼ {qs0 = []} (skip pp) x (P₁ ×× P₂) = yes (P₁ ×× P₂)
+    π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (P₁ ×× P₂) = π-replace-≼ {qs0 = qs0} pp x (P₁ ×× P₂)
+    π-replace-≼ {qs0 = []} (skip pp) x (Either P₁ P₂) = yes (Either P₁ P₂)
+    π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Either P₁ P₂) = π-replace-≼ {qs0 = qs0} pp x (Either P₁ P₂)
+    π-replace-≼ {qs0 = []} (skip pp) x (Tr P₁) = yes (Tr P₁)
+    π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Tr P₁) = π-replace-≼ {qs0 = qs0} pp x (Tr P₁)
+    π-replace-≼ {qs0 = []} (skip pp) x (Lst P₁) = yes (Lst P₁)
+    π-replace-≼ {qs0 = x₁ ∷ qs0} (skip pp) x (Lst P₁) = π-replace-≼ {qs0 = qs0} pp x (Lst P₁)
+    π-replace-≼ pp x (break-π Z) = no refl-≡
+    π-replace-≼ pp x Unit = no refl-≡
 
 
 
@@ -647,6 +716,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   -- =
   --   let t = resVarVar {Δ = Δ} x refl-≤ PP QQ RR VV
   --   in resVarVar2 x pp PP QQ RR VV
+
 
 
 
@@ -911,4 +981,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
-
+-}

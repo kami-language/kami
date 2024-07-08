@@ -133,12 +133,13 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
       data π_∣_↦_Type : ⊢Type ◯ -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
         proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> π A ＠ qs ∣ ps , pps ↦ B Type
         proj-＠-≠ : ∀{ps pps qs A} -> ¬ (ps ≤ qs) -> π A ＠ qs ∣ ps , pps ↦ Unit Type
-        _⇒_ : ∀{p A B} -> π X ∣ p , [] ↦ A Type -> π Y ∣ p , [] ↦ B Type -> π (X ⇒ Y) ∣ p , [] ↦ (A ⇒ B) Type
-        _××_ : ∀{p A B} -> π X ∣ p , [] ↦ A Type -> π Y ∣ p , [] ↦ B Type -> π (X ×× Y) ∣ p , [] ↦ (A ×× B) Type
-        Either : ∀{p A B} -> π X ∣ p , [] ↦ A Type -> π Y ∣ p , [] ↦ B Type -> π (Either X Y) ∣ p , [] ↦ Either A B Type
-        Tr : ∀{p A } -> π X ∣ p , [] ↦ A Type -> π (Tr X) ∣ p , [] ↦ Tr A Type
-        Lst : ∀{p A } -> π X ∣ p , [] ↦ A Type -> π (Lst X) ∣ p , [] ↦ Lst A Type
-        Unit : ∀{p } -> π Unit ∣ p , [] ↦ Unit Type
+        _⇒_ : ∀{p A B} -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π Y ∣ ⦗ p ⦘₊ , [] ↦ B Type -> π (X ⇒ Y) ∣ ⦗ p ⦘₊ , [] ↦ (A ⇒ B) Type
+        _××_ : ∀{p A B} -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π Y ∣ ⦗ p ⦘₊ , [] ↦ B Type -> π (X ×× Y) ∣ ⦗ p ⦘₊ , [] ↦ (A ×× B) Type
+        Either : ∀{p A B} -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π Y ∣ ⦗ p ⦘₊ , [] ↦ B Type -> π (Either X Y) ∣ ⦗ p ⦘₊ , [] ↦ Either A B Type
+        Tr : ∀{p A } -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π (Tr X) ∣ ⦗ p ⦘₊ , [] ↦ Tr A Type
+        Lst : ∀{p A } -> π X ∣ ⦗ p ⦘₊ , [] ↦ A Type -> π (Lst X) ∣ ⦗ p ⦘₊ , [] ↦ Lst A Type
+        Unit : ∀{p } -> π Unit ∣ ⦗ p ⦘₊ , [] ↦ Unit Type
+        break-π : ∀{p q rs Ps Qs} -> isNot＠ X -> π X ∣ (((p ∷ q ∷ rs) since Ps) , Qs) , [] ↦ Unit Type
 
       data πS_∣_↦_Type : ⊢Type ◯ -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲ -> 𝒰 (𝑗) where
         proj-＠ : ∀{ps pps qs A B} -> ps ≤ qs -> ω A ∣ pps ↦ B Type -> πS A ＠ qs ∣ ps , pps ↦ B Type
@@ -154,7 +155,7 @@ module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
 
       data ω_∣_↦_Type : ⊢Type ▲ -> List (𝒫₊ᶠⁱⁿ (Proc This)) -> ⊢Type ▲ -> 𝒰 (𝑗) where
         done : ∀{A} -> ω A ∣ [] ↦ A Type
-        proj-◻ : ∀{p ps A} -> πS X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ A Type
+        proj-◻ : ∀{p ps A} -> π X ∣ p , ps ↦ A Type -> ω ◻ X ∣ p ∷ ps ↦ A Type
         Unit : ∀{p ps} -> ω Unit ∣ p ∷ ps ↦ Unit Type
         -- _⇒_ : ∀{p ps A₀ A₁ B₀ B₁} -> ω A₀ ∣ p ∷ ps ↦ A₁ Type -> ω B₀ ∣ p ∷ ps ↦ B₁ Type -> ω (A₀ ⇒ B₀) ∣ p ∷ ps ↦ (A₁ ⇒ B₁) Type
         -- _××_ : ∀{p ps A₀ A₁ B₀ B₁} -> ω A₀ ∣ p ∷ ps ↦ A₁ Type -> ω B₀ ∣ p ∷ ps ↦ B₁ Type -> ω (A₀ ×× B₀) ∣ p ∷ ps ↦ (A₁ ×× B₁) Type
