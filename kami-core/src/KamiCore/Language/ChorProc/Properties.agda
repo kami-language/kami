@@ -648,10 +648,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   --   let t = resVarVar {Δ = Δ} x refl-≤ PP QQ RR VV
   --   in resVarVar2 x pp PP QQ RR VV
 
-{-
-
-
-{-
 
 
 
@@ -915,5 +911,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
--}
--}
+
