@@ -171,7 +171,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes x = proj-＠ x done
 
 
-{-
   unique-π : ∀{X A B ps} -> π X ∣ ps , [] ↦ A Type -> π X ∣ ps , [] ↦ B Type -> A ≡ B
   unique-π (proj-＠ x done) (proj-＠ x₂ done) = refl-≡
   unique-π (proj-＠ x done) (proj-＠-≠ x₂) = ⊥-elim (x₂ x) -- ⊥-elim (x₂ x)
@@ -210,12 +209,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no x = sublevel-＠-≠ x
   ... | yes x = sublevel-＠ x
 
-  singleton-≤-≡ : ∀{qs : 𝒫₊ᶠⁱⁿ (Proc This)} -> ∀{p} -> qs ≤-𝒫₊ᶠⁱⁿ ⦗ p ⦘₊ -> qs ≡ (⦗_⦘₊ p )
-  singleton-≤-≡ = {!!}
 
-  -- replaceIn-πS pp (proj-＠ x x₁) = yes $ proj-＠ (pp ⟡ x) x₁
-  -- replaceIn-πS pp (proj-＠-≠ x) = no refl-≡
-  -- replaceIn-πS pp (break-π x) = yes $ break-π x
+
 
   replaceIn-π : ∀{rs qs ps} -> qs ≤ rs -> π X ∣ rs , ps ↦ B Type -> (B ≡ Unit) +-𝒰 π X ∣ qs , ps ↦ B Type
   replaceIn-π pp (proj-＠ x x₁) = yes $ proj-＠ (pp ⟡ x) x₁
@@ -257,12 +252,21 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no X = ⊥-elim ({!!})
   -}
 
+  eval-π-Single-＠ : π-Type-Single (A ＠ ⦗ p ⦘₊) (p , []) ≡ A
+  eval-π-Single-＠ {p = p} with decide-≤ {X = 𝒫₊ᶠⁱⁿ (Proc This)} ⦗ p ⦘₊ ⦗ p ⦘₊
+  ... | no x = ⊥-elim (x refl-≤)
+  ... | yes x = refl-≡
+
   eval-γ-＠ : ∀{pps} -> γ-Type (A ＠ ps) (ps , pps) ≡ A
   eval-γ-＠ {A = A} {ps = ps} {pps = p ∷ pps} with decide-≤ ps ps
   ... | yes X = refl-≡
   ... | no X = ⊥-elim (X refl-≤)
-  eval-γ-＠ {A = A} {ps = ps} {pps = []} with decide-≤ ps ps
-  ... | yes X = ? -- refl-≡
+
+
+  eval-γ-＠ {ps = (([] since []) , rs)} {pps = []} = ⊥-elim (rs refl-≡)
+  eval-γ-＠ {ps = ((p ∷ [] since [-]) , rs)} {pps = []} = eval-π-Single-＠ {p = p} 
+  eval-γ-＠ {A = A} {ps = R@(((p ∷ q ∷ ps) since Ps) , rs)} {pps = []} with decide-≤ R R
+  ... | yes X = refl-≡
   ... | no X = ⊥-elim (X refl-≤)
 
 {-
@@ -322,13 +326,10 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
-{-
   idempotent-local : ∀{Δ : ⊢Ctx} -> ∀{pps} -> (Δp : isLocal ps Δ) -> local-Proof (π-Ctx-Proof Δ (ps ∷ pps)) ≡-Local Δp
   idempotent-local ε = refl-Local
-  idempotent-local {ps = ps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) {!!}
-  -- (eval-γ-＠ {ps = ps})
+  idempotent-local {ps = ps} {pps = pps} (Δp , A) = map-,Local _ _ (idempotent-local Δp) ((eval-γ-＠ {ps = ps} {pps = pps}))
   idempotent-local (stepRes Δp) = map-stepRes _ _ (idempotent-local Δp)
-  -}
 
 
 
@@ -347,21 +348,6 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
 
 
 
-
-{-
-  unique-π-Ctx : ∀{Γ Δ₀ Δ₁ p ps qs} -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ p ∷ qs ↦ Δ₁ Ctx -> Δ₀ ≡ Δ₁
-  unique-π-Ctx ε ε = refl-≡
-  unique-π-Ctx (P₁ , x) (Q , x₁) = {!!} --  with unique-π x x₁
-  -- ... | refl-≡ = cong-≡ (_, _) (unique-π-Ctx P₁ Q)
-  unique-π-Ctx (stepRes P₁) (stepRes Q) = cong-≡ (_,[ _ ]) (unique-π-Ctx P₁ Q)
-  -}
-
-{-
-  unique-π-Ctx-≤ : ∀{Γ Δ₀ Δ₁ p ps q qs} -> q ≤ p -> Γ ∣ p ∷ ps ↦ Δ₀ Ctx -> Γ ∣ q ∷ qs ↦ Δ₁ Ctx -> Δ₀ ∣ q ∷ [] ↦ Δ₁ Ctx
-  unique-π-Ctx-≤ pp ε ε = ε
-  unique-π-Ctx-≤ pp (P₁ , x) (Q , x₁) = {!!} , {!!}
-  unique-π-Ctx-≤ pp (stepRes P₁) (stepRes Q) = {!!}
-  -}
 
 
 
@@ -981,4 +967,4 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
       f = λ { _ here → p∈qs}
--}
+

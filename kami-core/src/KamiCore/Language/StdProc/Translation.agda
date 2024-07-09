@@ -255,7 +255,7 @@ module _ (This : Std𝔓roc) where
                  (remap-FCtx {Δ = Δ} {ps = []} t'')
                  -- (transp-Ctx-Locally (eval-FCtx {Δ = Δ}) t'')
 
-      in t''' -- t'''
+      in t'''
   tr Δp (pure t) = pure (tr Δp t)
   tr Δp (seq t t₁) = seq (tr Δp t) (tr (Δp , _) t₁)
   tr Δp (lam t) =
