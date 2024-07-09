@@ -169,16 +169,66 @@ module Std𝔓roc/Definition (This : Std𝔓roc) where
   open [Std𝔓roc/Definition::Term]
 
   _⋆-LCtx_ : LCtx -> LCtx -> LCtx
-  _⋆-LCtx_ Γ Δ = {!!}
+  Γ ⋆-LCtx ε = Γ
+  Γ ⋆-LCtx (Δ , x) = (Γ ⋆-LCtx Δ) , x
+  infixl 25 _⋆-LCtx_
 
 
-  wk : Γ ⊢ A Locally -> Γ , B ⊢ A Locally
-  wk = {!!}
+  wk-Var-ind : Γ ⋆-LCtx Δ ⊢Var A Locally -> (Γ , B) ⋆-LCtx Δ ⊢Var A Locally
+  wk-Var-ind {Δ = ε} v = suc v
+  wk-Var-ind {Δ = Δ , x} zero = zero
+  wk-Var-ind {Δ = Δ , x} (suc v) = suc (wk-Var-ind {Δ = Δ} v)
+
+  wk-ind : Γ ⋆-LCtx Δ ⊢ A Locally -> (Γ , B) ⋆-LCtx Δ ⊢ A Locally
+  wk-ind {Γ = Γ} {Δ = Δ} (var x) = var (wk-Var-ind x)
+  wk-ind {Γ = Γ} {Δ = Δ} (recv x) = recv x
+  wk-ind {Γ = Γ} {Δ = Δ} (send t) = send (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} (pure t) = pure (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} (seq t t₁) = seq (wk-ind t) (wk-ind {Δ = Δ , _} t₁)
+  wk-ind {Γ = Γ} {Δ = Δ} (proj t n₁) = proj (wk-ind t) n₁
+  wk-ind {Γ = Γ} {Δ = Δ} (box x) = box λ n -> wk-ind (x n)
+  wk-ind {Γ = Γ} {Δ = Δ} (lam t) = lam (wk-ind {Δ = Δ , _} t)
+  wk-ind {Γ = Γ} {Δ = Δ} (app t t₁) = app (wk-ind t) (wk-ind t₁)
+  wk-ind {Γ = Γ} {Δ = Δ} (t , t₁) = wk-ind t , wk-ind t₁
+  wk-ind {Γ = Γ} {Δ = Δ} (fst-×× t) = fst-×× (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} (snd-×× t) = snd-×× (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} tt = tt
+  wk-ind {Γ = Γ} {Δ = Δ} (left t) = left (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} (right t) = right (wk-ind t)
+  wk-ind {Γ = Γ} {Δ = Δ} (either t t₁ t₂) = either ((wk-ind t)) ((wk-ind {Δ = Δ , _} t₁)) ((wk-ind {Δ = Δ , _} t₂))
+  wk-ind {Γ = Γ} {Δ = Δ} [] = []
+  wk-ind {Γ = Γ} {Δ = Δ} (t ∷ t₁) = wk-ind t ∷ wk-ind t₁
+  wk-ind {Γ = Γ} {Δ = Δ} (rec-Lst t t₁ t₂) = rec-Lst (wk-ind t) (wk-ind t₁) (wk-ind {Δ = (Δ , _) , _} t₂)
+
+  wk : Γ ⊢ A Locally -> (Γ , B) ⊢ A Locally
+  wk = wk-ind {Δ = ε}
+
+  Subst : LCtx -> LCtx -> _
+  Subst Γ Δ = (∀ B -> Γ ⊢Var B Locally -> Δ ⊢ B Locally)
+
+  wk-Subst : Subst Γ Δ -> Subst (Γ , A) (Δ , A)
+  wk-Subst σ = (λ {_ zero -> var zero ; _ (suc v) -> wk (σ _ v) })
 
   subst : (∀ B -> Γ ⊢Var B Locally -> Δ ⊢ B Locally) -> Γ ⊢ A Locally -> Δ ⊢ A Locally
-  subst = {!!}
-
-
+  subst σ (var x) = σ _ x
+  subst σ (recv x) = recv x
+  subst σ (send t) = send (subst σ t)
+  subst σ (pure t) = pure (subst σ t)
+  subst σ (seq t t₁) = seq (subst σ t) (subst (wk-Subst σ) t₁)
+  subst σ (proj t n₁) = proj (subst σ t) n₁
+  subst σ (box x) = box λ n -> subst σ (x n)
+  subst σ (lam t) = lam (subst (wk-Subst σ) t)
+  subst σ (app t t₁) = app (subst σ t) (subst σ t₁)
+  subst σ (t , t₁) = subst σ t , subst σ t₁
+  subst σ (fst-×× t) = fst-×× (subst σ t)
+  subst σ (snd-×× t) = snd-×× (subst σ t)
+  subst σ tt = tt
+  subst σ (left t) = left (subst σ t)
+  subst σ (right t) = right (subst σ t)
+  subst σ (either t t₁ t₂) = either ((subst σ t)) ((subst (wk-Subst σ) t₁)) ((subst (wk-Subst σ) t₂))
+  subst σ [] = []
+  subst σ (t ∷ t₁) = subst σ t ∷ subst σ t₁
+  subst σ (rec-Lst t t₁ t₂) = rec-Lst (subst σ t) (subst σ t₁) (subst (wk-Subst (wk-Subst σ)) t₂)
 
   λStdProc : STT _
   λStdProc = record
