@@ -187,8 +187,8 @@ module _ (This : Std𝔓roc) where
 
 
   tπ' : ∀{X B Γ p} -> π X ∣ p , [] ↦ B Type -> Γ ⊢ ⟦ ◻ X ⟧-LType Locally -> Γ ⊢ ⟦ B ⟧-LType Locally
-  tπ' {p = ([] since []) , p≁⊥} P t = ⊥-elim (p≁⊥ refl-≡)
-  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , p≁⊥} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘₊))
+  tπ' {p = ([] since []) , ()} P t
+  tπ' {X = X} {p = ((x₁ ∷ []) since [-]) , done} P t with unique-π P (π-Type-Proof X (⦗ x₁ ⦘₊))
   ... | refl-≡ = proj t x₁
   tπ' {X = X} {p = ((x₁ ∷ x ∷ p) since uniquep) , p≁⊥} P t = {!!}
 

@@ -105,7 +105,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
     ... | yes x = ω-Type A ps
 
     π-Type : (X : ⊢Type ◯) -> ((𝒫₊ᶠⁱⁿ (Proc This)) ×-𝒰 List (𝒫₊ᶠⁱⁿ (Proc This))) -> ⊢Type ▲
-    π-Type X ((([] since []) , rs) , ps) = ⊥-elim (rs refl-≡)
+    π-Type X ((([] since []) , ()) , ps)
     π-Type X (((p ∷ [] since [-]) , rs), ps) = π-Type-Single X (p , ps)
     π-Type Unit ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
     π-Type (Either X X₁) ((((p ∷ q ∷ ps) since Ps) , rs) , qs) = Unit
@@ -158,8 +158,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   π-Type-Single-Proof (X ×× Y) ps = _××_ (π-Type-Single-Proof X ps) (π-Type-Single-Proof Y ps)
 
   π-Type-Proof : (X : ⊢Type ◯) -> (ps : (𝒫₊ᶠⁱⁿ (Proc This))) -> π X ∣ ps , [] ↦ (π-Type X (ps , [])) Type
-  π-Type-Proof X (([] since []) , rs) = ⊥-elim (rs refl-≡)
-  π-Type-Proof X ((p ∷ [] since [-]) , rs) = π-Type-Single-Proof X p
+  π-Type-Proof X (([] since []) , ())
+  π-Type-Proof X ((p ∷ [] since [-]) , done) = π-Type-Single-Proof X p
   π-Type-Proof Unit (((p ∷ q ∷ ps) since Ps) , rs) = break-π is-Unit
   π-Type-Proof (Either X X₁) (((p ∷ q ∷ ps) since Ps) , rs) =  break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-Either
   π-Type-Proof (Lst X) (((p ∷ q ∷ ps) since Ps) , rs) = Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].break-π Chor𝔓roc/Definition.[Chor𝔓roc/Definition::Type].is-Lst
@@ -263,8 +263,8 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no X = ⊥-elim (X refl-≤)
 
 
-  eval-γ-＠ {ps = (([] since []) , rs)} {pps = []} = ⊥-elim (rs refl-≡)
-  eval-γ-＠ {ps = ((p ∷ [] since [-]) , rs)} {pps = []} = eval-π-Single-＠ {p = p} 
+  eval-γ-＠ {ps = (([] since []) , ())} {pps = []}
+  eval-γ-＠ {ps = ((p ∷ [] since [-]) , done)} {pps = []} = eval-π-Single-＠ {p = p} 
   eval-γ-＠ {A = A} {ps = R@(((p ∷ q ∷ ps) since Ps) , rs)} {pps = []} with decide-≤ R R
   ... | yes X = refl-≡
   ... | no X = ⊥-elim (X refl-≤)

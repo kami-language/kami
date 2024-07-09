@@ -59,6 +59,7 @@ module _ {A : 𝒰 𝑖} where
 record ChorProc 𝑗 : 𝒰 (𝑗 ⁺) where
   field Proc : StrictOrder 𝑗
   field {{isFiniteStrictOrder:Proc}} : isFiniteStrictOrder Proc
+  field {{hasDecidableEquality:Proc}} : hasDecidableEquality ⟨ Proc ⟩
   field allProcs : 𝒫₊ᶠⁱⁿ Proc
   field inAllProcs : ∀{a} -> a ∈ ⟨ fst allProcs ⟩
 
@@ -69,8 +70,8 @@ module _ 𝑗 where macro Chor𝔓roc = #structureOn (ChorProc 𝑗)
 
 module Chor𝔓roc/Definition (This : Chor𝔓roc 𝑗) where
   postulate instance
-    hasDecidableEquality:Proc : hasDecidableEquality ⟨(This .Proc)⟩
-    hasDecidableEquality:P : hasDecidableEquality (𝒫₊ᶠⁱⁿ (This .Proc))
+    -- hasDecidableEquality:Proc : hasDecidableEquality ⟨(This .Proc)⟩
+    -- hasDecidableEquality:P : hasDecidableEquality (𝒫₊ᶠⁱⁿ (This .Proc))
     isProp:≤-P : ∀{a b : 𝒫₊ᶠⁱⁿ (This .Proc)} -> isProp (a ≤ b)
 
   Super : Chor𝔐TT _

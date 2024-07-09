@@ -43,6 +43,10 @@ module _  {n : ℕ} where
     isStrictOrderHom:suc : isStrictOrderHom {A = 𝔽 n} {B = 𝔽 (suc n)} suc
     isStrictOrderHom:suc = record { homPreserves = λ x → s<s x }
 
+  instance
+    hasDecidableEquality:𝔽 : hasDecidableEquality (𝔽 n)
+    hasDecidableEquality:𝔽 = hasDecidableEquality:byStrictOrder
+
 enumerate : ∀ n -> 𝒫ᶠⁱⁿ (𝔽 n)
 enumerate zero = ⊥
 enumerate (suc n) = ⦗ zero ⦘ ∨ mapᵘ-𝒫ᶠⁱⁿ 𝑠𝑢𝑐 (enumerate n)
@@ -54,17 +58,20 @@ hasAll {n = suc n} (suc i) = mapᵘ-𝒫ᶠⁱⁿ-≤ 𝑠𝑢𝑐 (hasAll i) �
 hasAll-∈ : ∀{n} -> (i : 𝔽 n) -> i ∈ ⟨ enumerate n ⟩
 hasAll-∈ i = ⟨ hasAll i ⟩ _ here
 
-notEmptyByElement : ∀{A : 𝒰 𝑖} -> ∀{a} {as : List A} -> a ∈ as -> ¬ as ≡ []
-notEmptyByElement () refl-≡
+notEmptyByElement : ∀{A : 𝒰 𝑖} -> ∀{a} {as : List A} -> a ∈ as -> isNonEmptyList as
+notEmptyByElement (there _) = done
+notEmptyByElement here = done
 
 enumerate₊ : ∀ n -> 𝒫₊ᶠⁱⁿ (𝔽 (suc n))
-enumerate₊ n = enumerate (suc n) , λ p -> notEmptyByElement (hasAll-∈ zero) (cong-≡ ⟨_⟩ p)
+enumerate₊ n = enumerate (suc n) , notEmptyByElement (hasAll-∈ zero)
+
 
 
 module Std𝔓roc/Definition (This : Std𝔓roc) where
 
   module [Std𝔓roc/Definition::Private] where
-    n = This .Roles
+    n : ℕ
+    n = suc (This .Roles)
 
     Super : Chor𝔓roc _
     Super = record
