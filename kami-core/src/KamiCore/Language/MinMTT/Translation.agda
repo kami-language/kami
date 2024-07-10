@@ -19,6 +19,7 @@ open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
 open import Agora.Category.Std.Category.Structured.Classified.Definition
 open import Agora.Order.Preorder
+open import Agora.Order.Lattice
 
 
 open import KamiTheory.Basics
@@ -124,6 +125,12 @@ module _ (This : Min𝔐TT 𝑖) where
         -> Γ ⊢ B
   Letmod-Term = {!!}
 
+  Letmod'-Term : ∀{μ : o ⟶ n}
+        -> Γ ⊢ Mod-Type (split This μ) A
+        -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B
+        -> Γ ⊢ B
+  Letmod'-Term = {!!}
+
   -- splits-path : {m n : 𝓂} -> {μ : ModeHom m n}
   --               -> (Γ : ⊢Ctx {k} n) -> (A : ⊢Type m)
   --               -> Γ ∙! μ ⊢ A -> Γ ∙!* split This μ ⊢ A
@@ -136,15 +143,15 @@ module _ (This : Min𝔐TT 𝑖) where
                -> ⟪𝔉₁∣ Γ Ctx⟫ ⊢ ⟪𝔉₁∣ X Type⟫ at a of This
   ⟪𝔉₁∣ var x α x₁ Term⟫ =
     let (varOver η' x pp) = (transl-Var x)
-    in var x (α ◆ {!!}) {!!}
+    in var x (α ◆ ⟨ 2celliso pp ⟩) (preserve-◆ α ⟨ 2celliso pp ⟩ ⟡-∼≤ [ x₁ , is⊥:2celliso This pp ⟡-∼≤ initial-⊥ ]-∨)
   ⟪𝔉₁∣ mod μ t Term⟫ = Mod-Term (split This μ) ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ letmod ν t s Term⟫ = Letmod-Term ν ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ s Term⟫
   ⟪𝔉₁∣ trans α x t Term⟫ = {!!}
   ⟪𝔉₁∣ pure t Term⟫ = pure ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ seq t t₁ Term⟫ = seq ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫
-  ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod-Term id (var {!suc! zero!} id {!preserve-id!})
+  ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod'-Term (var zero ⟨ 2celliso refl-∼ ⟩ (is⊥:2celliso This refl-∼ ⟡-∼≤ initial-⊥)) -- ⟪𝔉₁∣ var zero υ⁻¹-l-◆ {!!} Term⟫
     let t' = ⟪𝔉₁∣ t Term⟫
-    in {!!})
+    in wk-ind {Δ = ε ∙⟮ _ ∣ _ ⟯} t')
   ⟪𝔉₁∣ app {μ = μ} t t₁ Term⟫ = app ⟪𝔉₁∣ t Term⟫ (Mod-Term (split This μ) ⟪𝔉₁∣ t₁ Term⟫)
   ⟪𝔉₁∣ tt Term⟫ = tt
   ⟪𝔉₁∣ left t Term⟫ = left ⟪𝔉₁∣ t Term⟫

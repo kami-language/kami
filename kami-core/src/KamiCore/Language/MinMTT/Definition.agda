@@ -49,6 +49,8 @@ record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field impureTrans : ⟨ Classification ⟩
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
   field preserve-⇃◆⇂ : ∀{a b c : ⟨ ModeTheory ⟩} -> {μ₀ μ₁ : a ⟶ b} -> {ν₀ ν₁ : b ⟶ c} -> (α : μ₀ ⟹ μ₁) -> (β : ν₀ ⟹ ν₁) -> class (α ⇃◆⇂ β) ∼ class α ∨ class β
+  field is⊥:2celliso : ∀{a b : ⟨ ModeTheory ⟩} -> {μ₀ μ₁ : a ⟶ b} -> (pp : μ₀ ∼ μ₁)
+                        -> class (⟨ 2celliso pp ⟩) ∼ ⊥
 
 open MinMTT public
 
