@@ -17,9 +17,13 @@ open import Agora.Category.Std.Natural.Definition
 open import Agora.Category.Std.Morphism.Iso
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
+open import Agora.Category.Std.Category.Structured.Classified.Definition
+open import Agora.Order.Preorder
 
 
-open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+open import KamiTheory.Basics
+open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (ModeHom)
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id') hiding (unit-r-◆)
 
 open import KamiCore.Language.MTT.Definition
 open import KamiCore.Language.MinMTT.Definition
@@ -43,8 +47,9 @@ module _ (This : Min𝔐TT 𝑖) where
   open 𝔐TT/Definition Super
   open [𝔐TT/Definition::Type] renaming (⊢Type to 𝔐TT⊢Type)
   open [𝔐TT/Definition::Ctx] renaming (⊢Ctx to 𝔐TT⊢Ctx)
-  open [𝔐TT/Definition::Term] renaming (_⊢_ to _𝔐TT⊢_)
+  open [𝔐TT/Definition::Term] renaming (_⊢_ to _𝔐TT⊢_ ; _⊢Var⟮_∣_⇒_⟯ to _𝔐TT⊢Var⟮_∣_⇒_⟯ ; _⊢Var⟮_∣_⇒∼_⟯ to _𝔐TT⊢Var⟮_∣_⇒∼_⟯)
   open Variables/Mode
+  open Variables/Hom
 
   par-𝔉₁ : Param Super -> Param This
   par-𝔉₁ x = x
@@ -77,6 +82,33 @@ module _ (This : Min𝔐TT 𝑖) where
   -- End Contexts
   --------------------------------------------------------------------
 
+  --------------------------------------------------
+  -- Variables
+
+
+  mutual
+    preserve-∙!* : {X : 𝔐TT⊢Type k} {Γ : 𝔐TT⊢Ctx {n} m}
+                  -> ∀ (ωs : Path _⟶ₛ_ l  m) -> {μ : k ⟶ o}
+                  -- -> ∀ ωs -> {μ : k ⟶ o}
+                  -> Γ 𝔐TT⊢Var⟮ X ∣ μ ⇒ η ⟯
+                  -> ⟪𝔉₁∣ Γ Ctx⟫ ∙!* ωs ⊢Var⟮ ⟪𝔉₁∣ X Type⟫  ∣ μ ⇒∼ (Comp-Path fst ωs) ◆ η ⟯
+    preserve-∙!* id' v = transp-Var-∼ (sym unit-l-◆) (transl-Var v)
+    preserve-∙!* (x ⨾ ωs) v =
+      let (varOver η' x ωs◆η∼η') = preserve-∙!* ωs v
+      in varOver _ (suc! x) (assoc-l-◆ ∙ refl-∼ ◈ ωs◆η∼η')
+
+
+    transl-Var : {X : 𝔐TT⊢Type k} {Γ : 𝔐TT⊢Ctx {n} m} -> Γ 𝔐TT⊢Var⟮ X ∣ μ ⇒ η ⟯ -> ⟪𝔉₁∣ Γ Ctx⟫ ⊢Var⟮ ⟪𝔉₁∣ X Type⟫  ∣ μ ⇒∼ η ⟯
+    transl-Var zero = varOver _ zero refl-∼ -- zero
+    transl-Var (suc! {ω = ω} v) = transp-Var-∼ (preserve-comp-split This ◈ refl-∼) (preserve-∙!* (split This ω) v)
+    transl-Var (suc v) =
+      let (varOver η' v' p) = transl-Var v
+      in varOver _ (suc v') p
+
+
+  -- End Variables
+  --------------------------------------------------
+
 
   --------------------------------------------------------------------
   -- Terms
@@ -102,13 +134,17 @@ module _ (This : Min𝔐TT 𝑖) where
   ⟪𝔉₁∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
                -> Γ ⊢ X at a of Super
                -> ⟪𝔉₁∣ Γ Ctx⟫ ⊢ ⟪𝔉₁∣ X Type⟫ at a of This
-  ⟪𝔉₁∣ var x α x₁ Term⟫ = {!!}
+  ⟪𝔉₁∣ var x α x₁ Term⟫ =
+    let (varOver η' x pp) = (transl-Var x)
+    in var x (α ◆ {!!}) {!!}
   ⟪𝔉₁∣ mod μ t Term⟫ = Mod-Term (split This μ) ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ letmod ν t s Term⟫ = Letmod-Term ν ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ s Term⟫
   ⟪𝔉₁∣ trans α x t Term⟫ = {!!}
   ⟪𝔉₁∣ pure t Term⟫ = pure ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ seq t t₁ Term⟫ = seq ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫
-  ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod-Term id {!!} {!!})
+  ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod-Term id (var {!suc! zero!} id {!preserve-id!})
+    let t' = ⟪𝔉₁∣ t Term⟫
+    in {!!})
   ⟪𝔉₁∣ app {μ = μ} t t₁ Term⟫ = app ⟪𝔉₁∣ t Term⟫ (Mod-Term (split This μ) ⟪𝔉₁∣ t₁ Term⟫)
   ⟪𝔉₁∣ tt Term⟫ = tt
   ⟪𝔉₁∣ left t Term⟫ = left ⟪𝔉₁∣ t Term⟫
@@ -142,5 +178,6 @@ instance
     }
 
 
+{-
 -}
-
+-}

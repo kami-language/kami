@@ -21,6 +21,7 @@ open import Agora.TypeTheory.ParamSTT.Definition
 
 
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 
 open import KamiCore.Language.MTT.Definition
 open import KamiCore.Language.MinMTT.Definition
@@ -37,11 +38,25 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
 
   private variable
     a b c : 𝓂
+    X Y : ⊢Type a
+    μ ν η ν₀ ν₁ : ModeHom a b
 
 
   preserve-◆-Mod-Type : {μ : Path _⟶ₛ_ a b} {ν : Path _⟶ₛ_ b c}
                       -> Mod-Type (μ ◆' ν) A ≡ Mod-Type ν (Mod-Type μ A)
   preserve-◆-Mod-Type {μ = id'} = refl-≡
   preserve-◆-Mod-Type {μ = x ⨾ μ} = preserve-◆-Mod-Type {μ = μ}
+
+
+  -- transp- : Γ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> Γ ∙! idₛ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+
+  lift-id : Γ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> Γ ∙! idₛ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  lift-id v = {!!}
+
+  transp-Var-∼ : ν₀ ∼ ν₁ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₀ ⟯ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₁ ⟯
+  transp-Var-∼ = {!!}
+
+
+
 
 

@@ -24,6 +24,8 @@ record MTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
   field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
+  field pureTrans : ⟨ Classification ⟩
+  field impureTrans : ⟨ Classification ⟩
 
 
 open MTT public
@@ -160,10 +162,10 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
       field snd : η ⟹ target
 
     data _⊢_ {m} : ⊢Ctx {k} m -> ⊢Type m -> 𝒰 𝑖 where
-      var : ∀{μ : _ ⟶ o}
+      var : ∀{μ : _ ⟶ m}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
-            -> class α ∼ ⊥
+            -> class α ≤ pureTrans This
             -> Γ ⊢ A
 
       -- modalities

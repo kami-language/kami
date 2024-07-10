@@ -26,12 +26,23 @@ open import KamiCore.Language.MTT.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 
 
+module _ {𝒞 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝒞}}
+         {R : 𝒞 -> 𝒞 -> 𝒰 𝑘}
+         (forget : ∀{a b} -> R a b -> a ⟶ b)
+         where
+  Comp-Path : ∀{a b : 𝒞} -> Path R a b -> a ⟶ b
+  Comp-Path id' = id
+  Comp-Path (x ⨾ μ) = forget x ◆ Comp-Path μ
+
+
 record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
   field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1)
+  field isSmall:id : ∀{a : ⟨ ModeTheory ⟩} -> isSmall (id {a = a})
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> ∑ λ (ϕ : a ⟶ b) -> isSmall ϕ) a b
   field preserve-◆-split : ∀{a b c : ⟨ ModeTheory ⟩} -> {μ : a ⟶ b} -> {ν : b ⟶ c}
                          -> split (μ ◆ ν) ≡ split μ ◆' split ν
+  field preserve-comp-split : ∀{a b : ⟨ ModeTheory ⟩} -> {μ : a ⟶ b} -> Comp-Path fst (split μ) ∼ μ
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰' (𝑖 ⌄ 5)
   field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
   field pureTrans : ⟨ Classification ⟩
@@ -56,12 +67,17 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
     Super = record
       { ModeTheory = This .ModeTheory
       ; isTargetMode = This .isTargetMode
+      ; pureTrans = This .pureTrans
+      ; impureTrans = This .impureTrans
       }
 
     𝓂 = ⟨ This .ModeTheory ⟩
 
     _⟶ₛ_ : (a b : ⟨ This .ModeTheory ⟩) -> 𝒰' _
     _⟶ₛ_ a b = ∑ λ (ϕ : a ⟶ b) -> isSmall This ϕ
+
+    idₛ : ∀ {a} -> a ⟶ₛ a
+    idₛ = id , isSmall:id This
 
     ModeHom : (a b : 𝓂) -> 𝒰 _
     ModeHom a b = a ⟶ b
@@ -127,6 +143,16 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       zero : {μ : m ⟶ l} -> (Γ ∙⟮ A ∣ μ ⟯) ⊢Var⟮ A ∣ μ ⇒ id ⟯
       suc! : {μ : m ⟶ l} {η : k ⟶ l} {ω : o ⟶ₛ k} -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙! ω ⊢Var⟮ A ∣ μ ⇒ fst ω ◆ η ⟯
       suc : Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯ -> Γ ∙⟮ B ∣ ω ⟯ ⊢Var⟮ A ∣ μ ⇒ η ⟯
+
+
+    -- Sometimes when we inductively produce `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` proofs, the arrow's target
+    -- is not strictly equal to ν₁, but only equal in the setoid on arrows. So we relax the
+    -- `⊢Var⟮ A ∣ ν₀ ⇒ ν₁ ⟯` data type a bit.
+    record _⊢Var⟮_∣_⇒∼_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+      constructor varOver
+      field target : o ⟶ l
+      field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
+      field snd : η ∼ target
 
 
     data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰' (merge 𝑖) where
