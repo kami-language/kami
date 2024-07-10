@@ -130,7 +130,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
 
     data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰' (merge 𝑖) where
-      var : ∀{μ : _ ⟶ o}
+      var : ∀{μ : _ ⟶ snd m}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
             -> class α ≤ pureTrans This

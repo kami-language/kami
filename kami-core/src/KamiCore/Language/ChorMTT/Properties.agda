@@ -53,6 +53,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   -- some context to a similar one.
   ----------------------------------------------------------
   --
+  {-
   com-restr-single : ∀{x : BaseModeHom-PolySR a b} -> ∀{xp} -> {A : ⊢Type c}
                     -> {B : ⊢Type a}
                     -> (Γ ∙! ((x ⨾ id') , xp)) ∙⟮ A ∣ μ ⟯ ⊢ B
@@ -67,6 +68,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
 
   id-annotate : {μ : a ⟶ b} -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B -> Γ ∙⟮ Mod-Type (split Super μ) A ∣ id' ⟯ ⊢ B
   id-annotate = {!!}
+  -}
 
 
   ----------------------------------------------------------
@@ -98,9 +100,8 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
               -> (classify-Single α ≤ impureTrans Super)
               -> Γ ⊢ Mod-Type (split-Min𝔐TT μ) A
               -> Γ ⊢ Tr (Mod-Type (split-Min𝔐TT ν) A)
-  transl-trans-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) αp t = {!!} --  with ⟨ αp ⟩ _ here
-  -- ... | there ()
-  transl-trans-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (_ ⨾ _)) top₁ bot) αp t = {!!}
+  transl-trans-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) αp t = ⊥-elim (≰-singleton (λ ()) αp)
+  transl-trans-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (_ ⨾ _)) top₁ bot) αp t = ⊥-elim (≰-singleton (λ ()) αp)
   transl-trans-Single {Γ = Γ} {A = A} (singleFace (ϕ ⌟[ recv U ]⌞ id') refl-≡ refl-≡) αp t =
     let p : Mod-Type (split-Min𝔐TT (ϕ ◆' `[]` ⨾ `＠` U ⨾ id')) A
             ≡ Mod-Type (split-Min𝔐TT ϕ ◆' split-Min𝔐TT (`[]` ⨾ `＠` U ⨾ id')) A
@@ -112,6 +113,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
     in broadcast t'
 
 
+
   transl-trans-Linear : ∀ {μ ν : a ⟶ ◯}
               -> {A : ⊢Type a}
               -> (α : Linear2Cell vis μ ν)
@@ -121,7 +123,7 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
   transl-trans-Linear [] αp t = pure t
   transl-trans-Linear (x ∷ α) αp t =
     let t' = transl-trans-Single x (ι₀-∨ ⟡ αp) t
-        t'' = transl-trans-Linear α (ι₁-∨ {a = classify-Single x} ⟡ αp) (var zero {!!} {!!})
+        t'' = transl-trans-Linear α (ι₁-∨ {a = classify-Single x} ⟡ αp) (var zero [ incl [] ∣ incl [] ] initial-⊥)
     in seq t' t''
 
 
@@ -137,13 +139,14 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
     = transl-trans-Linear (linearize α-vis) αp t
 
 
+
   impossible-trans-Single : ∀ {μ ν : a ⟶ ▲ U}
               -> (α : SingleFace' vis μ ν)
               -> (classify-Single α ≤ impureTrans Super)
               -> 𝟘-𝒰
-  impossible-trans-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) αp = {!!} --  with ⟨ αp ⟩ _ here
+  impossible-trans-Single (singleFace (idₗ₁ ⌟[ send U ]⌞ idᵣ₁) top₁ bot) αp = ⊥-elim (≰-singleton (λ ()) αp) -- {!!} --  with ⟨ αp ⟩ _ here
   -- ... | there ()
-  impossible-trans-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (_ ⨾ _)) refl-≡ bot) αp = {!!}
+  impossible-trans-Single (singleFace (idₗ₁ ⌟[ recv U ]⌞ (_ ⨾ _)) refl-≡ bot) αp = ⊥-elim (≰-singleton (λ ()) αp) -- {!!}
 
   impossible-trans-Linear : {μ ν : a ⟶ ▲ U}
               -> (α : Linear2Cell vis μ ν)
@@ -160,3 +163,4 @@ module Chor𝔐TT/Properties (This : Chor𝔐TT 𝑗) where
     with invisible-id (linearize α-invis)
   ... | refl-≡
     = impossible-trans-Linear (linearize α) αp
+
