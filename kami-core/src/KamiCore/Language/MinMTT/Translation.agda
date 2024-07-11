@@ -155,7 +155,7 @@ module _ (This : Min𝔐TT 𝑖) where
         -> Γ ⊢ Mod-Type (split This μ) A
         -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B
         -> Γ ⊢ B
-  Letmod'-Term {μ = μ} t s = Letmod-Term id (transp-Ctx-res2 {μ₀ = idₛ ⨾ id'} (unit-l-◆ ∙ sym (preserve-comp-split This)) (lift-id-Term t)) (transp-Ctx-∼ (sym unit-r-◆) s)
+  Letmod'-Term {μ = μ} t s = Letmod-Term id (transp-Ctx-res2 {μ₀ = idₛ ⨾ id'} (unit-l-◆ ∙ sym (preserve-comp-split This)) (lift-id t)) (transp-Ctx-∼ (sym unit-r-◆) s)
 
 
 

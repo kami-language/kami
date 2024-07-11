@@ -161,6 +161,14 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
       field fst : Γ ⊢Var⟮ A ∣ μ ⇒ target ⟯
       field snd : η ∼ target
 
+    record _⊢Var⟮_∣_∼⇒∼_⟯ (Γ : ⊢Ctx {k} o) (A : ⊢Type m) (μ : m ⟶ l) (η : o ⟶ l) : 𝒰 𝑖 where
+      constructor varOver
+      field {source} : m ⟶ l
+      field {target} : o ⟶ l
+      field fst : Γ ⊢Var⟮ A ∣ source ⇒ target ⟯
+      field snd : η ∼ target
+      field thd : μ ∼ source
+
 
     data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰' (merge 𝑖) where
       var : ∀{μ : _ ⟶ o}
