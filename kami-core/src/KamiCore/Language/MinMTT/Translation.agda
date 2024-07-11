@@ -106,6 +106,9 @@ module _ (This : Min𝔐TT 𝑖) where
       let (varOver η' v' p) = transl-Var v
       in varOver _ (suc v') p
 
+    -- transl-Var' : {X : 𝔐TT⊢Type k} {Γ : 𝔐TT⊢Ctx {n} k} -> Γ 𝔐TT⊢Var⟮ X ∣ μ ⇒ η ⟯ -> ⟪𝔉₁∣ Γ Ctx⟫ ⊢ ⟪𝔉₁∣ X Type⟫
+    -- transl-Var' = {!!}
+
 
   -- End Variables
   --------------------------------------------------
@@ -119,23 +122,41 @@ module _ (This : Min𝔐TT 𝑖) where
   Mod-Term id' t = t
   Mod-Term (μ ⨾ μs) t = Mod-Term μs (mod μ t)
 
+  Pure-letmod : (νs : Path _⟶ₛ_ n m)
+        -> Γ ∙!* νs ⊢ A
+        -> Γ ∙⟮ A ∣ Comp-Path fst νs ⟯ ⊢ B
+        -> Γ ⊢ B
+  Pure-letmod id' t s = app (lam s) t
+  Pure-letmod (x ⨾ νs) t s = letmod (Comp-Path fst νs) (transp-Ctx-res2 {μ₀ = νs} (sym (preserve-comp-split This) ) (mod x t)) s
+
+  Letmod-Term-impl : ∀{μs : Path _⟶ₛ_ o n} -> (ν : n ⟶ m)
+        -> Γ ∙!* (split This ν) ⊢ Mod-Type μs A
+        -> Γ ∙⟮ A ∣ Comp-Path fst μs ◆ ν ⟯ ⊢ B
+        -> Γ ⊢ B
+  Letmod-Term-impl {μs = id'} ν t s = (Pure-letmod (split This ν) t (transp-Ctx-∼ (unit-l-◆ ∙ sym (preserve-comp-split This)) s) )
+  Letmod-Term-impl {Γ = Γ} {A = A} {μs = x ⨾ μs} ν t s =
+    Letmod-Term-impl {μs = μs} ν t
+    (letmod {A = A} {μ = x} (Comp-Path fst μs ◆ ν)
+    (
+    let s' : Γ ∙⟮ ⟨ A ∣ x ⟩ ∣ Comp-Path fst μs ◆ ν ⟯ ∙!* split This (Comp-Path fst μs ◆ ν) ⊢ ⟨ A ∣ x ⟩
+        s' = var (suc!* (sym (preserve-comp-split This) ∙ sym unit-r-◆) zero) id (is⊥:id This ⟡-∼≤ initial-⊥)
+    in s'
+    )
+    (wk-ind {Δ = ε ∙⟮ _ ∣ _ ⟯} (transp-Ctx-∼ assoc-l-◆ s)))
+
+
   Letmod-Term : ∀{μ : o ⟶ n} -> (ν : n ⟶ m)
         -> Γ ∙!* (split This ν) ⊢ Mod-Type (split This μ) A
         -> Γ ∙⟮ A ∣ μ ◆ ν ⟯ ⊢ B
         -> Γ ⊢ B
-  Letmod-Term = {!!}
+  Letmod-Term {μ = μ} ν t s = Letmod-Term-impl {μs = split This μ} ν t (transp-Ctx-∼ (sym (preserve-comp-split This) ◈ refl-∼) s)
 
   Letmod'-Term : ∀{μ : o ⟶ n}
         -> Γ ⊢ Mod-Type (split This μ) A
         -> Γ ∙⟮ A ∣ μ ⟯ ⊢ B
         -> Γ ⊢ B
-  Letmod'-Term = {!!}
+  Letmod'-Term {μ = μ} t s = Letmod-Term id (transp-Ctx-res2 {μ₀ = idₛ ⨾ id'} (unit-l-◆ ∙ sym (preserve-comp-split This)) (lift-id-Term t)) (transp-Ctx-∼ (sym unit-r-◆) s)
 
-  -- splits-path : {m n : 𝓂} -> {μ : ModeHom m n}
-  --               -> (Γ : ⊢Ctx {k} n) -> (A : ⊢Type m)
-  --               -> Γ ∙! μ ⊢ A -> Γ ∙!* split This μ ⊢ A
-  -- splits-path {μ = id'} t = ? -- remove-id t
-  -- splits-path {μ = x ⨾ μ} t = {!splits-path !}
 
 
   ⟪𝔉₁∣_Term⟫ : {a : Param Super} -> {Γ : Ctx a of Super} -> {X : Type a of Super}
@@ -146,7 +167,7 @@ module _ (This : Min𝔐TT 𝑖) where
     in var x (α ◆ ⟨ 2celliso pp ⟩) (preserve-◆ α ⟨ 2celliso pp ⟩ ⟡-∼≤ [ x₁ , is⊥:2celliso This pp ⟡-∼≤ initial-⊥ ]-∨)
   ⟪𝔉₁∣ mod μ t Term⟫ = Mod-Term (split This μ) ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ letmod ν t s Term⟫ = Letmod-Term ν ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ s Term⟫
-  ⟪𝔉₁∣ trans α x t Term⟫ = {!!}
+  ⟪𝔉₁∣ trans α x t Term⟫ = trans α x ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ pure t Term⟫ = pure ⟪𝔉₁∣ t Term⟫
   ⟪𝔉₁∣ seq t t₁ Term⟫ = seq ⟪𝔉₁∣ t Term⟫ ⟪𝔉₁∣ t₁ Term⟫
   ⟪𝔉₁∣ lam t Term⟫ = lam (Letmod'-Term (var zero ⟨ 2celliso refl-∼ ⟩ (is⊥:2celliso This refl-∼ ⟡-∼≤ initial-⊥)) -- ⟪𝔉₁∣ var zero υ⁻¹-l-◆ {!!} Term⟫
@@ -174,7 +195,6 @@ module _ (This : Min𝔐TT 𝑖) where
     ; ⟪_∣_Term⟫ = ⟪𝔉₁∣_Term⟫
     }
 
-{-
 
 
 instance
@@ -185,6 +205,3 @@ instance
     }
 
 
-{-
--}
--}

@@ -34,6 +34,10 @@ module _ {𝒞 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝒞}}
   Comp-Path id' = id
   Comp-Path (x ⨾ μ) = forget x ◆ Comp-Path μ
 
+  preserve-◆-Comp-Path : {a b c : 𝒞} -> {f : Path R a b} -> {g : Path R b c}
+                       -> Comp-Path (f ◆' g) ∼ Comp-Path f ◆ Comp-Path g
+  preserve-◆-Comp-Path {f = f} {g = g} = {!!}
+
 
 record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
@@ -51,6 +55,7 @@ record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field preserve-⇃◆⇂ : ∀{a b c : ⟨ ModeTheory ⟩} -> {μ₀ μ₁ : a ⟶ b} -> {ν₀ ν₁ : b ⟶ c} -> (α : μ₀ ⟹ μ₁) -> (β : ν₀ ⟹ ν₁) -> class (α ⇃◆⇂ β) ∼ class α ∨ class β
   field is⊥:2celliso : ∀{a b : ⟨ ModeTheory ⟩} -> {μ₀ μ₁ : a ⟶ b} -> (pp : μ₀ ∼ μ₁)
                         -> class (⟨ 2celliso pp ⟩) ∼ ⊥
+  field is⊥:id : ∀{a b : ⟨ ModeTheory ⟩} -> {μ : a ⟶ b} -> class (id {a = μ}) ∼ ⊥
 
 open MinMTT public
 
@@ -158,7 +163,7 @@ module Min𝔐TT/Definition (This : Min𝔐TT 𝑖) where
 
 
     data _⊢_ {m : Param Super} : ⊢Ctx {fst m} (snd m) -> ⊢Type (snd m) -> 𝒰' (merge 𝑖) where
-      var : ∀{μ : _ ⟶ snd m}
+      var : ∀{μ : _ ⟶ o}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
             -> class α ≤ pureTrans This

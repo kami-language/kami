@@ -178,7 +178,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
       -- explicit transformations
       trans : ∀ {μ ν : n ⟶ m}
               -> (α : μ ⟹ ν)
-              -> (¬ class α ∼ ⊥)
+              -> (class α ≤ impureTrans This)
               -> Γ ⊢ ⟨ A ∣ μ ⟩ -> Γ ⊢ Tr ⟨ A ∣ ν ⟩
 
       -- transformations monad

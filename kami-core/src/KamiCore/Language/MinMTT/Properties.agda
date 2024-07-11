@@ -37,9 +37,9 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   open [Min𝔐TT/Definition::Term]
 
   private variable
-    a b c : 𝓂
+    a b c d : 𝓂
     X Y : ⊢Type a
-    μ ν η ν₀ ν₁ : ModeHom a b
+    μ μ₀ μ₁ ν η ν₀ ν₁ η' : ModeHom a b
 
 
   preserve-◆-Mod-Type : {μ : Path _⟶ₛ_ a b} {ν : Path _⟶ₛ_ b c}
@@ -53,8 +53,37 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   lift-id : Γ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> Γ ∙! idₛ ⊢Var⟮ X ∣ μ ⇒ η ⟯
   lift-id v = {!!}
 
+  lift-id-Term : Γ ⊢ X -> Γ ∙! idₛ ⊢ X
+  lift-id-Term = {!!}
+
   transp-Var-∼ : ν₀ ∼ ν₁ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₀ ⟯ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₁ ⟯
   transp-Var-∼ = {!!}
+
+  transp-Ctx-∼ : μ₀ ∼ μ₁ -> Γ ∙⟮ A ∣ μ₀ ⟯ ⊢ X -> Γ ∙⟮ A ∣ μ₁ ⟯ ⊢ X
+  transp-Ctx-∼ = {!!}
+
+  transp-Ctx-res : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ b c} -> ∀{μ} -> μ₀ ◆' μ₁ ≡ μ -> (Γ ∙!* μ₁) ∙!* μ₀ ⊢ X -> (Γ ∙!* μ) ⊢ X
+  transp-Ctx-res = {!!}
+
+  transp-Ctx-res2 : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ a b}
+                    -> Comp-Path fst μ₀ ∼ Comp-Path fst μ₁
+                    -> (Γ ∙!* μ₀) ⊢ X -> Γ ∙!* μ₁ ⊢ X
+  transp-Ctx-res2 = {!!}
+
+  transp-Ctx : Γ ≡ Δ -> Γ ⊢ X -> Δ ⊢ X
+  transp-Ctx = {!!}
+
+  suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+        -> η' ∼ (Comp-Path fst ωs) ◆ η
+        -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒ η' ⟯
+  suc!* = {!!}
+
+  -- varzero : ∀{μs : Path _⟶ₛ_ a b} -> {X : ⊢Type a} -> {Γ : ⊢Ctx {c} b} -> Γ ∙⟮ X ∣ Comp-Path fst μs ⟯ ∙!* μs ⊢ X
+  -- varzero {μs = id'} = var zero {!!} {!!}
+  -- varzero {μs = x ⨾ id'} = var (suc! zero) {!!} {!!}
+  -- varzero {μs = x ⨾ x₁ ⨾ μs} = {!!}
+  -- var (suc!* {!μs!} {!μ!}) {!!} {!!}
 
   ----------------------------------------------------------
   -- Weakening
@@ -68,6 +97,7 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   wk-ind = {!!}
 
 
-
+  com-∙!* : ∀{νs : Path _⟶ₛ_ a b} -> Γ ⋆-Ctx (ε ∙!* νs) ≡ Γ ∙!* νs
+  com-∙!* = {!!}
 
 
