@@ -136,10 +136,44 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   -- transp-Ctx-res : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ b c} -> ∀{μ} -> μ₀ ◆' μ₁ ≡ μ -> (Γ ∙!* μ₁) ∙!* μ₀ ⊢ X -> (Γ ∙!* μ) ⊢ X
   -- transp-Ctx-res = {!!}
 
+  suc!*⁻¹ : ∀{μ₀ : Path _⟶ₛ_ a b} {μ : ModeHom c d} -> Γ ∙!* μ₀ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> ∑ λ ν' -> Γ ⊢Var⟮ X ∣ μ ⇒ ν' ⟯ ×-𝒰 Comp-Path fst μ₀ ◆ ν' ∼ ν
+  suc!*⁻¹ {μ₀ = id'} v = _ , v , unit-l-◆
+  suc!*⁻¹ {μ₀ = x ⨾ μ₀} (suc! v) =
+    let _ , v' , p = suc!*⁻¹ {μ₀ = μ₀} v
+    in _ , v' , assoc-l-◆ ∙ (refl-∼ ◈ p)
+
+  suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+        -> η' ∼ (Comp-Path fst ωs) ◆ η
+        -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒∼ η' ⟯
+  suc!* {ωs = id'} r v = {!!}
+  suc!* {ωs = x ⨾ ωs} r v = {!!}
+
+  suc₂!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+        -> η' ∼ (Comp-Path fst ωs) ◆ η
+        -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ∼⇒∼ η' ⟯
+  suc₂!* {ωs = id'} r v = varOver v (r ∙ unit-l-◆) refl-∼
+  suc₂!* {ωs = x ⨾ ωs} r v =
+    let varOver v' p q = suc₂!* {ωs = ωs} {!r!} v
+    in {!!}
+
   transp-Ctx-res2-Var : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ a b}
                     -> Comp-Path fst μ₀ ∼ Comp-Path fst μ₁
                     -> (Γ ∙!* μ₀) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙!* μ₁) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
-  transp-Ctx-res2-Var p = {!!}
+  transp-Ctx-res2-Var {Δ = ε} {μ₀ = μ₀} {μ₁ = μ₁} r v =
+    let _ , v' , p = suc!*⁻¹ {μ₀ = μ₀} v
+    in (suc₂!* {ωs = μ₁} (sym p ∙ r ◈ refl-∼) v')
+    -- varOver  refl-∼ refl-∼
+    -- {!!} -- varOver zero refl-∼ r
+  -- transp-Ctx-res2-Var {Δ = ε} r (suc v) = varOver (suc v) refl-∼ refl-∼
+  transp-Ctx-res2-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} r zero = varOver zero refl-∼ refl-∼
+  transp-Ctx-res2-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} {μ₀ = μ₀} {μ₁ = μ₁} r (suc v) =
+    let varOver v' p' q' = transp-Ctx-res2-Var {Δ = Δ} {μ₀ = μ₀} r v
+    in varOver (suc v') p' q'
+  transp-Ctx-res2-Var {Δ = Δ ∙! x} {μ₀ = μ₀} r (suc! v) =
+    let varOver v' p' q' = transp-Ctx-res2-Var {Δ = Δ} {μ₀ = μ₀} r v
+    in varOver (suc! v') (refl-∼ ◈ p') q'
 
 
 {-
