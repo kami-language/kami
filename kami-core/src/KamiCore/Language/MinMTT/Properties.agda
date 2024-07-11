@@ -102,23 +102,33 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   -}
 
   lift-id-Var : Γ ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙! idₛ) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
-  lift-id-Var {Δ = ε} zero = varOver (suc! zero) (sym unit-r-◆) refl-∼
-  lift-id-Var {Δ = ε} (suc! v) = {!!}
-  lift-id-Var {Δ = ε} (suc v) = {!!}
-  lift-id-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} zero = {!!}
-  lift-id-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} (suc v) = {!!}
-  lift-id-Var {Δ = Δ ∙! x} (suc! v) = {!!}
+  lift-id-Var {Δ = ε} v = varOver (suc! v) (sym unit-l-◆) refl-∼
+  lift-id-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} zero = varOver zero refl-∼ refl-∼
+  lift-id-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} (suc v) =
+    let varOver v' p' q' = lift-id-Var {Δ = Δ} v
+    in varOver (suc v') p' q'
+  lift-id-Var {Δ = Δ ∙! x} (suc! v) =
+    let varOver v' p' q' = lift-id-Var {Δ = Δ} v
+    in varOver (suc! v') (refl-∼ ◈ p') q'
 
-{-
 
   lift-id : Γ ⊢ X -> Γ ∙! idₛ ⊢ X
   lift-id {Γ = Γ} = rename-ind {Δ = ε} (lift-id-Var {Γ = Γ} )
 
+
   transp-Var-∼ : ν₀ ∼ ν₁ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₀ ⟯ -> Γ ⊢Var⟮ X ∣ μ ⇒∼ ν₁ ⟯
-  transp-Var-∼ = {!!}
+  transp-Var-∼ r (varOver v p q) = varOver v p (sym r ∙ q)
 
   transp2-Var-∼ : μ₀ ∼ μ₁ -> (Γ ∙⟮ A ∣ μ₀ ⟯) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙⟮ A ∣ μ₁ ⟯) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
-  transp2-Var-∼ = {!!}
+  transp2-Var-∼ {Δ = ε} r zero = varOver zero refl-∼ r
+  transp2-Var-∼ {Δ = ε} r (suc v) = varOver (suc v) refl-∼ refl-∼
+  transp2-Var-∼ {Δ = Δ ∙⟮ x ∣ x₁ ⟯} r zero = varOver zero refl-∼ refl-∼
+  transp2-Var-∼ {Δ = Δ ∙⟮ x ∣ x₁ ⟯} r (suc v) =
+    let varOver v' p' q' = transp2-Var-∼ {Δ = Δ} r v
+    in varOver (suc v') p' q'
+  transp2-Var-∼ {Δ = Δ ∙! x} r (suc! v) =
+    let varOver v' p' q' = transp2-Var-∼ {Δ = Δ} r v
+    in varOver (suc! v') (refl-∼ ◈ p') q'
 
   transp-Ctx-∼ : μ₀ ∼ μ₁ -> Γ ∙⟮ A ∣ μ₀ ⟯ ⊢ X -> Γ ∙⟮ A ∣ μ₁ ⟯ ⊢ X
   transp-Ctx-∼ {A = A} p = rename-ind {Δ = ε} (λ v -> transp2-Var-∼ {A = A} p v)
@@ -131,6 +141,8 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
                     -> (Γ ∙!* μ₀) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙!* μ₁) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
   transp-Ctx-res2-Var p = {!!}
 
+
+{-
   transp-Ctx-res2 : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ a b}
                     -> Comp-Path fst μ₀ ∼ Comp-Path fst μ₁
                     -> (Γ ∙!* μ₀) ⊢ X -> Γ ∙!* μ₁ ⊢ X
