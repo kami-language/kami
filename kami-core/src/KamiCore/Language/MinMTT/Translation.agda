@@ -138,8 +138,11 @@ module _ (This : Min𝔐TT 𝑖) where
     Letmod-Term-impl {μs = μs} ν t
     (letmod {A = A} {μ = x} (Comp-Path fst μs ◆ ν)
     (
-    let s' : Γ ∙⟮ ⟨ A ∣ x ⟩ ∣ Comp-Path fst μs ◆ ν ⟯ ∙!* split This (Comp-Path fst μs ◆ ν) ⊢ ⟨ A ∣ x ⟩
-        s' = var (suc!* (sym (preserve-comp-split This) ∙ sym unit-r-◆) zero) id (is⊥:id This ⟡-∼≤ initial-⊥)
+    let -- svar : Γ ∙⟮ ⟨ A ∣ x ⟩ ∣ Comp-Path fst μs ◆ ν ⟯ ∙!* split This (Comp-Path fst μs ◆ ν) ⊢Var⟮ ⟨ A ∣ x ⟩ ∣ _ ∼⇒∼ _ ⟯
+        varOver v' p' q' = suc₃!* {ωs = split This (Comp-Path fst μs ◆ ν)} zero
+
+        s' : Γ ∙⟮ ⟨ A ∣ x ⟩ ∣ Comp-Path fst μs ◆ ν ⟯ ∙!* split This (Comp-Path fst μs ◆ ν) ⊢ ⟨ A ∣ x ⟩
+        s' = var v' ⟨ 2celliso ((sym q') ∙ sym (preserve-comp-split This) ∙ (sym unit-r-◆) ∙ p') ⟩ (is⊥:2celliso This _ ⟡-∼≤ initial-⊥)
     in s'
     )
     (wk-ind {Δ = ε ∙⟮ _ ∣ _ ⟯} (transp-Ctx-∼ assoc-l-◆ s)))

@@ -76,8 +76,6 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
 
   {-# TERMINATING #-}
   rename-ind : (∀{a b c X Δ} -> {μ : ModeHom a c} -> {ν : ModeHom b c} -> (Γ₀ ⋆-Ctx Δ) ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> Γ₁ ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯) -> Γ₀ ⋆-Ctx Δ ⊢ Y -> Γ₁ ⋆-Ctx Δ ⊢ Y
-  rename-ind = {!!}
-  {-
   rename-ind ρ (var x α x₁) =
     let varOver v' p q = ρ x
     in var v' (⟨ 2celliso (sym q) ⟩ ◆ α ◆ ⟨ 2celliso p ⟩) ((preserve-◆ (⟨ 2celliso (sym q) ⟩ ◆ α) ⟨ 2celliso p ⟩
@@ -99,7 +97,6 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   rename-ind ρ [] = []
   rename-ind ρ (t ∷ t₁) = (rename-ind ρ t) ∷ (rename-ind ρ t₁)
   rename-ind ρ (rec-Lst t t₁ t₂) = rec-Lst (rename-ind ρ t) (rename-ind ρ t₁) (rename-ind ρ t₂)
-  -}
 
   lift-id-Var : Γ ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙! idₛ) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
   lift-id-Var {Δ = ε} v = varOver (suc! v) (sym unit-l-◆) refl-∼
@@ -142,28 +139,35 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
     let _ , v' , p = suc!*⁻¹ {μ₀ = μ₀} v
     in _ , v' , assoc-l-◆ ∙ (refl-∼ ◈ p)
 
-  suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
-        -> η' ∼ (Comp-Path fst ωs) ◆ η
+  suc₃!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
         -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
-        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒∼ η' ⟯
-  suc!* {ωs = id'} r v = {!!}
-  suc!* {ωs = x ⨾ ωs} r v = {!!}
+        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ∼⇒∼ (Comp-Path fst ωs) ◆ η ⟯
+  suc₃!* {ωs = id'} v = varOver v unit-l-◆ refl-∼ -- (r ∙ unit-l-◆) refl-∼
+  suc₃!* {ωs = x ⨾ ωs} v =
+    let varOver v' p q = suc₃!* {ωs = ωs} v
+    in varOver (suc! v') (assoc-l-◆ ∙ (refl-∼ ◈ p)) q
 
-  suc₂!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
-        -> η' ∼ (Comp-Path fst ωs) ◆ η
-        -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
-        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ∼⇒∼ η' ⟯
-  suc₂!* {ωs = id'} r v = varOver v (r ∙ unit-l-◆) refl-∼
-  suc₂!* {ωs = x ⨾ ωs} r v =
-    let varOver v' p q = suc₂!* {ωs = ωs} {!r!} v
-    in {!!}
+
+  -- suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+  --       -> η' ∼ (Comp-Path fst ωs) ◆ η
+  --       -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --       -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒∼ η' ⟯
+
+  -- suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+  --       -> η' ∼ (Comp-Path fst ωs) ◆ η
+  --       -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --       -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ∼⇒∼ split This (Comp-Path fst ωs ◆ η) ⟯
+  -- suc!* {ωs = ωs} r v = {!!}
+
+
 
   transp-Ctx-res2-Var : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ a b}
                     -> Comp-Path fst μ₀ ∼ Comp-Path fst μ₁
                     -> (Γ ∙!* μ₀) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙!* μ₁) ⋆-Ctx Δ ⊢Var⟮ X ∣ μ ∼⇒∼ ν ⟯
   transp-Ctx-res2-Var {Δ = ε} {μ₀ = μ₀} {μ₁ = μ₁} r v =
     let _ , v' , p = suc!*⁻¹ {μ₀ = μ₀} v
-    in (suc₂!* {ωs = μ₁} (sym p ∙ r ◈ refl-∼) v')
+        varOver v'' p'' q'' = (suc₃!* {ωs = μ₁}  v')
+    in varOver v'' (sym p ∙ r ◈ refl-∼ ∙ p'') q'' -- (sym p ∙ r ◈ refl-∼)
     -- varOver  refl-∼ refl-∼
     -- {!!} -- varOver zero refl-∼ r
   -- transp-Ctx-res2-Var {Δ = ε} r (suc v) = varOver (suc v) refl-∼ refl-∼
@@ -176,17 +180,16 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
     in varOver (suc! v') (refl-∼ ◈ p') q'
 
 
-{-
   transp-Ctx-res2 : ∀{μ₀ : Path _⟶ₛ_ a b} {μ₁ : Path _⟶ₛ_ a b}
                     -> Comp-Path fst μ₀ ∼ Comp-Path fst μ₁
                     -> (Γ ∙!* μ₀) ⊢ X -> Γ ∙!* μ₁ ⊢ X
   transp-Ctx-res2 {Γ = Γ} {μ₀ = μ₀} {μ₁ = μ₁} p = rename-ind {Δ = ε} (transp-Ctx-res2-Var {Γ = Γ} {μ₀ = μ₀} {μ₁ = μ₁} p)
 
-  suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
-        -> η' ∼ (Comp-Path fst ωs) ◆ η
-        -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
-        -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒ η' ⟯
-  suc!* = {!!}
+  -- suc!* : ∀{ωs : Path _⟶ₛ_ d c} {μ : ModeHom a b} {η : ModeHom c b} {X : ⊢Type a}
+  --       -> η' ∼ (Comp-Path fst ωs) ◆ η
+  --       -> Γ ⊢Var⟮ X ∣ μ ⇒ η ⟯
+  --       -> Γ ∙!* ωs ⊢Var⟮ X ∣ μ ⇒ η' ⟯
+  -- suc!* = {!!}
 
   -- varzero : ∀{μs : Path _⟶ₛ_ a b} -> {X : ⊢Type a} -> {Γ : ⊢Ctx {c} b} -> Γ ∙⟮ X ∣ Comp-Path fst μs ⟯ ∙!* μs ⊢ X
   -- varzero {μs = id'} = var zero {!!} {!!}
@@ -197,9 +200,30 @@ module Min𝔐TT/Properties (This : Min𝔐TT 𝑖) where
   ----------------------------------------------------------
   -- Weakening
 
+  wk-Var : (Γ ⋆-Ctx Δ) ⊢Var⟮ X ∣ μ ⇒ ν ⟯ -> (Γ ∙⟮ A ∣ η ⟯ ⋆-Ctx Δ) ⊢Var⟮ X ∣ μ ⇒ ν ⟯
+  wk-Var {Δ = ε} v = suc v
+  wk-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} zero = zero
+  wk-Var {Δ = Δ ∙⟮ x ∣ x₁ ⟯} (suc v) = suc (wk-Var v)
+  wk-Var {Δ = Δ ∙! x} (suc! v) = suc! (wk-Var v)
+
+  {-# TERMINATING #-}
   wk-ind : (Γ ⋆-Ctx Δ) ⊢ X -> (Γ ∙⟮ A ∣ μ ⟯ ⋆-Ctx Δ) ⊢ X
-  wk-ind = {!!}
+  wk-ind (var x α x₁) = var (wk-Var x) α x₁
+  wk-ind tt = tt
+  wk-ind (mod μ t) = mod μ (wk-ind t)
+  wk-ind {Δ = Δ} (letmod ν t t₁) = letmod ν ((transp-Ctx ((com2-∙!* {Δ = Δ})) (wk-ind (transp-Ctx (sym-≡ (com2-∙!* {Δ = Δ})) t)))) (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯} t₁)
+  wk-ind (trans α x t) = trans α x (wk-ind t)
+  wk-ind (pure t) = pure (wk-ind t)
+  wk-ind {Δ = Δ} (seq t t₁) = seq (wk-ind t) (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯} t₁)
+  wk-ind {Δ = Δ} (lam t) = lam (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯} t)
+  wk-ind (app t t₁) = app (wk-ind t) (wk-ind t₁)
+  wk-ind (left t) = left (wk-ind t)
+  wk-ind (right t) = right (wk-ind t)
+  wk-ind {Δ = Δ} (either t t₁ t₂) = either (wk-ind t) (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯} t₁) (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯} t₂)
+  wk-ind [] = []
+  wk-ind (t ∷ t₁) = (wk-ind t) ∷ (wk-ind t₁)
+  wk-ind {Δ = Δ} (rec-Lst t t₁ t₂) = rec-Lst (wk-ind t) (wk-ind t₁) (wk-ind {Δ = Δ ∙⟮ _ ∣ _ ⟯ ∙⟮ _ ∣ _ ⟯} t₂)
 
 
--}
+
 
