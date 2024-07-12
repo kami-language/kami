@@ -204,6 +204,7 @@ instance
   isReduction:F₁ : isParamSTTHom (Min𝔐TT 𝑖) (𝔐TT _) F₁
   isReduction:F₁ = record
     { param = par-𝔉₁
+    ; subparam = λ A x -> x
     ; runAt = run-𝔉₁
     }
 

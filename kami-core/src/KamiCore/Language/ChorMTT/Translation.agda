@@ -189,6 +189,7 @@ module _ (This : Chor𝔐TT 𝑗) where
     in skipVarForRes v' -- suc! (suc (transl-Var-◯ ({!!})))
   transl-Var-◯ {a = ◯} (suc v) = suc (transl-Var-◯ v)
 
+
   -- End Vars
   --------------------------------------------------------------------
 
@@ -205,7 +206,8 @@ module _ (This : Chor𝔐TT 𝑗) where
                -> ⟪𝔉₂∣ Γ Ctx⟫ ⊢ ⟪𝔉₂∣ X Type⟫ at ◯ of This
 
 
-  transl-Term-▲ (var x α x₁) = var (transl-Var-▲ x) (α ⇃◆⇂ [ incl [] ∣ incl [] ]) (preserve-⇃◆⇂-Min𝔐TT α [ incl [] ∣ incl [] ] ⟡-∼≤ [ x₁ , initial-⊥ ]-∨)
+  transl-Term-▲ (var {o = ▲ U} x α x₁) = var (transl-Var-▲ x) (α ⇃◆⇂ [ incl [] ∣ incl [] ]) (preserve-⇃◆⇂-Min𝔐TT α [ incl [] ∣ incl [] ] ⟡-∼≤ [ x₁ , initial-⊥ ]-∨)
+  transl-Term-▲ (var {o = ◯} x α x₁) = var (transl-Var-◯ x) α x₁
   transl-Term-▲ tt = tt
   transl-Term-▲ (mod ([]ₛ) t) = mod ([]ₛ) (transl-Term-◯ t)
   transl-Term-▲ {U = U} {Γ = Γ} {X = X} (letmod {n = ◯} {A = A} {μ = μ} ν t s) =
@@ -255,7 +257,8 @@ module _ (This : Chor𝔐TT 𝑗) where
         t₂' = (transl-Term-▲ t₂)
     in rec-Lst-＠ (transl-Term-▲ t) t₁' t₂'
 
-  transl-Term-◯ (var x α x₁) = var (transl-Var-◯ x) α x₁
+  transl-Term-◯ (var {o = ◯} x α x₁) = var (transl-Var-◯ x) α x₁
+  transl-Term-◯ (var {o = ▲ U} x α x₁) = var (transl-Var-▲ x) (α ⇃◆⇂ [ incl [] ∣ incl [] ]) (preserve-⇃◆⇂-Min𝔐TT α [ incl [] ∣ incl [] ] ⟡-∼≤ [ x₁ , initial-⊥ ]-∨)
   transl-Term-◯ tt = tt
   transl-Term-◯ (mod (＠ₛ U) t) = mod (＠ₛ U) (transl-Term-▲ t)
   transl-Term-◯ {Γ = Γ} {X = X} (letmod {n = ◯} {A = A} {μ = μ} ν t s) =
@@ -311,6 +314,7 @@ instance
   isReduction:F₂ : isParamSTTHom (Chor𝔐TT 𝑗) (Min𝔐TT _) F₂
   isReduction:F₂ = record
     { param = par-𝔉₂
+    ; subparam = λ A _ -> tt
     ; runAt = run-𝔉₂
     }
 

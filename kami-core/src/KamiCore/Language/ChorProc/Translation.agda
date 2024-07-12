@@ -89,12 +89,10 @@ module _ (This : Chor𝔓roc 𝑗) where
 
   transl-Term-▲ Γ Γp (var {b = ▲ _} (suc! x) [ incl α₀ ∣ incl α₁ ] αp) = ⊥-elim (local-var-impossible Γp x)
   transl-Term-▲ {i = i} Γ Γp (var {b = ◯} {μ = `＠` j ⨾ μ} (suc! x) α αp) =
-    incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x (transToSublist'₁ α αp) Γp₁ {!!}) in var XX))
-
-  transl-Term-▲ Γ Γp xx = {!!}
+    incl (λ p x₁ Xp Γp₁ → (let XX = (transl-Var-▲ {ν = id'} Γ Γp x (transToSublist'₁ α αp) Γp₁ Xp) in var XX))
 
 
-{-
+
   transl-Term-▲ Γ Γp tt = tt-＠-GlobalFibered
   transl-Term-▲ Γ Γp (mod []ₛ t) =
     let ts' = transl-Term-◯ _ (stepRes _ (stepRes _ Γp)) t
@@ -245,8 +243,8 @@ instance
   isReduction:F₃ : isParamSTTHom (Chor𝔓roc 𝑗) (Chor𝔐TT _) F₃
   isReduction:F₃ = record
     { param = par-𝔉₃
+    ; subparam = λ A _ -> tt
     ; runAt = run-𝔉₃
     }
 
 module _ {𝑗} where macro 𝔉₃ = #structureOn (F₃ {𝑗 = 𝑗})
--}

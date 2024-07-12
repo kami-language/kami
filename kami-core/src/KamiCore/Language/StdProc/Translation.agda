@@ -270,7 +270,7 @@ module _ (This : Std𝔓roc) where
   tr Δp (t ∷ t₁) = (tr Δp t) ∷ (tr Δp t₁) 
   tr Δp (rec-Lst t t₁ t₂) = rec-Lst ((tr Δp t)) ((tr Δp t₁)) ((tr ((Δp , _) , _) t₂))
 
-  ta {Γ = Γ} {X} ts n = tr (local-Proof (π-Ctx-Proof Γ _)) (⟨ ts ⟩ n ({!!}) (π-Type-Proof X _) (π-Ctx-Proof Γ _))
+  ta {Γ = Γ} {X} ts n = tr (local-Proof (π-Ctx-Proof Γ _)) (⟨ ts ⟩ n (inAllProcs Super) (π-Type-Proof X _) (π-Ctx-Proof Γ _))
 
 
   ⟪𝔉₁∣_Term⟫ : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ allProcs Super ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
@@ -292,6 +292,7 @@ instance
   isReduction:F₄ : isParamSTTHom Std𝔓roc (Chor𝔓roc _) F₄
   isReduction:F₄ = record
     { param = par-𝔉₄
+    ; subparam = λ A _ -> tt
     ; runAt = run-𝔉₄
     }
 
