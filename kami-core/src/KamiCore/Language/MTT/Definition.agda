@@ -162,7 +162,7 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
       field snd : η ⟹ target
 
     data _⊢_ {m} : ⊢Ctx {k} m -> ⊢Type m -> 𝒰 𝑖 where
-      var : ∀{μ : _ ⟶ m}
+      var : ∀{μ : _ ⟶ o}
             -> Γ ⊢Var⟮ A ∣ μ ⇒ η ⟯
             -> (α : μ ⟹ η)
             -> class α ≤ pureTrans This
