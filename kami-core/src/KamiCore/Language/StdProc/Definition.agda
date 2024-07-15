@@ -18,6 +18,7 @@ open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
@@ -56,7 +57,7 @@ hasAll {n = suc n} zero = ι₀-∨ {b = mapᵘ-𝒫ᶠⁱⁿ 𝑠𝑢𝑐 (enum
 hasAll {n = suc n} (suc i) = mapᵘ-𝒫ᶠⁱⁿ-≤ 𝑠𝑢𝑐 (hasAll i) ⟡ ι₁-∨ {a = ⦗ zero ⦘}
 
 hasAll-∈ : ∀{n} -> (i : 𝔽 n) -> i ∈ ⟨ enumerate n ⟩
-hasAll-∈ i = ⟨ hasAll i ⟩ _ here
+hasAll-∈ i = conv-≼,∈ (⟨ hasAll i ⟩)
 
 notEmptyByElement : ∀{A : 𝒰 𝑖} -> ∀{a} {as : List A} -> a ∈ as -> isNonEmptyList as
 notEmptyByElement (there _) = done

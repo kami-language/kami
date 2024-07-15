@@ -13,12 +13,14 @@ open import Agora.Order.Lattice
 open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
 open import Agora.Category.Std.Category.Structured.Classified.Definition
+open import Agora.Category.Std.Morphism.Iso.Definition
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
 
 open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
@@ -89,6 +91,11 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
       μ ν η ω : ModeHom PolySR-ModeSystem a b
       U V : ⟨ This .Roles ⟩
 
+
+    instance
+      isCategory:ModeHom : isCategory (⊢ModeHom a b)
+      isCategory:ModeHom = record { Hom = ⊢ModeTrans }
+
     -----------------------------------------
     -- Arrow classification
     -----------------------------------------
@@ -137,8 +144,13 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     preserve-◆-split-Min𝔐TT {μ = μ ⨾ μs} = cong-≡ (λ ξ -> (μ ⨾ id' , incl μ) ⨾ ξ) (preserve-◆-split-Min𝔐TT {μ = μs})
 
 
+    preserve-comp-split-Min𝔐TT : ∀{a b : Mode PolySR-ModeSystem} -> {μ : ⊢ModeHom a b} -> Comp-Path fst (split-Min𝔐TT μ) ∼ μ
+    preserve-comp-split-Min𝔐TT {μ = id'} = incl refl-≅
+    preserve-comp-split-Min𝔐TT {μ = x ⨾ μ} = incl (refl-≅ {A = (x ⨾ id')}) ◈ preserve-comp-split-Min𝔐TT {μ = μ}
+
     preserve-⇃◆⇂-Min𝔐TT : ∀{a b c : Mode PolySR-ModeSystem} -> {μ₀ μ₁ : a ⟶ b} -> {ν₀ ν₁ : b ⟶ c} -> (α : μ₀ ⟹ μ₁) -> (β : ν₀ ⟹ ν₁) -> classify (α ⇃◆⇂ β) ≡ classify α ∨ classify β
     preserve-⇃◆⇂-Min𝔐TT = {!!}
+
 
   open [Chor𝔐TT/Definition::Param]
 
@@ -148,14 +160,18 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     Super = record
       { ModeTheory = ′ Mode PolySR-ModeSystem ′
       ; isSmall = isSmall-Min𝔐TT
+      ; isSmall:id = {!!}
       ; split = split-Min𝔐TT
       ; preserve-◆-split = λ {a} {b} {c} {μ} {ν} -> preserve-◆-split-Min𝔐TT {μ = μ} {ν}
+      ; preserve-comp-split = preserve-comp-split-Min𝔐TT
       ; isTargetMode = λ a -> a ≡ ◯
       ; Classification = 𝒫ᶠⁱⁿ 𝟛
       ; isClassified:Transformation = isClassified:PolySR
       ; pureTrans = ⦗ pureT ⦘
       ; impureTrans = ⦗ impureT ⦘
       ; preserve-⇃◆⇂ = preserve-⇃◆⇂-Min𝔐TT
+      ; is⊥:2celliso = {!!}
+      ; is⊥:id = {!!}
       }
   open [Chor𝔐TT/Definition::Private]
 
@@ -288,6 +304,5 @@ instance
     ; SubParam = λ This a -> ⊤-𝒰 {ℓ₀}
     ; _at_ = λ n a -> Chor𝔐TT/Definition.λChorMTT n a
     }
-
 
 

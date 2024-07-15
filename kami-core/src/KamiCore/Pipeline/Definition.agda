@@ -17,6 +17,9 @@ open import Agora.TypeTheory.ParamSTT.Definition
 -- open import KamiTheory.Data.UniqueSortedList.Definition
 -- open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
+open import KamiTheory.Data.UniqueSortedList.Properties
+open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 
 open import KamiCore.Language.MTT.Definition
 open import KamiCore.Language.MinMTT.Definition
@@ -25,6 +28,7 @@ open import KamiCore.Language.ChorMTT.Definition
 open import KamiCore.Language.ChorMTT.Translation
 open import KamiCore.Language.ChorProc.Definition
 open import KamiCore.Language.ChorProc.Translation
+open import KamiCore.Language.ChorProc.TranslationCtx
 open import KamiCore.Language.StdProc.Definition
 open import KamiCore.Language.StdProc.Translation
 
@@ -130,10 +134,79 @@ module Generic (n : ℕ) where
 
 open Generic 2
 
-ex1 : ε ⊢ ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊ ∣ id' ⟯⇒ Tr (Either Unit Unit ＠ ⦗ suc zero ⦘₊ )
+M0Type : ⊢Type _
+M0Type = ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊ ∣ id' ⟯⇒ Tr (Either Unit Unit ＠ ⦗ suc zero ⦘₊ )
+
+ex1 : ε ⊢ M0Type
 ex1 = eval' zero
 
 
-ex1' = ⟪ runAt {{of 𝔉}} _ refl-≡ ∣ ex1 Term⟫
+M1 : MinMTT _
+M1 = (⟨ 𝔉₄ ◆-ParamSTT 𝔉₃ ◆-ParamSTT 𝔉₂ ⟩ Target)
+open Min𝔐TT/Definition M1
+open [Min𝔐TT/Definition::Term] renaming (_⊢_ to _M1⊢_)
+open [Min𝔐TT/Definition::Ctx] using (ε)
+open [Min𝔐TT/Definition::Type] renaming (⊢Type to M1⊢Type)
+
+M1Type : M1⊢Type _
+M1Type = ⟪ runAt {F = F₁} {{isReduction:F₁}} M1 {a = (◯ , ◯)} refl-≡  ∣ M0Type Type⟫
+
+M1Type' : M1⊢Type _
+M1Type' = ⟪𝔉₁∣_Type⟫ M1 {a = (◯)} M0Type
+
+M1Term : ε M1⊢ M1Type
+M1Term = ⟪𝔉₁∣_Term⟫ M1 ex1
+
+M2 : ChorMTT _
+M2 = (⟨ 𝔉₄ ◆-ParamSTT 𝔉₃ ⟩ Target)
+open Chor𝔐TT/Definition M2
+open [Chor𝔐TT/Definition::Term] renaming (_⊢_ to _M2⊢_)
+open [Chor𝔐TT/Definition::Ctx] using (ε)
+open [Chor𝔐TT/Definition::Type] renaming (⊢Type to M2⊢Type)
+
+
+M2Type : M1⊢Type _
+M2Type = ⟪𝔉₂∣_Type⟫ M2 {a = (◯)} M1Type
+
+M2Term : _ M2⊢ M2Type
+M2Term = ⟪𝔉₂∣_Term⟫ M2 M1Term
+
+
+M3 : ChorProc _
+M3 = (F₄ Target)
+open Chor𝔓roc/Definition M3
+open [Chor𝔓roc/Definition::Term] renaming (_⊢_ to _M3⊢_)
+open [Chor𝔓roc/Definition::Ctx] using (ε)
+open [Chor𝔓roc/Definition::Type] renaming (⊢Type to M3⊢Type)
+open Chor𝔓roc/TranslationCtx
+
+
+M3Type : M3⊢Type _
+M3Type = ⟪𝔉₃∣_Type⟫ M3 {a = (◯)} M2Type
+
+M3Term : ε M3⊢ M3Type
+M3Term = KamiCore.Language.ChorProc.Translation.transl-Term-◯ M3 _ ε M2Term
+
+
+-----------------------------------------
+-- target
+
+M4 : StdProc
+M4 = Target
+open Std𝔓roc/Definition M4
+open [Std𝔓roc/Definition::Term] renaming (_⊢_ to _M4⊢_)
+-- open [Std𝔓roc/Definition::Ctx] using (ε)
+open [Std𝔓roc/Definition::Type] renaming (⊢Type to M4⊢Type)
+
+M4Type : M4⊢Type
+M4Type = ⟪𝔉₄∣_Type⟫ M4 M3Type
+
+M4Term : _ M4⊢ M4Type
+M4Term = ⟪𝔉₄∣_Term⟫ M4 M3Term
+
+-- ex10 : ε M1⊢ ⟪ runAt {{of 𝔉₁}} M1 refl-≡ ∣ ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊ ∣ id' ⟯⇒ Tr (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) Type⟫
+-- ex10 = {!!}
+
+-- ? ⟪ runAt {{of 𝔉₁}} M1 refl-≡ ∣ ex1 Term⟫
 
 

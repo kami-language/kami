@@ -20,6 +20,7 @@ open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
 open import KamiTheory.Data.UniqueSortedList.Properties
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (Mode)
@@ -966,5 +967,7 @@ module Chor𝔓roc/Properties (This : Chor𝔓roc 𝑗) where
   ... | no p∉qs = recv Xp
   ... | yes p∈qs = send Xp (⟨ t ⟩ p x (proj-＠ (incl (incl f)) done) Γp)
     where
-      f = λ { _ here → p∈qs}
+      f = conv-∈,≼ p∈qs
+
+-- λ { _ here → p∈qs}
 

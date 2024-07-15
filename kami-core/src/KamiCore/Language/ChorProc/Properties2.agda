@@ -20,6 +20,7 @@ open import KamiTheory.Basics hiding (_⋆_)
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition hiding (Mode)

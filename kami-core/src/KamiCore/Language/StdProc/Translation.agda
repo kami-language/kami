@@ -68,8 +68,8 @@ module _ (This : Std𝔓roc) where
 
   ⟦_⟧-FType X n = ⟦ π-Type X (⦗ n ⦘₊ , []) ⟧-LType
 
-  ⟪𝔉₁∣_Type⟫ : Chor𝔓roc⊢Type ◯ -> ⊢Type
-  ⟪𝔉₁∣_Type⟫ = ⟦_⟧-FType
+  ⟪𝔉₄∣_Type⟫ : Chor𝔓roc⊢Type ◯ -> ⊢Type
+  ⟪𝔉₄∣_Type⟫ = ⟦_⟧-FType
 
   -- End Types
   --------------------------------------------------------------------
@@ -85,8 +85,8 @@ module _ (This : Std𝔓roc) where
   ⟦_⟧-FCtx : ∀ (Γ : Chor𝔓roc⊢Ctx) -> ⊢Ctx
   ⟦_⟧-FCtx Γ n = ⟦ local-Proof (π-Ctx-Proof Γ (⦗ n ⦘₊ ∷ [])) ⟧-LCtx
 
-  ⟪𝔉₁∣_Ctx⟫ : Chor𝔓roc⊢Ctx -> ⊢Ctx
-  ⟪𝔉₁∣_Ctx⟫ = ⟦_⟧-FCtx
+  ⟪𝔉₄∣_Ctx⟫ : Chor𝔓roc⊢Ctx -> ⊢Ctx
+  ⟪𝔉₄∣_Ctx⟫ = ⟦_⟧-FCtx
 
   cong-LCtx : ∀{Γ Δ} -> {Γp : isLocal ps Γ} {Δp : isLocal ps Δ}
             -> Γp ≡-Local Δp
@@ -273,8 +273,8 @@ module _ (This : Std𝔓roc) where
   ta {Γ = Γ} {X} ts n = tr (local-Proof (π-Ctx-Proof Γ _)) (⟨ ts ⟩ n (inAllProcs Super) (π-Type-Proof X _) (π-Ctx-Proof Γ _))
 
 
-  ⟪𝔉₁∣_Term⟫ : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ allProcs Super ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
-  ⟪𝔉₁∣_Term⟫ = ta
+  ⟪𝔉₄∣_Term⟫ : ∀ {Γ X} -> Γ ⊢ X GlobalFibered[ allProcs Super ] -> ⟦ Γ ⟧-FCtx ⊢ ⟦ X ⟧-FType
+  ⟪𝔉₄∣_Term⟫ = ta
 
   -- End Term
   --------------------------------------------------------------------
@@ -282,9 +282,9 @@ module _ (This : Std𝔓roc) where
 
   run-𝔉₄ : {a : Param Super} (p : SubParam Super a) -> Hom-STT (Super at a) (This at a)
   run-𝔉₄ p = record
-    { ⟪_∣_Ctx⟫ = ⟪𝔉₁∣_Ctx⟫
-    ; ⟪_∣_Type⟫ = ⟪𝔉₁∣_Type⟫
-    ; ⟪_∣_Term⟫ = ⟪𝔉₁∣_Term⟫
+    { ⟪_∣_Ctx⟫ = ⟪𝔉₄∣_Ctx⟫
+    ; ⟪_∣_Type⟫ = ⟪𝔉₄∣_Type⟫
+    ; ⟪_∣_Term⟫ = ⟪𝔉₄∣_Term⟫
     }
 
 

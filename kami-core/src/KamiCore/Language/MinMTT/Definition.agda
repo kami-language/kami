@@ -23,7 +23,7 @@ open import Agora.Order.Lattice
 
 open import KamiCore.Language.MTT.Definition
 
-open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
+open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id') hiding (unit-r-◆)
 
 
 module _ {𝒞 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝒞}}
@@ -36,7 +36,11 @@ module _ {𝒞 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝒞}}
 
   preserve-◆-Comp-Path : {a b c : 𝒞} -> {f : Path R a b} -> {g : Path R b c}
                        -> Comp-Path (f ◆' g) ∼ Comp-Path f ◆ Comp-Path g
-  preserve-◆-Comp-Path {f = f} {g = g} = {!!}
+  preserve-◆-Comp-Path {f = id'} {g = g} = sym unit-l-◆
+  preserve-◆-Comp-Path {f = x ⨾ f} {g = g} = (refl-∼ ◈ preserve-◆-Comp-Path {f = f} {g = g}) ∙ assoc-r-◆
+
+
+
 
 
 record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
@@ -229,3 +233,4 @@ instance
     ; SubParam = λ 𝒯 (x , a) -> isTargetMode 𝒯 x
     ; _at_ = λ This m -> Min𝔐TT/Definition.λMinMTT This m
     }
+
