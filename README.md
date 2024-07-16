@@ -15,10 +15,11 @@ There is ongoing work to build the first prototype of the Kami compiler. The var
 In order to typecheck the current prototype, you need a recent install of [Agda](https://github.com/agda/agda) (e.g. version 2.6.x, or the current master branch).
 
 Additionally, you will need to install the following libraries on your system, as described in the [Agda documentation](https://agda.readthedocs.io/en/v2.6.20240714/tools/package-system.html):
-    - [agda standard library](https://github.com/agda/agda-stdlib)
-    - [agda prelude](https://github.com/UlfNorell/agda-prelude)
-    - [Agora](https://github.com/determi-io/agora)
-    - [KamiTheory](https://github.com/kami-language/kami-theory)
+
+ - [agda standard library](https://github.com/agda/agda-stdlib)
+ - [agda prelude](https://github.com/UlfNorell/agda-prelude)
+ - [Agora](https://github.com/determi-io/agora)
+ - [KamiTheory](https://github.com/kami-language/kami-theory)
 
 In order to typecheck the whole compilation pipeline, and apply it to the example term, change into the `kami-core/src/KamiCore/Pipeline/` subfolder and run `agda Definition.agda`. This will take quite some time as it recursively typechecks all dependencies.
 
