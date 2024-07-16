@@ -135,18 +135,23 @@ open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
 -- Example
 ----------------------------------------------------------
 --
--- In order to show that the 
+-- In order to show that the compilation pipeline computes,
+-- and indeed works as intended, we set up simple example
+-- choreography to be compiled.
 
-
+-- We define our example terms over a generic number of processes `n`.
 module Generic (n : ℕ) where
+
+  -- The target language is StdProc with n processes.
   Target : StdProc
   Target = record { Roles = n }
 
+
+  -- We also have to instantiate the ChorMTT language to get
+  -- the correct instances for specifying modalities.
   Chor : ChorMTT _
   Chor = ⟨ 𝔉₄ ◆-ParamSTT 𝔉₃ ⟩ Target
 
-
-  -- open Chor𝔐TT/Definition This
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Private] Chor public
   open Chor𝔐TT/Definition.[Chor𝔐TT/Definition::Param] Chor public
 
@@ -166,24 +171,27 @@ module Generic (n : ℕ) where
     def : ∀{a b : ⟨ P ⟩} -> isProp (a ≤ b)
     def = isProp:≤-Roles Chor
 
+
+  -- The source language is MTT, with parametrization
+  -- derived from the compilation pipeline 𝔉
   Source : MTT _
   Source = ⟨ 𝔉 ⟩ Target
 
+  -- We open all required notation for MTT
   open 𝔐TT/Definition Source public
-  open [𝔐TT/Definition::Type] public --  renaming (⊢Type to 𝔐TT⊢Type) public
-  open [𝔐TT/Definition::Ctx] public -- renaming (⊢Ctx to 𝔐TT⊢Ctx) public
-  open [𝔐TT/Definition::Term] public -- renaming (_⊢_ to _𝔐TT⊢_ ; _⊢Var⟮_∣_⇒_⟯ to _𝔐TT⊢Var⟮_∣_⇒_⟯ ; _⊢Var⟮_∣_⇒∼_⟯ to _𝔐TT⊢Var⟮_∣_⇒∼_⟯) public
+  open [𝔐TT/Definition::Type] public
+  open [𝔐TT/Definition::Ctx] public
+  open [𝔐TT/Definition::Term] public
   open Variables/Mode public
   open Variables/Ctx public
   open Variables/Type public
   variable X Y Z : ⊢Type m
 
+  -- We define some syntactic sugar for types and transformations,
+  -- and terms
   pattern id₂ = [ incl [] ∣ incl [] ]
-
-
   pattern _＠_ A u = ⟨ A ∣ `＠` u ⨾ id' ⟩
   pattern ◻ X = ⟨ X ∣ `[]` ⨾ id' ⟩
-
   infix 50 _＠_
 
   pattern Λ_ t = lam t
@@ -196,33 +204,53 @@ module Generic (n : ℕ) where
   pattern _⇒_ A B = ⟮ A ∣ id' ⟯⇒ B
   infixr 40 _⇒_
 
-  _∘'_ : Γ ⊢ ⟮ A ∣ id' ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
-  _∘'_ = {!!}
-
-  ev : ∀ (u : ⟨ Roles Chor ⟩) -> `[]` ⨾ `＠` u ⨾ id' ⟹ id'
-  ev u = [ incl [] ∣ incl (incl (id' ⌟[ recv u ]⌞ id' ⌟) ∷ [] ) ]
-
-  stage : ∀ (u : ⟨ P ⟩) -> id ⟹ `＠` u ⨾ `[]` ⨾ id'
-  stage = {!!}
+  -- This is the receive transformation in our mode theory
+  rcv : ∀ (u : ⟨ Roles Chor ⟩) -> `[]` ⨾ `＠` u ⨾ id' ⟹ id'
+  rcv u = [ incl [] ∣ incl (incl (id' ⌟[ recv u ]⌞ id' ⌟) ∷ [] ) ]
 
 
+  -- This is the example term: it describes the sending of an
+  -- arbitrary choreography located at a single node to all nodes.
   eval' : ∀ i -> Γ ⊢ ⟮ ◻ X ＠ ⦗ i ⦘₊ ∣ id' ⟯⇒ Tr X
   eval' i = Λ letmod (var (suc! zero) id₂ {!!})
               and letmod[ `＠` ⦗ i ⦘₊ ⨾ id ] var (suc! zero) id₂ {!!}
-              and seq (trans (ev ⦗ i ⦘₊) {!!} (mod _ (var (suc! zero) id₂ {!!})))
+              and seq (trans (rcv ⦗ i ⦘₊) {!!} (mod _ (var (suc! zero) id₂ {!!})))
                       (letmod (var (suc! zero) id₂ {!!})
                         and pure (var zero id₂ {!!}))
 
-
+-- We open the example module with `n = 2` number of partipants.
 open Generic 2
 
+-- We specify the concrete type we want to use for `X` . In this case we intend
+-- to transmit a boolean located at node zero to node 1. `Bool` is represented as
+-- `Either Unit Unit`.
 M0Type : ⊢Type _
 M0Type = ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊ ∣ id' ⟯⇒ Tr (Either Unit Unit ＠ ⦗ suc zero ⦘₊ )
 
+-- The term is simply given by `eval'` as defined in the example module above.
 ex1 : ε ⊢ M0Type
 ex1 = eval' zero
 
+-- Running the whole compilation pipeline is now simply a matter of applying
+-- `𝔉` to `ex1`.
 res1 = ⟪ runAt {{of 𝔉}} Target refl-≡  ∣ ex1 Term⟫
+
+-- In order to see the result, use the Agda normalization feature:
+-- Press "C-c C-n" and enter "res1 zero" to compute the compiled term for
+-- participant number 0. Accordingly use "res1 (suc zero)" to compute for
+-- particpant number 1.
+--
+-- The resulting term is going to be relatively large, but it can be seen to
+-- contain the corresponding send and recv statements as expected for the
+-- projection.
+
+
+
+
+
+
+
+
 
 
 
@@ -232,6 +260,12 @@ res1 = ⟪ runAt {{of 𝔉}} Target refl-≡  ∣ ex1 Term⟫
 --------------------------------------------------------------------
 -- Helpers for running individual compilation steps
 --------------------------------------------------------------------
+--
+-- For debugging purposes, the following definitions can be used
+-- to run individual compilation steps. They make typechecking this
+-- file incredibly slow, and are thus commented out by default.
+--
+
 {-
 
 M1 : MinMTT _
