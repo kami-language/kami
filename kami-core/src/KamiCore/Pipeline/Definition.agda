@@ -132,6 +132,7 @@ module Generic (n : ℕ) where
                       (letmod (var (suc! zero) id₂ {!!})
                         and pure (var zero id₂ {!!}))
 
+
 open Generic 2
 
 M0Type : ⊢Type _
@@ -140,6 +141,18 @@ M0Type = ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊
 ex1 : ε ⊢ M0Type
 ex1 = eval' zero
 
+-- res1 : M1⊢Type _
+res1 = ⟪ runAt {{of 𝔉}} Target refl-≡  ∣ ex1 Term⟫
+
+
+
+
+
+
+--------------------------------------------------------------------
+-- Helpers for running individual compilation steps
+--------------------------------------------------------------------
+{-
 
 M1 : MinMTT _
 M1 = (⟨ 𝔉₄ ◆-ParamSTT 𝔉₃ ◆-ParamSTT 𝔉₂ ⟩ Target)
@@ -208,5 +221,5 @@ M4Term = ⟪𝔉₄∣_Term⟫ M4 M3Term
 -- ex10 = {!!}
 
 -- ? ⟪ runAt {{of 𝔉₁}} M1 refl-≡ ∣ ex1 Term⟫
-
+-}
 

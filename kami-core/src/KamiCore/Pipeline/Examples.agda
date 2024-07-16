@@ -11,6 +11,7 @@ open import Agora.Category.Std.Category.Definition
 open import Agora.Category.Std.2Category.Definition
 open import KamiTheory.Order.StrictOrder.Base
 open import KamiTheory.Data.UniqueSortedList.Definition
+open import KamiTheory.Data.UniqueSortedList.Instance.Preorder
 open import KamiTheory.Data.List.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
@@ -49,14 +50,16 @@ module Translation (n : ℕ) where
 
 
   -- Instantiating MTT with the 2category generated from the modesystem
-  open import KamiCore.Typed.Variant.F.Definition3
+  open import KamiCore.Experiments.Definition3
+
+  open ModeSystemAs2Category SRN-ModeSystem
 
   instance
     Param : MTTꟳ _
     Param = record
       { 𝓂 = Mode SRN-ModeSystem
-      ; isCategory:𝓂 = isCategory:byModeSystem SRN-ModeSystem
-      ; is2Category:𝓂 = is2Category:byModeSystem SRN-ModeSystem
+      ; isCategory:𝓂 = isCategory:byModeSystem
+      ; is2Category:𝓂 = is2Category:byModeSystem
       }
 
 

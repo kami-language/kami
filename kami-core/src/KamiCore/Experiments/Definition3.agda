@@ -1,7 +1,7 @@
 
 {-# OPTIONS --allow-unsolved-metas --rewriting #-}
 
-module KamiCore.Typed.Variant.F.Definition3 where
+module KamiCore.Experiments.Definition3 where
 
 open import Agora.Conventions hiding (m ; n ; k ; _∣_)
 open import Agora.Data.Product.Definition
