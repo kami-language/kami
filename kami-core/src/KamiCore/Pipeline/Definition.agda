@@ -17,8 +17,6 @@ open import Agora.Data.Fin.Definition
 open import Agora.TypeTheory.STT.Definition
 open import Agora.TypeTheory.ParamSTT.Definition
 
--- open import KamiTheory.Data.UniqueSortedList.Definition
--- open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.UniqueSortedList.NonEmpty
 open import KamiTheory.Data.UniqueSortedList.Properties
 open import KamiTheory.Data.UniqueSortedList.Definition
@@ -39,20 +37,106 @@ open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Definition
 open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
 
+----------------------------------------------------------
+-- The Kami compilation pipeline
+----------------------------------------------------------
+--
+-- # Compiling Kami to process languages
+--
+-- The compilation process is quite involved, in particular
+-- since the target language itself is typed and the well-typedness
+-- relation has to be preserved intrinsincally. This requires
+-- to do much more work up-front to implement the pipeline,
+-- but gives very strong correctness guarantees for the compilation,
+-- in particular when future changes are going require updates to
+-- the pipeline.
+--
+-- We compile a single Kami term, which represents a choreography
+-- between n participating roles into separate programs; one for each
+-- participant. The complications arise from the fact that MTT,
+-- the language that Kami is based on, is very flexible and general.
+-- This generality has to be reduced before the term can be projected
+-- to the participants. Additionally, nested modalities and their context
+-- restriction operations increase the difficulty of projections, as it is
+-- not straightforward to project the context to the participants: the result
+-- depends on the current nesting of modalities we are under.
+--
+-- ## The intermediate languages
+--
+-- The compilation pipeline is implemented as translations between various
+-- intermediate representations (IR). The dedicated IRs enforce that each step
+-- in fact did its job, and serve as induction basis for the next step.
+-- They are available in the submodules of `KamiCore.Language`. In particular,
+-- the languages are the following:
+--
+--  - MTT: The source language. Parametric over arbitrary 2-categorical mode theories,
+--    this is mostly the original Modal Type Theory by Daniel Gratzer. The only addition
+--    is an explicit term for unevaluated transformations. This language is going to
+--    be the target of the typechecker, and the pipeline takes MTT terms as input for compilation.
+--
+--  - MinMTT: This is "Minimal MTT", an optimized representation of MTT which has the same expressive
+--    power as MTT but removes some syntactic sugar. In particular:
+--      1) Function types do no longer have a modality annotation. Instead this is simulated by modal
+--      types and `letmod` bindings.
+--      2) All modal types are restricted to a subclass of "small" arrows in the mode theory. This means
+--      that modal types under compositions of modalities are represented as nested modal types,
+--      e.g., `⟨ A ∣ μ ◆ ν ⟩` is translated to `⟨ ⟨ A ∣ μ ⟩ ∣ ν ⟩`.
+--      This means that the modal terms, `mod` and `letmod`, if they involving compositions,
+--      have to be translated into iterations of singletons.
+--
+--  - ChorMTT: This is the first representation of Kami which is specialized to the choreographic modetheory.
+--    There is a condition on the form of contexts which requires `[]` restrictions to follow directly after
+--    `＠` restrictions. The effect is that variables are only allowed to occur in the global mode. Such a
+--    property is required for the following step to go through. The translation from MinMTT thus shifts
+--    `＠` annotations upwards until the next `[]` restriction.
+--
+--  - ChorProc: This is the first process-calculus-like intermediate language, and the translation step from ChorMTT
+--    is the essential part of the whole compilation. Context and types remain globally defined, but terms are families
+--    of local terms, one for each participant. We retain a context restriction operation, but it represents the composition
+--    `[] ◆ ＠ U` of modalities. This means that we don't have the concept of a local mode anymore in this language.
+--    In its core, the translation from ChorMTT to ChorProc follows the standard paradigm of choreographic projections.
+--    Complications arise only from the fact that we have nested modalities, and thus communications/transformations can appear
+--    arbitrary deep in the context.
+--
+--  - StdProc: This is a standard lambda calculus with send and receive operations, and is the final target of our pipeline.
+--    from here it is straightforward to translate to various real-world programming languages such as Elixir or Rust, as no
+--    fancy types or context structures exist in this language. The translation from ChorProc elides all context restrictions,
+--    and projects the contexts and types to their local variants. Boxed choreographies are represented as tuples of their projections.
+--    The terms themselves are already projected, only the variables have to be dealt with. The specialized relation for accessing boxed
+--    variables in ChorProc is translated into standard projection terms to access elements of tuples.
+--
+-- ## Implementation details
+--
+-- The IR-languages are defined in the `.Definition` submodules of their respective directories. The translation from their "parent" language
+-- is given in the ".Translation" subdirectory. The translation itself is a framework of "parametrized simple-type-theory" morphisms, an abstractions
+-- which allows us to model the fact that the IRs have different parameter spaces, and the compilation pipeline is a composition of smaller steps,
+-- where a generic language is translated to a more specific language. This means that the choice of parameters flows in the opposite direction
+-- of the actual compilation: choices in the target language influence which concrete source language is being compiled from.
+--
+-- The four compilation steps are given by four ParamSTT morphisms: 𝔉₁ ,  ⃨ , 𝔉₄
+-- ```
+--    MTT -[ 𝔉₁ ]-> MinMTT -[ 𝔉₂ ]-> ChorMTT -[ 𝔉₃ ]-> ChorProc -[ 𝔉₄ ]-> ChorStd
+-- ```
+--
+-- We compose the steps into a single ParamSTT morphism, 𝔉:
 
--- The inference & typechecking pipeline
-
-
-
--- The whole compilation pipeline
 𝔉 : ParamSTTHom (Std𝔓roc) (𝔐TT _)
 𝔉 = 𝔉₄ ◆-ParamSTT
     𝔉₃ ◆-ParamSTT
     𝔉₂ ◆-ParamSTT
     𝔉₁
 
+--
+-- Now 𝔉 can be used to translate contexts, types and terms from MTT to StdProc.
+--
+
+
 ----------------------------------------------------------
--- Examples
+-- Example
+----------------------------------------------------------
+--
+-- In order to show that the 
+
 
 module Generic (n : ℕ) where
   Target : StdProc
@@ -90,7 +174,6 @@ module Generic (n : ℕ) where
   open [𝔐TT/Definition::Ctx] public -- renaming (⊢Ctx to 𝔐TT⊢Ctx) public
   open [𝔐TT/Definition::Term] public -- renaming (_⊢_ to _𝔐TT⊢_ ; _⊢Var⟮_∣_⇒_⟯ to _𝔐TT⊢Var⟮_∣_⇒_⟯ ; _⊢Var⟮_∣_⇒∼_⟯ to _𝔐TT⊢Var⟮_∣_⇒∼_⟯) public
   open Variables/Mode public
-  -- open Variables/Hom public
   open Variables/Ctx public
   open Variables/Type public
   variable X Y Z : ⊢Type m
@@ -122,11 +205,6 @@ module Generic (n : ℕ) where
   stage : ∀ (u : ⟨ P ⟩) -> id ⟹ `＠` u ⨾ `[]` ⨾ id'
   stage = {!!}
 
-  -- eval : ∀ i -> Γ ⊢ ⟮ ◻ X ＠ ⦗ i ⦘₊ ∣ id' ⟯⇒ X
-  -- eval {X = X} i = Λ letmod (var (suc! zero) id₂ {!!})
-  --           and (letmod {A = X} {μ = `[]` ⨾ id'} (`＠` ⦗ i ⦘₊ ⨾ id')  (var {μ = (`＠` ⦗ i ⦘₊ ⨾ id')} (suc! {!zero!}) {!!} {!!})
-  --           {!!})
-  --           -- var zero (ev ⦗ i ⦘₊) {!!}
 
   eval' : ∀ i -> Γ ⊢ ⟮ ◻ X ＠ ⦗ i ⦘₊ ∣ id' ⟯⇒ Tr X
   eval' i = Λ letmod (var (suc! zero) id₂ {!!})
@@ -144,7 +222,6 @@ M0Type = ⟮ ◻ (Either Unit Unit ＠ ⦗ suc zero ⦘₊ ) ＠ ⦗ zero ⦘₊
 ex1 : ε ⊢ M0Type
 ex1 = eval' zero
 
--- res1 : M1⊢Type _
 res1 = ⟪ runAt {{of 𝔉}} Target refl-≡  ∣ ex1 Term⟫
 
 
