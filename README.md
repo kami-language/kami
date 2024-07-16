@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2024 Maxim Urschumzew <mxmurw@determi.io>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Kami
 
 A programming language for distributed systems integrated with the rust ecosystem. Currently research is happening in the [kami-theory repository.](https://github.com/kami-language/kami-theory).
