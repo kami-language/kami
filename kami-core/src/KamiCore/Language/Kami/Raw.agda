@@ -146,6 +146,9 @@ data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
                -> Γ , (x , (_ , _ , ν , B)) ⊢ C
                -> Γ ⊢ C
 
+  nil : Γ ⊢ Lst A
+  cons : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
+
   tt : ∀{m} -> Γ ⊢ Unit {m}
 
 wk : ∀{x Y} -> Γ ⊢ A -> Γ , (x , Y) ⊢ A
@@ -184,6 +187,8 @@ _&&_ F G ϕ = F λ a -> G λ b -> ϕ (a , b)
 infixr 30 _&&_
 
 
+check : TermVal -> (m : Mode) -> (A : 𝔐TT⊢Type m) -> Error +-𝒰 (Γ ⊢ A)
+check = {!!}
 
 infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
 infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
@@ -214,10 +219,16 @@ infer {Γ = Γ} (Either x f g) m = do
         }
       }
     }
-infer Nil m = {!!}
-infer (Cons t t₁) m = {!!}
+infer Nil m = left "encountered `Nil` in a place where the required type is unknown"
+infer (Cons x xs) m = do
+  X , x' <- infer x m
+  xs' <- check xs m (Lst X)
+  return (Lst X , cons x' xs' )
 infer (ListRec t t₁ t₂) m = {!!}
 infer TT m = right $ _ , tt
-infer (Check t x) m = {!!}
+infer (Check t x) m = do
+  X <- modecheck x m
+  x' <- check t m X
+  return $ X , x'
 
 
