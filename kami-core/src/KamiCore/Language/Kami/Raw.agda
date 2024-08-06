@@ -63,6 +63,7 @@ Error = String
 --   Local Global : Mode
 Mode = ⟨ 𝓂 ⟩
 
+
 -- data ⊢Type_ : Mode -> 𝒰₀ where
 
 Modality' : Mode -> Mode -> 𝒰₀
@@ -79,6 +80,12 @@ tr-loc : Location -> 𝒫₊ᶠⁱⁿ (𝔽 (suc n))
 tr-loc L0 = ⦗ zero ⦘₊
 tr-loc L1 = ⦗ suc zero ⦘₊
 tr-loc L2 = ⦗ suc (suc zero) ⦘₊
+
+Local : Location -> Mode
+Local l = ▲ (tr-loc l)
+
+Global : Mode
+Global = ◯
 
 modecheck' : TypeVal -> (m : Mode) -> Error +-𝒰 (∑ λ n -> (Modality' n m) ×-𝒰 𝔐TT⊢Type n)
 modecheck : TypeVal -> (m : Mode) -> Error +-𝒰 (𝔐TT⊢Type m)
