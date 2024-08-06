@@ -24,6 +24,8 @@ open import Data.Vec hiding ([_] ; map)
 
 record MTT (𝑖 : 𝔏 ^ 6) : 𝒰 (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
+  field {{hasDecidableEquality:ModeTheory}} : hasDecidableEquality ⟨ ModeTheory ⟩
+  field {{hasDecidableEquality:Hom-ModeTheory}} : ∀{a b} -> hasDecidableEquality (Hom {{of (↳ ModeTheory)}} a b)
   field isTargetMode : ⟨ ModeTheory ⟩ -> 𝒰 (𝑖 ⌄ 5)
   field Classification : JoinSemilattice (ℓ₀ , ℓ₀ , ℓ₀)
   field {{isClassified:Transformation}} : ∀{a b : ⟨ ModeTheory ⟩} -> isClassified Classification (HomCategory a b)
@@ -66,13 +68,14 @@ module 𝔐TT/Definition {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
   open Variables/Hom
 
   module [𝔐TT/Definition::Type] where
-    data ⊢Type : 𝓂 -> 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
-      ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
+    data ⊢Type (m : 𝓂) : 𝒰 (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1) where
+      -- ⟨_∣_⟩ : ⊢Type m -> m ⟶ n -> ⊢Type n
+      ⟨_∣_⟩ : ∀{n} -> ⊢Type n -> Hom {{of 𝓂'}} n m -> ⊢Type m
       Unit : ⊢Type m
-      Tr : ⊢Type m -> ⊢Type m
+      Tr :  ⊢Type m -> ⊢Type m
       Either : ⊢Type m -> ⊢Type m -> ⊢Type m
       Lst : ⊢Type m -> ⊢Type m
-      ⟮_∣_⟯⇒_ : ⊢Type m -> m ⟶ n -> ⊢Type n -> ⊢Type n
+      ⟮_∣_⟯⇒_ : ∀{n} -> ⊢Type n -> Hom {{of 𝓂'}} n m -> ⊢Type m -> ⊢Type m
 
     infix 30 ⟨_∣_⟩ ⟮_∣_⟯⇒_
 

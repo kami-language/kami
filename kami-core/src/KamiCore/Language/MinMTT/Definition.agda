@@ -48,6 +48,8 @@ module _ {𝒞 : 𝒰 𝑖} {{_ : isCategory {𝑗} 𝒞}}
 
 record MinMTT (𝑖 : 𝔏 ^ 6) : 𝒰' (𝑖 ⁺) where
   field ModeTheory : 2Category (𝑖 ⌄ 0 ⋯ 4)
+  field {{hasDecidableEquality:ModeTheory}} : hasDecidableEquality ⟨ ModeTheory ⟩
+  field {{hasDecidableEquality:Hom-ModeTheory}} : ∀{a b} -> hasDecidableEquality (Hom {{of (↳ ModeTheory)}} a b)
   field isSmall : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> 𝒰' (𝑖 ⌄ 0 ⊔ 𝑖 ⌄ 1)
   field isSmall:id : ∀{a : ⟨ ModeTheory ⟩} -> isSmall (id {a = a})
   field split : ∀{a b : ⟨ ModeTheory ⟩} -> a ⟶ b -> Path (λ a b -> ∑ λ (ϕ : a ⟶ b) -> isSmall ϕ) a b

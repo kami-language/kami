@@ -1,13 +1,20 @@
-module KamiCore.FFI.Parser.Definition where
+module KamiCore.Foreign.Parser.Definition where
 
 open import Agora.Conventions
 
 {-# FOREIGN GHC import Parser.Definition #-}
+{-# FOREIGN GHC import qualified Data.Text as T #-}
 
 record Name : 𝒰₀ where
   constructor mkName
   field getName : Text
+open Name public
 {-# COMPILE GHC Name = data Name (Name) #-}
+
+instance
+  IShow:Name : IShow Name
+  IShow:Name = record { show = getName }
+
 
 data Location : 𝒰₀ where
   L0 L1 L2 : Location

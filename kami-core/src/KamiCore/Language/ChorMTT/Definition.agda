@@ -75,7 +75,7 @@ module Chor𝔐TT/Definition (This : Chor𝔐TT 𝑗) where
     open 2CellDefinition.2CellDefinition hiding (id) public
     open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Example3 public
     open PolySendReceive-ModeSystem P {{it}} {{it}} public
-    open 2GraphExample.PolySendReceive-2Graph P public
+    open 2GraphExample.PolySendReceive-2Graph P {{it}} {{it}} public
     open 2CellLinear.2CellLinear PolySR public
     open 2CellRewriting.2CellRewriting PolySR public
 
