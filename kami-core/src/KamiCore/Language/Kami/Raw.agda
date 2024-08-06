@@ -130,21 +130,34 @@ data _⊢Var_ : Ctx -> ∀{a} -> 𝔐TT⊢Type a -> 𝒰₀ where
   zero : ∀{m n μ A} -> Γ , (x , (m , n , μ , A)) ⊢Var A
   suc : ∀{m} -> ∀{A : 𝔐TT⊢Type m} -> ∀{y} -> Γ ⊢Var A -> Γ , y ⊢Var A
 
+⟨_∣*_⟩ : ∀{m n} -> 𝔐TT⊢Type m -> m ⟶ n -> 𝔐TT⊢Type n
+⟨ A ∣* id' ⟩ = A
+⟨ A ∣* `＠` U ⨾ x₁ ⟩ = ⟨ ⟨ A ∣ `＠` U ⨾ id' ⟩ ∣* x₁ ⟩
+⟨ A ∣* `[]` ⨾ x₁ ⟩ = ⟨ ⟨ A ∣ `[]` ⨾ id' ⟩ ∣* x₁ ⟩
+
 data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
   var : Γ ⊢Var A -> Γ ⊢ A
 
   lam : ∀ x  -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
   app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
+  rec-Either : Γ ⊢ Either ⟨ A ∣* μ ⟩ ⟨ B ∣* ν ⟩
+               -> Γ , (x , (_ , _ , μ , A)) ⊢ C
+               -> Γ , (x , (_ , _ , ν , B)) ⊢ C
+               -> Γ ⊢ C
+
   tt : ∀{m} -> Γ ⊢ Unit {m}
 
-typecheck-Var : (x : Name) (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢Var A)
-typecheck-Var {Γ = ε} x m = no $ "No variable " <> show x <> " in scope"
-typecheck-Var {Γ = Γ , (y , (n , _ , μ , A))} x m =
+wk : ∀{x Y} -> Γ ⊢ A -> Γ , (x , Y) ⊢ A
+wk = {!!}
+
+infer-Var : (x : Name) (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢Var A)
+infer-Var {Γ = ε} x m = no $ "No variable " <> show x <> " in scope"
+infer-Var {Γ = Γ , (y , (n , _ , μ , A))} x m =
   if cmp-Name x y
     then (withModeEquality m n λ {refl-≡ -> right $ A , zero})
     else do
-      A' , v <- typecheck-Var {Γ = Γ} x m
+      A' , v <- infer-Var {Γ = Γ} x m
       return $ A' , suc v
 
 
@@ -155,30 +168,56 @@ withArrow : ∀{m} {X : 𝒰 𝑖}
 withArrow (⟮ A ∣ μ ⟯⇒ B) t = t (_ , μ , A , B , refl-≡)
 withArrow X t = left "Expected function type on left side of application"
 
+withSum : ∀{m} {X : 𝒰 𝑖}
+          -> (F : 𝔐TT⊢Type m)
+          -> ((∑ λ (A : 𝔐TT⊢Type m) -> ∑ λ (B : 𝔐TT⊢Type m) -> F ≡ Either A B) -> Error +-𝒰 X)
+          -> Error +-𝒰 X
+withSum (Either A B) t = t (A , B , refl-≡)
+withSum X t = left "Expected sum type"
 
-typecheck : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
-typecheck (Var x) m = mapRight (λ (A , v) -> (A , var v)) (typecheck-Var x m)
-typecheck (Lam (mkFunArg x A) t) m = do
+_&&_ : {X : 𝒰 𝑖} {A : 𝒰 𝑗} {B : 𝒰 𝑘}
+     -> (∀ {X : 𝒰 𝑖} -> (A -> Error +-𝒰 X) -> Error +-𝒰 X)
+     -> (∀ {X : 𝒰 𝑖} -> (B -> Error +-𝒰 X) -> Error +-𝒰 X)
+     -> (((A ×-𝒰 B) -> Error +-𝒰 X) -> Error +-𝒰 X)
+_&&_ F G ϕ = F λ a -> G λ b -> ϕ (a , b)
+
+infixr 30 _&&_
+
+
+
+infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
+infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
+infer (Lam (mkFunArg x A) t) m = do
   n , μ , A' <- modecheck' A m
-  B' , t' <- typecheck t m
+  B' , t' <- infer t m
   right (⟮ A' ∣ μ ⟯⇒ B' , lam x t')
-typecheck (App t s) m = do
-  F , t' <- typecheck t m
+infer (App t s) m = do
+  F , t' <- infer t m
   withArrow F λ {(n , μ , A , B , refl-≡) -> do
-    A' , s' <- typecheck s n
+    A' , s' <- infer s n
     withTypeEquality A A' λ {refl-≡ -> do
       return (B , app t' s')}}
 
-typecheck (Fst t) = {!!}
-typecheck (Snd t) = {!!}
-typecheck (MkProd t t₁) = {!!}
-typecheck (Left t) = {!!}
-typecheck (Right t) = {!!}
-typecheck (Either t t₁ t₂) = {!!}
-typecheck Nil = {!!}
-typecheck (Cons t t₁) = {!!}
-typecheck (ListRec t t₁ t₂) = {!!}
-typecheck TT m = right $ _ , tt
-typecheck (Check t x) = {!!}
+infer (Fst t) m = left "not implemented: product types"
+infer (Snd t) m = left "not implemented: product types"
+infer (MkProd t t₁) m = left "not implemented: product types"
+infer (Left t) m = left "encountered `left` in a place where the required type is unknown"
+infer (Right t) m = left "encountered `right` in a place where the required type is unknown"
+infer {Γ = Γ} (Either x f g) m = do
+  X , x' <- infer x m
+  withSum X λ {(A , B , refl-≡) -> do
+    F , f' <- infer f m
+    G , g' <- infer {Γ = Γ} g m
+    (withArrow F && withArrow G) λ {((_ , μ , A' , Y' , refl-≡) , (_ , ν , B' , Z' , refl-≡)) -> do
+      (withTypeEquality ⟨ A' ∣* μ ⟩ A && withTypeEquality ⟨ B' ∣* ν ⟩ B && withTypeEquality Y' Z') λ {(refl-≡ , refl-≡ , refl-≡) -> do
+        return $ Z' , rec-Either {μ = μ} {ν = ν} {x = mkName "either-var"} x' (app (wk f') (var zero)) ((app (wk g') (var zero))) 
+        }
+      }
+    }
+infer Nil m = {!!}
+infer (Cons t t₁) m = {!!}
+infer (ListRec t t₁ t₂) m = {!!}
+infer TT m = right $ _ , tt
+infer (Check t x) m = {!!}
 
 
