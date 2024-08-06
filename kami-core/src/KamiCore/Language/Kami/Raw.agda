@@ -146,6 +146,11 @@ data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
                -> Γ , (x , (_ , _ , ν , B)) ⊢ C
                -> Γ ⊢ C
 
+  rec-Lst : Γ ⊢ Lst ⟨ A ∣* μ ⟩
+               -> Γ ⊢ ⟨ C ∣* ν ⟩
+               -> (Γ , (x , (_ , _ , μ , A))) , (x , (_ , _ , ν , C)) ⊢ ⟨ C ∣* ν ⟩
+               -> Γ ⊢ ⟨ C ∣* ν ⟩
+
   nil : Γ ⊢ Lst A
   cons : Γ ⊢ A -> Γ ⊢ Lst A -> Γ ⊢ Lst A
 
@@ -178,6 +183,13 @@ withSum : ∀{m} {X : 𝒰 𝑖}
 withSum (Either A B) t = t (A , B , refl-≡)
 withSum X t = left "Expected sum type"
 
+withLst : ∀{m} {X : 𝒰 𝑖}
+          -> (F : 𝔐TT⊢Type m)
+          -> ((∑ λ (A : 𝔐TT⊢Type m) -> F ≡ Lst A) -> Error +-𝒰 X)
+          -> Error +-𝒰 X
+withLst (Lst A) t = t (A , refl-≡)
+withLst X t = left "Expected list type"
+
 _&&_ : {X : 𝒰 𝑖} {A : 𝒰 𝑗} {B : 𝒰 𝑘}
      -> (∀ {X : 𝒰 𝑖} -> (A -> Error +-𝒰 X) -> Error +-𝒰 X)
      -> (∀ {X : 𝒰 𝑖} -> (B -> Error +-𝒰 X) -> Error +-𝒰 X)
@@ -188,7 +200,6 @@ infixr 30 _&&_
 
 
 check : TermVal -> (m : Mode) -> (A : 𝔐TT⊢Type m) -> Error +-𝒰 (Γ ⊢ A)
-check = {!!}
 
 infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
 infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
@@ -224,11 +235,37 @@ infer (Cons x xs) m = do
   X , x' <- infer x m
   xs' <- check xs m (Lst X)
   return (Lst X , cons x' xs' )
-infer (ListRec t t₁ t₂) m = {!!}
+infer (ListRec xs fnil fcons) m = do
+  XS , xs' <- infer xs m
+  withLst XS λ {(X , refl-≡) -> do
+    Z , fnil' <- infer fnil m
+    Fcons , fcons' <- infer fcons m
+    withArrow Fcons λ {(_ , μ0 , F0 , F12 , refl-≡) -> do
+      withArrow F12 λ {(_ , μ1 , F1 , F2 , refl-≡) -> do
+        (withTypeEquality ⟨ F0 ∣* μ0 ⟩ X && withTypeEquality F2 Z && withTypeEquality ⟨ F1 ∣* μ1 ⟩ F2) λ {(refl-≡ , refl-≡ , refl-≡) -> do
+          return $ F2 , rec-Lst {μ = μ0} {ν = μ1} {x = mkName "lstrec-var"} xs' fnil' (app (app (wk (wk fcons')) (var (suc zero))) (var zero))
+          }
+        }
+      }
+    }
 infer TT m = right $ _ , tt
 infer (Check t x) m = do
   X <- modecheck x m
   x' <- check t m X
   return $ X , x'
 
+check (Var x) m A = {!!}
+check (Lam x t) m A = {!!}
+check (App t t₁) m A = {!!}
+check (Fst t) m A = {!!}
+check (Snd t) m A = {!!}
+check (MkProd t t₁) m A = {!!}
+check (Left t) m A = {!!}
+check (Right t) m A = {!!}
+check (Either t t₁ t₂) m A = {!!}
+check Nil m A = {!!}
+check (Cons t t₁) m A = {!!}
+check (ListRec t t₁ t₂) m A = {!!}
+check TT m A = {!!}
+check (Check t x) m A = {!!}
 
