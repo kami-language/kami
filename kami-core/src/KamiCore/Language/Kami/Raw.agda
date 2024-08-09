@@ -87,6 +87,14 @@ Local l = ▲ (tr-loc l)
 Global : Mode
 Global = ◯
 
+show-Mode : Mode -> String
+show-Mode ◯ = "Global"
+show-Mode (▲ _) = "Local ?"
+
+instance
+  IShow:Mode : IShow Mode
+  IShow:Mode = record { show = show-Mode }
+
 -- show-Modality : ∀{m n : Mode} -> m ⟶ n -> String
 -- show-Modality = {!!}
 

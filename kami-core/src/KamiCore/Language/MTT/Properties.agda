@@ -139,11 +139,13 @@ module 𝔐TT/Properties {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
     ... | yes x = f x
 
 
+
+  module _ {{_ : IShow ⟨ 𝓂 ⟩}} where
     withModeEquality : {X : 𝒰 𝑖}
                     (A B : ⟨ 𝓂 ⟩)
                     (f : A ≡ B -> (Text +-𝒰 X))
                     ->
                     Text +-𝒰 X
     withModeEquality A B f with A ≟ B
-    ... | no x = left "expected types to be equal"
+    ... | no x = left $ "expected modes to be equal (" <> show A <> " == " <> show B <> ")"
     ... | yes x = f x
