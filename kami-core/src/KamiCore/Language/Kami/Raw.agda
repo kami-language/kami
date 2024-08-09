@@ -141,6 +141,9 @@ data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
   lam : ∀ x  -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
   app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
+  left : Γ ⊢ A -> Γ ⊢ Either A B
+  right : Γ ⊢ B -> Γ ⊢ Either A B
+
   rec-Either : Γ ⊢ Either ⟨ A ∣* μ ⟩ ⟨ B ∣* ν ⟩
                -> Γ , (x , (_ , _ , μ , A)) ⊢ C
                -> Γ , (x , (_ , _ , ν , B)) ⊢ C
@@ -203,16 +206,19 @@ check : TermVal -> (m : Mode) -> (A : 𝔐TT⊢Type m) -> Error +-𝒰 (Γ ⊢ A
 
 infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
 infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
-infer (Lam (mkFunArg x A) t) m = do
+infer (Lam (NameFunArg x) t) m = left "encountered lambda without type annotation in a place where it is required"
+infer (Lam (TypeFunArg x A) t) m = do
   n , μ , A' <- modecheck' A m
   B' , t' <- infer t m
   right (⟮ A' ∣ μ ⟯⇒ B' , lam x t')
 infer (App t s) m = do
   F , t' <- infer t m
   withArrow F λ {(n , μ , A , B , refl-≡) -> do
-    A' , s' <- infer s n
-    withTypeEquality A A' λ {refl-≡ -> do
-      return (B , app t' s')}}
+    s' <- check s n A
+    return (B , app t' s')
+    }
+    -- withTypeEquality A A' λ {refl-≡ -> do
+    --   return (B , app t' s')}}
 
 infer (Fst t) m = left "not implemented: product types"
 infer (Snd t) m = left "not implemented: product types"
@@ -254,18 +260,68 @@ infer (Check t x) m = do
   x' <- check t m X
   return $ X , x'
 
-check (Var x) m A = {!!}
-check (Lam x t) m A = {!!}
-check (App t t₁) m A = {!!}
-check (Fst t) m A = {!!}
-check (Snd t) m A = {!!}
-check (MkProd t t₁) m A = {!!}
-check (Left t) m A = {!!}
-check (Right t) m A = {!!}
-check (Either t t₁ t₂) m A = {!!}
-check Nil m A = {!!}
-check (Cons t t₁) m A = {!!}
-check (ListRec t t₁ t₂) m A = {!!}
-check TT m A = {!!}
-check (Check t x) m A = {!!}
+
+
+check (Var x) m A = do
+  A' , v <- infer-Var x m
+  withTypeEquality A' A λ {refl-≡ ->
+    return $ var v
+    }
+check {Γ = Γ} (Lam (NameFunArg x) t) m F = do
+  withArrow F λ {(_ , μ₀ , A2 , B , refl-≡) -> do
+    t' <- check {Γ = Γ , (x , (_ , _ , μ₀ , A2))} t m B
+    right (lam x t')
+    }
+check {Γ = Γ} (Lam (TypeFunArg x A) t) m F = do
+  n , μ , A' <- modecheck' A m
+  withArrow F λ {(_ , μ₀ , A2 , B , refl-≡) -> do
+    t' <- check {Γ = Γ , (x , (_ , _ , μ , A'))} t m B
+    (withTypeEquality ⟨ A' ∣ μ ⟩ ⟨ A2 ∣ μ₀ ⟩) λ {refl-≡ -> do
+        right (lam x t')
+      }
+    }
+check (App t s) m B = do
+  F , t' <- infer t m
+  withArrow F λ {(n , μ , A' , B' , refl-≡) -> do
+    s' <- check s n A'
+    withTypeEquality B B' λ {refl-≡ -> do
+      return (app t' s')
+      }}
+check (Fst t) m A = left "not implemented"
+check (Snd t) m A = left "not implemented"
+check (MkProd t t₁) m A = left "not implemented"
+check (Left t) m X = do
+  withSum X λ {(A , B , refl-≡) -> do
+    t' <- check t m A
+    return (left t')
+    }
+check (Right t) m X = do
+  withSum X λ {(A , B , refl-≡) -> do
+    t' <- check t m B
+    return (right t')
+    }
+check {Γ = Γ} (Either x f g) m Res = do
+  X , x' <- infer x m
+  withSum X λ {(A , B , refl-≡) -> do
+    F , f' <- infer f m
+    G , g' <- infer {Γ = Γ} g m
+    (withArrow F && withArrow G) λ {((_ , μ , A' , Y' , refl-≡) , (_ , ν , B' , Z' , refl-≡)) -> do
+      (withTypeEquality ⟨ A' ∣* μ ⟩ A && withTypeEquality ⟨ B' ∣* ν ⟩ B && withTypeEquality Y' Z') λ {(refl-≡ , refl-≡ , refl-≡) -> do
+        withTypeEquality Res Z' λ {refl-≡ -> return $ rec-Either {μ = μ} {ν = ν} {x = mkName "either-var"} x' (app (wk f') (var zero)) ((app (wk g') (var zero))) }
+        }
+      }
+    }
+check Nil m A = left "not implemented"
+check (Cons t t₁) m A = left "not implemented"
+check (ListRec t t₁ t₂) m A = left "not implemented"
+check TT m A = do
+  withTypeEquality A Unit λ {refl-≡ ->
+    return tt
+    }
+check (Check t x) m A = do
+  X <- modecheck x m
+  withTypeEquality X A λ {refl-≡ -> do
+      x' <- check t m X
+      return $ x'
+    }
 

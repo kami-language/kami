@@ -33,8 +33,9 @@ data TypeVal : 𝒰₀ where
 {-# COMPILE GHC TypeVal = data TypeVal (Fun | Prod | Sum | Modal | List | Unit) #-}
 
 data FunArg : 𝒰₀ where
-  mkFunArg : Name -> TypeVal -> FunArg
-{-# COMPILE GHC FunArg = data FunArg (FunArg) #-}
+  TypeFunArg : Name -> TypeVal -> FunArg
+  NameFunArg : Name -> FunArg
+{-# COMPILE GHC FunArg = data FunArg (TypeFunArg | NameFunArg) #-}
 
 data TermVal : 𝒰₀ where
   Var : Name -> TermVal
