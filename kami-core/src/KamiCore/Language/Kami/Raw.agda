@@ -377,12 +377,10 @@ check (Right t) m X = do
 check {Γ = Γ} (Either x f g) m Res = do
   X , x' <- infer x m
   withSum X λ {(A , B , refl-≡) -> do
-    F , f' <- infer f m
-    G , g' <- infer {Γ = Γ} g m
-    (withArrow F && withArrow G) λ {((_ , μ , A' , Y' , refl-≡) , (_ , ν , B' , Z' , refl-≡)) -> do
-      (withTypeEquality ⟨ A' ∣* μ ⟩ A && withTypeEquality ⟨ B' ∣* ν ⟩ B && withTypeEquality Y' Z') λ {(refl-≡ , refl-≡ , refl-≡) -> do
-        withTypeEquality Res Z' λ {refl-≡ -> return $ rec-Either {μ = μ} {ν = ν} {x = mkName "either-var"} x' (app (wk f') (var zero)) ((app (wk g') (var zero))) }
-        }
+    (withDeconstruct A && withDeconstruct B) λ {((_ , μ' , A' , refl-≡) , (_ , ν' , B' , refl-≡)) -> do
+      f' <- check f m (⟮ A' ∣ μ' ⟯⇒ Res)
+      g' <- check g m (⟮ B' ∣ ν' ⟯⇒ Res)
+      return $ rec-Either {μ = μ'} {ν = ν'} {x = mkName "either-var"} x' (app (wk f') (var zero)) ((app (wk g') (var zero)))
       }
     }
 check Nil m A = left "not implemented"
