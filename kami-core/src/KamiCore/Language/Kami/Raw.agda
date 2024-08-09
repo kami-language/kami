@@ -141,17 +141,45 @@ modecheck' A m = do
   A' <- modecheck A m
   return $ m , id , A'
 
-data _⊢Var_ : Ctx -> ∀{a} -> 𝔐TT⊢Type a -> 𝒰₀ where
-  zero : ∀{m n μ A} -> Γ , (x , (m , n , μ , A)) ⊢Var A
-  suc : ∀{m} -> ∀{A : 𝔐TT⊢Type m} -> ∀{y} -> Γ ⊢Var A -> Γ , y ⊢Var A
+
 
 ⟨_∣*_⟩ : ∀{m n} -> 𝔐TT⊢Type m -> m ⟶ n -> 𝔐TT⊢Type n
 ⟨ A ∣* id' ⟩ = A
 ⟨ A ∣* `＠` U ⨾ x₁ ⟩ = ⟨ ⟨ A ∣ `＠` U ⨾ id' ⟩ ∣* x₁ ⟩
 ⟨ A ∣* `[]` ⨾ x₁ ⟩ = ⟨ ⟨ A ∣ `[]` ⨾ id' ⟩ ∣* x₁ ⟩
 
+-- deconstruct : ∀{a} -> (A : 𝔐TT⊢Type a) -> ∑ λ b -> ∑ λ (μ : b ⟶ a) -> ∑ λ B -> ⟨ B ∣* μ ⟩ ≡ A
+-- deconstruct ⟨ A ∣ x ⟩
+--   with (_ , μ , B , refl-≡) <- deconstruct A
+--   = {!!}
+--   -- let _ , μ , B , p = deconstruct A
+--   -- in _ , (μ ◆' x) , {!!}
+-- deconstruct Unit = {!!}
+-- deconstruct (Tr A) = {!!}
+-- deconstruct (Either A A₁) = {!!}
+-- deconstruct (Lst A) = {!!}
+-- deconstruct (⟮ A ∣ x ⟯⇒ A₁) = {!!}
+
+withDeconstruct : ∀{X : 𝒰 𝑖} -> ∀{a} -> (A : 𝔐TT⊢Type a) -> ((∑ λ b -> ∑ λ (μ : b ⟶ a) -> ∑ λ B -> ⟨ B ∣* μ ⟩ ≡ A) -> X) -> X
+withDeconstruct ⟨ A ∣ id' ⟩ F = F (_ , id' , ⟨ A ∣ id' ⟩ , refl-≡)
+withDeconstruct ⟨ A ∣ x ⨾ id' ⟩ F = withDeconstruct A λ {(_ , μ , B , refl-≡) -> F (_ , (μ ◆' (x ⨾ id')) , B , {!!})}
+withDeconstruct ⟨ A ∣ x ⨾ xs ⨾ ys ⟩ F = F (_ , id' , ⟨ A ∣ x ⨾ xs ⨾ ys ⟩ , refl-≡)
+-- withDeconstruct A λ {(_ , μ , B , refl-≡) -> F (_ , μ , B , {!!})}
+withDeconstruct Z F = F (_ , id' , Z , refl-≡)
+-- withDeconstruct Unit F = {!!}
+-- withDeconstruct (Tr A) F = {!!}
+-- withDeconstruct (Either A A₁) F = {!!}
+-- withDeconstruct (Lst A) F = {!!}
+-- withDeconstruct (⟮ A ∣ x ⟯⇒ A₁) F = {!!}
+
+data _⊢Var_ : Ctx -> ∀{a} -> 𝔐TT⊢Type a -> 𝒰₀ where
+  zero : ∀{m n μ A} -> Γ , (x , (m , n , μ , A)) ⊢Var A
+  suc : ∀{m} -> ∀{A : 𝔐TT⊢Type m} -> ∀{y} -> Γ ⊢Var A -> Γ , y ⊢Var A
+
+
 data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
   var : Γ ⊢Var A -> Γ ⊢ A
+  var' : Γ ⊢Var A -> Γ ⊢ ⟨ A ∣* μ ⟩
 
   lam : ∀ x  -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
   app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
@@ -278,9 +306,11 @@ infer (Check t x) m = do
 
 
 check (Var x) m A = do
-  A' , v <- infer-Var x m
-  withTypeEquality A' A λ {refl-≡ ->
-    return $ var v
+  withDeconstruct A λ {(n , μ , A' , refl-≡) -> do
+    A'' , v <- infer-Var x n
+    withTypeEquality A'' A' λ {refl-≡ -> do
+      right $ var' {μ = μ} v
+      }
     }
 check {Γ = Γ} (Lam (NameFunArg x) t) m F = do
   withArrow F λ {(_ , μ₀ , A2 , B , refl-≡) -> do
