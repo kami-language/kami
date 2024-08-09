@@ -138,6 +138,15 @@ module 𝔐TT/Properties {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
     ... | no x = left $ "expected types to be equal (" <> show A <> " == " <> show B <> ")"
     ... | yes x = f x
 
+    withModalityEquality : {X : 𝒰 𝑖}
+                    {m n : ⟨ 𝓂 ⟩}
+                    (A B : m ⟶ n)
+                    (f : A ≡ B -> (Text +-𝒰 X))
+                    ->
+                    Text +-𝒰 X
+    withModalityEquality A B f with A ≟ B
+    ... | no x = left $ "expected modalities to be equal (" <> show A <> " == " <> show B <> ")"
+    ... | yes x = f x
 
 
   module _ {{_ : IShow ⟨ 𝓂 ⟩}} where

@@ -181,6 +181,8 @@ data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
   var : Γ ⊢Var A -> Γ ⊢ A
   var' : Γ ⊢Var A -> Γ ⊢ ⟨ A ∣* μ ⟩
 
+  mod : ∀{m n : Mode} {A : 𝔐TT⊢Type m} -> (μ : m ⟶ n) -> Γ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+
   lam : ∀ x  -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
   app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
 
@@ -220,7 +222,14 @@ withArrow : ∀{m} {X : 𝒰 𝑖}
           -> ((∑ λ n -> ∑ λ μ -> ∑ λ (A : 𝔐TT⊢Type n) -> ∑ λ (B : 𝔐TT⊢Type m) -> F ≡ ⟮ A ∣ μ ⟯⇒ B) -> Error +-𝒰 X)
           -> Error +-𝒰 X
 withArrow (⟮ A ∣ μ ⟯⇒ B) t = t (_ , μ , A , B , refl-≡)
-withArrow X t = left "Expected function type on left side of application"
+withArrow X t = left $ "Expected function type, but got: " <> show X
+
+withModal : ∀{m} {X : 𝒰 𝑖}
+          -> (F : 𝔐TT⊢Type m)
+          -> ((∑ λ n -> ∑ λ μ -> ∑ λ (A : 𝔐TT⊢Type n) -> F ≡ ⟨ A ∣ μ ⟩) -> Error +-𝒰 X)
+          -> Error +-𝒰 X
+withModal (⟨ A ∣ μ ⟩) t = t (_ , μ , A , refl-≡)
+withModal X t = left $ "Expected modal type, but got: " <> show X
 
 withSum : ∀{m} {X : 𝒰 𝑖}
           -> (F : 𝔐TT⊢Type m)
@@ -249,6 +258,10 @@ check : TermVal -> (m : Mode) -> (A : 𝔐TT⊢Type m) -> Error +-𝒰 (Γ ⊢ A
 
 infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
 infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
+infer (Mod μ t) m = do
+  n , μ' <- modecheck-modality μ m
+  A , t' <- infer t n
+  return $ _ , mod μ' t'
 infer (Lam (NameFunArg x) t) m = left "encountered lambda without type annotation in a place where it is required"
 infer (Lam (TypeFunArg x A) t) m = do
   n , μ , A' <- modecheck' A m
@@ -305,11 +318,27 @@ infer (Check t x) m = do
 
 
 
+-- check (Var x) m A = do
+--   withDeconstruct A λ {(n , μ , A' , refl-≡) -> do
+--     A'' , v <- infer-Var x n
+--     withTypeEquality A'' A' λ {refl-≡ -> do
+--       right $ var' {μ = μ} v
+--       }
+--     }
+
 check (Var x) m A = do
-  withDeconstruct A λ {(n , μ , A' , refl-≡) -> do
-    A'' , v <- infer-Var x n
-    withTypeEquality A'' A' λ {refl-≡ -> do
-      right $ var' {μ = μ} v
+    A'' , v <- infer-Var x m
+    withTypeEquality A'' A λ {refl-≡ -> do
+      right $ var v
+      }
+check (Mod μ t) m A = do
+  n , μ' <- modecheck-modality μ m
+  withModal A λ {(n'' , μ'' , A'' , refl-≡) -> do
+    withModeEquality n n'' λ {refl-≡ -> do
+      withModalityEquality μ' μ'' λ {refl-≡ -> do
+        t' <- check t n'' A''
+        return $ mod μ' t'
+        }
       }
     }
 check {Γ = Γ} (Lam (NameFunArg x) t) m F = do
