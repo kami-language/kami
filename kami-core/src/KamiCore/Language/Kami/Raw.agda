@@ -254,8 +254,10 @@ _&&_ F G ϕ = F λ a -> G λ b -> ϕ (a , b)
 infixr 30 _&&_
 
 
+{-# TERMINATING #-}
 check : TermVal -> (m : Mode) -> (A : 𝔐TT⊢Type m) -> Error +-𝒰 (Γ ⊢ A)
 
+{-# TERMINATING #-}
 infer : TermVal -> (m : Mode) -> Error +-𝒰 (∑ λ (A : 𝔐TT⊢Type m) -> Γ ⊢ A)
 infer (Var x) m = mapRight (λ (A , v) -> (A , var v)) (infer-Var x m)
 infer (Mod μ t) m = do
@@ -275,7 +277,7 @@ infer (App t s) m = do
     }
     -- withTypeEquality A A' λ {refl-≡ -> do
     --   return (B , app t' s')}}
-
+infer (LetIn x t s) m = infer (App (Lam x s) t) m
 infer (Fst t) m = left "not implemented: product types"
 infer (Snd t) m = left "not implemented: product types"
 infer (MkProd t t₁) m = left "not implemented: product types"
@@ -361,6 +363,7 @@ check (App t s) m B = do
     withTypeEquality B B' λ {refl-≡ -> do
       return (app t' s')
       }}
+check (LetIn x t s) m B = check (App (Lam x s) t) m B
 check (Fst t) m A = left "not implemented"
 check (Snd t) m A = left "not implemented"
 check (MkProd t t₁) m A = left "not implemented"

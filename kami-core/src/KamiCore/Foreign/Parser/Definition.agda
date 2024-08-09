@@ -41,6 +41,7 @@ data TermVal : 𝒰₀ where
   Var : Name -> TermVal
   Lam : FunArg -> TermVal -> TermVal
   App : TermVal -> TermVal -> TermVal
+  LetIn : FunArg -> TermVal -> TermVal -> TermVal
 
   Mod : Modality -> TermVal -> TermVal
 
@@ -57,7 +58,7 @@ data TermVal : 𝒰₀ where
   TT : TermVal
   Check : TermVal -> TypeVal -> TermVal
 
-{-# COMPILE GHC TermVal = data TermVal (Var | Lam | App | Mod | Fst | Snd | MkProd | Left' | Right' | Either' | Nil | Cons | ListRec | TT | Check) #-}
+{-# COMPILE GHC TermVal = data TermVal (Var | Lam | App | LetIn | Mod | Fst | Snd | MkProd | Left' | Right' | Either' | Nil | Cons | ListRec | TT | Check) #-}
 
 -- data Statement : 𝒰₀ where
 --   TypeDef : Name -> TypeVal -> Statement
