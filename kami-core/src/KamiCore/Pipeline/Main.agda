@@ -25,7 +25,7 @@ isLambda (_) = "No lambda :("
 open import KamiCore.Language.Kami.Raw
 
 approximateTypecheck : TermVal -> Text
-approximateTypecheck t with typecheck {Γ = ε} t Global
+approximateTypecheck t with infer {Γ = ε} t Global
 ... | left e = e
 ... | right _ = "done"
 {-# COMPILE GHC approximateTypecheck as approximateTypecheck #-}
