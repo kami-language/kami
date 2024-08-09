@@ -111,22 +111,39 @@ module 𝔐TT/Properties {𝑖 : 𝔏 ^ 6} (This : MTT 𝑖) where
     hasDecidableEquality:𝔐TT⊢Type = record { _≟_ = decide-≡-𝔐TT⊢Type }
 
 
-  withTypeEquality : ∀{m} {X : 𝒰 𝑖}
-                  (A B : ⊢Type m)
-                  (f : A ≡ B -> (Text +-𝒰 X))
-                  ->
-                  Text +-𝒰 X
-  withTypeEquality A B f with A ≟ B
-  ... | no x = left "expected types to be equal"
-  ... | yes x = f x
+
+  -----------------------------------------------
+  -- Show
+
+  module _ {{_ : ∀{m n : ⟨ 𝓂 ⟩} -> IShow (m ⟶ n)}} where
+    show-Type : ∀{m} -> ⊢Type m -> String
+    show-Type ⟨ X ∣ x ⟩ = "⟨ " <> show-Type X <> " ∣ " <> show x <> " ⟩"
+    show-Type Unit = "Unit"
+    show-Type (Tr X) = "(Tr " <> show-Type X <> ")"
+    show-Type (Either X Y) = "(Either " <> show-Type X <> " " <> show-Type Y <> ")" 
+    show-Type (Lst X) = "(List " <> show-Type X <> ")"
+    show-Type (⟮ X ∣ μ ⟯⇒ Y) = "⟨ " <> show-Type X <> " ∣ " <> show μ <> " ⟩⇒ " <> show-Type Y
+
+    instance
+      IShow:Type : ∀{m} -> IShow (⊢Type m)
+      IShow:Type = record { show = show-Type }
 
 
-  withModeEquality : {X : 𝒰 𝑖}
-                  (A B : ⟨ 𝓂 ⟩)
-                  (f : A ≡ B -> (Text +-𝒰 X))
-                  ->
-                  Text +-𝒰 X
-  withModeEquality A B f with A ≟ B
-  ... | no x = left "expected types to be equal"
-  ... | yes x = f x
+    withTypeEquality : ∀{m} {X : 𝒰 𝑖}
+                    (A B : ⊢Type m)
+                    (f : A ≡ B -> (Text +-𝒰 X))
+                    ->
+                    Text +-𝒰 X
+    withTypeEquality A B f with A ≟ B
+    ... | no x = left $ "expected types to be equal (" <> show A <> " == " <> show B <> ")"
+    ... | yes x = f x
 
+
+    withModeEquality : {X : 𝒰 𝑖}
+                    (A B : ⟨ 𝓂 ⟩)
+                    (f : A ≡ B -> (Text +-𝒰 X))
+                    ->
+                    Text +-𝒰 X
+    withModeEquality A B f with A ≟ B
+    ... | no x = left "expected types to be equal"
+    ... | yes x = f x

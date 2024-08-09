@@ -87,6 +87,13 @@ Local l = ▲ (tr-loc l)
 Global : Mode
 Global = ◯
 
+-- show-Modality : ∀{m n : Mode} -> m ⟶ n -> String
+-- show-Modality = {!!}
+
+-- instance
+--   IShow:Modality : ∀{m n : Mode} -> IShow (m ⟶ n)
+--   IShow:Modality = record { show = show-Modality }
+
 modecheck' : TypeVal -> (m : Mode) -> Error +-𝒰 (∑ λ n -> (Modality' n m) ×-𝒰 𝔐TT⊢Type n)
 modecheck : TypeVal -> (m : Mode) -> Error +-𝒰 (𝔐TT⊢Type m)
 modecheck-modality : Modality -> (m : Mode) -> Error +-𝒰 (∑ λ n -> Modality' n m)
