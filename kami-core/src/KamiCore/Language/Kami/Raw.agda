@@ -18,6 +18,9 @@ open import KamiTheory.Main.Generic.ModeSystem.ModeSystem.Instance.2Category
 open import KamiTheory.Main.Generic.ModeSystem.2Graph.Definition renaming (_◆_ to _◆'_ ; id to id')
 open import Agda.Builtin.String using () renaming (primStringEquality to _==-String_)
 
+open import KamiCore.Language.Kami.Setup
+
+{-
 cmp-Name : Name -> Name -> Bool
 cmp-Name x y = getName x ==-String getName y
 
@@ -68,6 +71,11 @@ Mode = ⟨ 𝓂 ⟩
 
 Modality' : Mode -> Mode -> 𝒰₀
 Modality' a b = Hom {{(of ↳ 𝓂)}} a b
+
+-}
+
+
+
 
 data Ctx : 𝒰₀ where
   ε : Ctx
@@ -372,7 +380,6 @@ check {Γ = Γ} (LetIn (NameFunArg x) t s) m B = do
     }
   -- check (App (Lam x s) t) m B
 check (LetIn (TypeFunArg x A) t s) m B = left "not implemented" -- check (App (Lam x s) t) m B
-check (LetIn x t s) m B = check (App (Lam x s) t) m B
 check (Fst t) m A = left "not implemented"
 check (Snd t) m A = left "not implemented"
 check (MkProd t t₁) m A = left "not implemented"
