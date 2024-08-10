@@ -182,6 +182,7 @@ data _⊢_ : Ctx -> ∀{m} -> 𝔐TT⊢Type m -> 𝒰₀ where
   var' : Γ ⊢Var A -> Γ ⊢ ⟨ A ∣* μ ⟩
 
   mod : ∀{m n : Mode} {A : 𝔐TT⊢Type m} -> (μ : m ⟶ n) -> Γ ⊢ A -> Γ ⊢ ⟨ A ∣ μ ⟩
+  letmod : ∀{m n : Mode} {A : 𝔐TT⊢Type m} {B : 𝔐TT⊢Type n} -> {μ : m ⟶ n} -> Γ ⊢ ⟨ A ∣* μ ⟩ -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ B
 
   lam : ∀ x  -> Γ , (x , (_ , _ , μ , A)) ⊢ B -> Γ ⊢ ⟮ A ∣ μ ⟯⇒ B
   app : Γ ⊢ ⟮ A ∣ μ ⟯⇒ B -> Γ ⊢ A -> Γ ⊢ B
@@ -363,6 +364,14 @@ check (App t s) m B = do
     withTypeEquality B B' λ {refl-≡ -> do
       return (app t' s')
       }}
+check {Γ = Γ} (LetIn (NameFunArg x) t s) m B = do
+  A , t' <- infer t m
+  withDeconstruct A λ {(n , μ , A' , refl-≡) -> do
+    s' <- check {Γ = Γ , (x , (_ , _ , μ , A'))} s m B
+    return $ letmod t' s'
+    }
+  -- check (App (Lam x s) t) m B
+check (LetIn (TypeFunArg x A) t s) m B = left "not implemented" -- check (App (Lam x s) t) m B
 check (LetIn x t s) m B = check (App (Lam x s) t) m B
 check (Fst t) m A = left "not implemented"
 check (Snd t) m A = left "not implemented"
